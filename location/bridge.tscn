@@ -1,0 +1,86 @@
+[gd_scene load_steps=4 format=3 uid="uid://cmkgqllncyvjd"]
+
+[ext_resource type="Texture2D" uid="uid://cf4uvxmc5aj61" path="res://texture/t_bridge_section.png" id="1_5dpc0"]
+[ext_resource type="PackedScene" uid="uid://bdj8ouuohx8sd" path="res://Character_animegirl.tscn" id="2_so7dt"]
+[ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="3_5hvmm"]
+
+[node name="Bridge" type="Node2D"]
+
+[node name="Bridge-Back" type="Parallax2D" parent="."]
+
+[node name="TextureRect_Bridge" type="TextureRect" parent="Bridge-Back"]
+offset_left = -430.0
+offset_top = 585.0
+offset_right = 59570.0
+offset_bottom = 880.0
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_5dpc0")
+stretch_mode = 1
+
+[node name="BridgeCenterSpan" type="Polygon2D" parent="Bridge-Back"]
+position = Vector2(-273, -9)
+color = Color(0.447059, 0.447059, 0.447059, 1)
+polygon = PackedVector2Array(-155, 744, -154, 834, 14843, 833, 14840, 745)
+
+[node name="Pillar" type="Polygon2D" parent="Bridge-Back"]
+color = Color(0.244776, 0.244776, 0.244776, 1)
+polygon = PackedVector2Array(192, 825, 194, 1471, 590, 1471, 589, 825)
+
+[node name="Bridge-Middle" type="Parallax2D" parent="."]
+scroll_scale = Vector2(1.1, 1.1)
+
+[node name="BridgeCenterSpan" type="Polygon2D" parent="Bridge-Middle"]
+position = Vector2(-273, 0)
+color = Color(0.447059, 0.447059, 0.447059, 1)
+polygon = PackedVector2Array(-153, 739, -152, 838, 439.929, 836.825, 14844, 826, 14844, 733)
+
+[node name="Bridge-Front" type="Parallax2D" parent="."]
+scroll_scale = Vector2(1.2, 1.2)
+
+[node name="Node2D" parent="Bridge-Front" instance=ExtResource("2_so7dt")]
+position = Vector2(4654, 619)
+scale = Vector2(0.19, 0.19)
+
+[node name="LShoulder" parent="Bridge-Front/Node2D/Skeleton2D/Torso" index="1"]
+scale = Vector2(1, 1)
+
+[node name="LArm" parent="Bridge-Front/Node2D/Skeleton2D/Torso/LShoulder" index="0"]
+rotation = -0.265693
+scale = Vector2(1, 1)
+
+[node name="LWrist" parent="Bridge-Front/Node2D/Skeleton2D/Torso/LShoulder/LArm" index="0"]
+rotation = -0.696402
+
+[node name="RArm" parent="Bridge-Front/Node2D/Skeleton2D/Torso/RShoulder" index="0"]
+rotation = 0.498787
+scale = Vector2(1, 1)
+
+[node name="RWrist" parent="Bridge-Front/Node2D/Skeleton2D/Torso/RShoulder/RArm" index="0"]
+rotation = 1.51708
+
+[node name="LAnkle" parent="Bridge-Front/Node2D/Skeleton2D/Torso/Hip/LThigh/LKnee" index="0"]
+scale = Vector2(0.999999, 0.999999)
+
+[node name="RThigh2" parent="Bridge-Front/Node2D/Skeleton2D/Torso/Hip/RThigh" index="0"]
+rotation = -1.3625
+
+[node name="RAnkle" parent="Bridge-Front/Node2D/Skeleton2D/Torso/Hip/RThigh/RThigh2/RKnee" index="0"]
+scale = Vector2(0.999999, 0.999999)
+
+[node name="eyeslug" parent="Bridge-Front" instance=ExtResource("3_5hvmm")]
+position = Vector2(-1057, 11.9999)
+
+[node name="Pillar2" type="Polygon2D" parent="Bridge-Front"]
+color = Color(0.244776, 0.244776, 0.244776, 1)
+polygon = PackedVector2Array(192, 836, 194, 1471, 590, 1471, 590, 831)
+
+[node name="TextureRect_Bridge" type="TextureRect" parent="Bridge-Front"]
+offset_left = -430.0
+offset_top = 640.0
+offset_right = 59570.0
+offset_bottom = 935.0
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_5dpc0")
+stretch_mode = 1
+
+[editable path="Bridge-Front/Node2D"]

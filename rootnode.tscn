@@ -1,0 +1,212 @@
+[gd_scene load_steps=22 format=3 uid="uid://ce6n3y4eidlxj"]
+
+[ext_resource type="Shader" path="res://shader/shader_clouds.gdshader" id="1_ctmu0"]
+[ext_resource type="PackedScene" uid="uid://cmkgqllncyvjd" path="res://location/bridge.tscn" id="1_ehrt4"]
+[ext_resource type="Script" path="res://MapCamera2D.gd" id="2_kevjb"]
+[ext_resource type="Material" uid="uid://cnoqvolirupw" path="res://material/material_raindrops_on_screen.tres" id="3_fq03p"]
+[ext_resource type="Material" uid="uid://b1nulcpce6tfv" path="res://material/material_rain_falling_from_sky.tres" id="4_645lm"]
+[ext_resource type="Shader" path="res://shader/shader_water.gdshader" id="5_34p74"]
+[ext_resource type="Texture2D" uid="uid://765f8scvqvbx" path="res://icon.svg" id="7_u6jvo"]
+
+[sub_resource type="Gradient" id="Gradient_if6ei"]
+offsets = PackedFloat32Array(0.352459, 1)
+colors = PackedColorArray(0, 0, 0.5, 1, 2, 1, 0.54, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vmojv"]
+gradient = SubResource("Gradient_if6ei")
+fill_from = Vector2(0.0376344, 0.344086)
+fill_to = Vector2(0.784946, 0.5)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x5fru"]
+shader = ExtResource("1_ctmu0")
+shader_parameter/cloudscale = 1.72
+shader_parameter/speed = 0.01
+shader_parameter/clouddark = 0.5
+shader_parameter/cloudlight = 0.3
+shader_parameter/cloudcover = 0.2
+shader_parameter/cloudalpha = 8.0
+shader_parameter/skytint = 0.5
+shader_parameter/skycolour1 = Vector3(4, 4, 2)
+shader_parameter/skycolour2 = Vector3(0, 0, 0.5)
+shader_parameter/m = Transform2D(1.2, -1.2, 1.2, 1.6, 0, 0)
+shader_parameter/up_left = Vector2(-1, 0)
+shader_parameter/up_right = Vector2(2.045, 0)
+shader_parameter/down_right = Vector2(1, 0.7)
+shader_parameter/down_left = Vector2(0, 0.7)
+shader_parameter/plane_size = Vector2(12872, 4321)
+shader_parameter/skycolor = SubResource("GradientTexture2D_vmojv")
+
+[sub_resource type="Gradient" id="Gradient_cxe53"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_s26tt"]
+gradient = SubResource("Gradient_cxe53")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hf405"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0snh0"]
+seamless = true
+noise = SubResource("FastNoiseLite_hf405")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_jj7kr"]
+fractal_lacunarity = 4.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0uiy8"]
+seamless = true
+noise = SubResource("FastNoiseLite_jj7kr")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_343xw"]
+shader = ExtResource("5_34p74")
+shader_parameter/level = 0.464
+shader_parameter/water_albedo = Color(0.297552, 0.514315, 0.912238, 1)
+shader_parameter/water_opacity = 0.35
+shader_parameter/water_speed = 0.005
+shader_parameter/wave_distortion = 0.2
+shader_parameter/wave_multiplyer = 7
+shader_parameter/water_texture_on = true
+shader_parameter/water_texture_type = 1
+shader_parameter/reflection_X_offset = 0.0
+shader_parameter/reflection_Y_offset = 0.34
+shader_parameter/param1 = Vector2(0.015, 0.195)
+shader_parameter/param2 = Vector2(0.19, 0.195)
+shader_parameter/param3 = Vector2(0.195, 0.1)
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_0snh0")
+shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
+
+[sub_resource type="Animation" id="Animation_lrebp"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MapCamera2D:offset")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(800, 450)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("MapCamera2D:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_rse2w"]
+resource_name = "zoom_in"
+length = 15.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MapCamera2D:offset")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.0666667, 2.96667, 14.7667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(2500, 500), Vector2(3000, 600), Vector2(2000, 400)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("MapCamera2D:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 2.96667, 14.7667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1.25, 1.25), Vector2(1, 1), Vector2(0.25, 0.25)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_jktfc"]
+_data = {
+"RESET": SubResource("Animation_lrebp"),
+"zoom_in": SubResource("Animation_rse2w")
+}
+
+[sub_resource type="Environment" id="Environment_837tw"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 3.29
+glow_strength = 0.8
+glow_blend_mode = 0
+glow_hdr_threshold = 0.32
+
+[node name="Rootnode" type="Node2D"]
+
+[node name="Sky" type="TextureRect" parent="."]
+z_index = -100
+z_as_relative = false
+material = SubResource("ShaderMaterial_x5fru")
+offset_left = -3277.0
+offset_top = -1866.0
+offset_right = 9504.0
+offset_bottom = 930.0
+texture = SubResource("GradientTexture1D_s26tt")
+
+[node name="Bridge" parent="." instance=ExtResource("1_ehrt4")]
+modulate = Color(1.5, 1.5, 1.5, 1)
+position = Vector2(-1359, 0)
+
+[node name="MapCamera2D" type="Camera2D" parent="."]
+offset = Vector2(800, 450)
+script = ExtResource("2_kevjb")
+pan_speed = 500.0
+
+[node name="RainController" type="CanvasLayer" parent="MapCamera2D"]
+
+[node name="Panel_Raindrops_On_Screen" type="Panel" parent="MapCamera2D/RainController"]
+material = ExtResource("3_fq03p")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel_rain_falling_in_sky" type="Panel" parent="MapCamera2D/RainController"]
+material = ExtResource("4_645lm")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ColorRect2_water" type="ColorRect" parent="."]
+z_index = 1
+material = SubResource("ShaderMaterial_343xw")
+offset_left = -1836.0
+offset_top = -1330.0
+offset_right = 13233.0
+offset_bottom = 3536.0
+mouse_filter = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_jktfc")
+}
+autoplay = "zoom_in"
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+color = Color(0.779291, 0.779291, 0.779291, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_837tw")
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+visible = false
+position = Vector2(2528, 415)
+scale = Vector2(0.445313, 0.445313)
+color = Color(1.6, 1.6, 0.7, 1)
+energy = 15.0
+texture = ExtResource("7_u6jvo")
