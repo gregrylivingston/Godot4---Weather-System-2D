@@ -1,12 +1,15 @@
-[gd_scene load_steps=22 format=3 uid="uid://ce6n3y4eidlxj"]
+[gd_scene load_steps=25 format=3 uid="uid://ce6n3y4eidlxj"]
 
 [ext_resource type="Shader" path="res://shader/shader_clouds.gdshader" id="1_ctmu0"]
 [ext_resource type="PackedScene" uid="uid://cmkgqllncyvjd" path="res://location/bridge.tscn" id="1_ehrt4"]
 [ext_resource type="Script" path="res://MapCamera2D.gd" id="2_kevjb"]
+[ext_resource type="Script" path="res://sky/sky.gd" id="2_p3tvt"]
 [ext_resource type="Material" uid="uid://cnoqvolirupw" path="res://material/material_raindrops_on_screen.tres" id="3_fq03p"]
 [ext_resource type="Material" uid="uid://b1nulcpce6tfv" path="res://material/material_rain_falling_from_sky.tres" id="4_645lm"]
 [ext_resource type="Shader" path="res://shader/shader_water.gdshader" id="5_34p74"]
+[ext_resource type="Script" path="res://sky/panel_raindrops_on_screen.gd" id="6_msljk"]
 [ext_resource type="Texture2D" uid="uid://765f8scvqvbx" path="res://icon.svg" id="7_u6jvo"]
+[ext_resource type="Script" path="res://panel_rain_falling_in_sky.gd" id="8_k3d3a"]
 
 [sub_resource type="Gradient" id="Gradient_if6ei"]
 offsets = PackedFloat32Array(0.352459, 1)
@@ -118,7 +121,7 @@ noise = SubResource("FastNoiseLite_jj7kr")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_343xw"]
 shader = ExtResource("5_34p74")
 shader_parameter/level = 0.5
-shader_parameter/water_albedo = Color(0.297552, 0.514315, 0.912238, 1)
+shader_parameter/water_albedo = Color(0.138986, 0.329283, 0.683356, 1)
 shader_parameter/water_opacity = 0.35
 shader_parameter/water_speed = 0.005
 shader_parameter/wave_distortion = 0.2
@@ -152,6 +155,7 @@ offset_top = -1866.0
 offset_right = 9504.0
 offset_bottom = 930.0
 texture = SubResource("GradientTexture1D_s26tt")
+script = ExtResource("2_p3tvt")
 
 [node name="Bridge" parent="." instance=ExtResource("1_ehrt4")]
 modulate = Color(1.5, 1.5, 1.5, 1)
@@ -172,6 +176,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("6_msljk")
 
 [node name="Panel_rain_falling_in_sky" type="Panel" parent="MapCamera2D/RainController"]
 material = ExtResource("4_645lm")
@@ -181,6 +186,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("8_k3d3a")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {

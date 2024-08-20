@@ -68,7 +68,7 @@ rotation = -1.3625
 scale = Vector2(0.999999, 0.999999)
 
 [node name="eyeslug" parent="Bridge-Front" instance=ExtResource("3_5hvmm")]
-position = Vector2(-1057, 3.99995)
+position = Vector2(-3011, 3.99995)
 
 [node name="Pillar2" type="Polygon2D" parent="Bridge-Front"]
 color = Color(0.244776, 0.244776, 0.244776, 1)

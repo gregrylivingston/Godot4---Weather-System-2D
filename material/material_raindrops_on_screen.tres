@@ -4,5 +4,5 @@
 
 [resource]
 shader = ExtResource("1_emwdj")
-shader_parameter/frequency = 0.0
+shader_parameter/frequency = 4.0
 shader_parameter/size = 0.015
