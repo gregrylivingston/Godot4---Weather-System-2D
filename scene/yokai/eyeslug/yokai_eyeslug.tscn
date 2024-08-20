@@ -7,12 +7,13 @@
 [ext_resource type="Texture2D" uid="uid://ddwpfm71wvf82" path="res://texture/yokai/t_big_eye_inner.png" id="4_uvmlo"]
 
 [sub_resource type="Gradient" id="Gradient_4jyxy"]
-offsets = PackedFloat32Array(0.311475, 0.508197)
+offsets = PackedFloat32Array(0.311475, 0.57377)
 colors = PackedColorArray(0.826536, 0.33027, 0.409543, 1, 0.940164, 0.532493, 0.528164, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_ihofy"]
 gradient = SubResource("Gradient_4jyxy")
-fill_from = Vector2(0, 0.822581)
+fill_from = Vector2(0.306452, 0.693548)
+fill_to = Vector2(0.983871, 0.376344)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3cxpu"]
 shader = ExtResource("1_8wsgy")
@@ -68,7 +69,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(2, 3.83333),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [450.0, 0.0]
+"values": [300.0, 0.0]
 }
 
 [sub_resource type="Animation" id="Animation_tis3w"]

@@ -41,37 +41,6 @@ shader_parameter/skycolor = SubResource("GradientTexture2D_vmojv")
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_s26tt"]
 gradient = SubResource("Gradient_cxe53")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_hf405"]
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0snh0"]
-seamless = true
-noise = SubResource("FastNoiseLite_hf405")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_jj7kr"]
-fractal_lacunarity = 4.0
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0uiy8"]
-seamless = true
-noise = SubResource("FastNoiseLite_jj7kr")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_343xw"]
-shader = ExtResource("5_34p74")
-shader_parameter/level = 0.464
-shader_parameter/water_albedo = Color(0.297552, 0.514315, 0.912238, 1)
-shader_parameter/water_opacity = 0.35
-shader_parameter/water_speed = 0.005
-shader_parameter/wave_distortion = 0.2
-shader_parameter/wave_multiplyer = 7
-shader_parameter/water_texture_on = true
-shader_parameter/water_texture_type = 1
-shader_parameter/reflection_X_offset = 0.0
-shader_parameter/reflection_Y_offset = 0.34
-shader_parameter/param1 = Vector2(0.015, 0.195)
-shader_parameter/param2 = Vector2(0.19, 0.195)
-shader_parameter/param3 = Vector2(0.195, 0.1)
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_0snh0")
-shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
-
 [sub_resource type="Animation" id="Animation_lrebp"]
 length = 0.001
 tracks/0/type = "value"
@@ -101,7 +70,7 @@ tracks/1/keys = {
 
 [sub_resource type="Animation" id="Animation_rse2w"]
 resource_name = "zoom_in"
-length = 15.0
+length = 45.0
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -109,22 +78,22 @@ tracks/0/path = NodePath("MapCamera2D:offset")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0.0666667, 2.96667, 14.7667),
+"times": PackedFloat32Array(0, 8.23333, 26.1),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector2(2500, 500), Vector2(3000, 600), Vector2(2000, 400)]
+"values": [Vector2(3500, 750), Vector2(3000, 730), Vector2(2000, 500)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("MapCamera2D:zoom")
-tracks/1/interp = 1
+tracks/1/interp = 2
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 2.96667, 14.7667),
+"times": PackedFloat32Array(0, 7.83333, 26.1),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector2(1.25, 1.25), Vector2(1, 1), Vector2(0.25, 0.25)]
+"values": [Vector2(1, 1), Vector2(1, 1), Vector2(0.25, 0.25)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_jktfc"]
@@ -132,6 +101,37 @@ _data = {
 "RESET": SubResource("Animation_lrebp"),
 "zoom_in": SubResource("Animation_rse2w")
 }
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hf405"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0snh0"]
+seamless = true
+noise = SubResource("FastNoiseLite_hf405")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_jj7kr"]
+fractal_lacunarity = 4.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0uiy8"]
+seamless = true
+noise = SubResource("FastNoiseLite_jj7kr")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_343xw"]
+shader = ExtResource("5_34p74")
+shader_parameter/level = 0.5
+shader_parameter/water_albedo = Color(0.297552, 0.514315, 0.912238, 1)
+shader_parameter/water_opacity = 0.35
+shader_parameter/water_speed = 0.005
+shader_parameter/wave_distortion = 0.2
+shader_parameter/wave_multiplyer = 7
+shader_parameter/water_texture_on = true
+shader_parameter/water_texture_type = 1
+shader_parameter/reflection_X_offset = 0.02
+shader_parameter/reflection_Y_offset = 0.14
+shader_parameter/param1 = Vector2(0.015, 0.195)
+shader_parameter/param2 = Vector2(0.19, 0.195)
+shader_parameter/param3 = Vector2(0.195, 0.1)
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_0snh0")
+shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
 
 [sub_resource type="Environment" id="Environment_837tw"]
 background_mode = 3
@@ -182,20 +182,23 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ColorRect2_water" type="ColorRect" parent="."]
-z_index = 1
-material = SubResource("ShaderMaterial_343xw")
-offset_left = -1836.0
-offset_top = -1330.0
-offset_right = 13233.0
-offset_bottom = 3536.0
-mouse_filter = 2
-
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 "": SubResource("AnimationLibrary_jktfc")
 }
 autoplay = "zoom_in"
+
+[node name="Parallax2D" type="Parallax2D" parent="."]
+scroll_scale = Vector2(1.2, 1.2)
+
+[node name="ColorRect2_water" type="ColorRect" parent="Parallax2D"]
+z_index = 1
+material = SubResource("ShaderMaterial_343xw")
+offset_left = -1836.0
+offset_top = -1505.0
+offset_right = 13233.0
+offset_bottom = 3361.0
+mouse_filter = 2
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 color = Color(0.779291, 0.779291, 0.779291, 1)
