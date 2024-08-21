@@ -1,22 +1,14 @@
-[gd_scene load_steps=15 format=3 uid="uid://daf0l6760wxfn"]
+[gd_scene load_steps=14 format=3 uid="uid://daf0l6760wxfn"]
 
 [ext_resource type="Shader" path="res://shader/shader_clouds.gdshader" id="1_rww6c"]
 [ext_resource type="Script" path="res://sky/sky_setting.gd" id="1_tgvmj"]
 [ext_resource type="Script" path="res://sky/sky.gd" id="2_fu5rx"]
+[ext_resource type="Texture2D" uid="uid://ybhgqoqbiy7n" path="res://sky/Gradient2D_Sky.tres" id="3_blnq2"]
 [ext_resource type="Script" path="res://MapCamera2D.gd" id="3_ihn1m"]
 [ext_resource type="Material" uid="uid://cnoqvolirupw" path="res://material/material_raindrops_on_screen.tres" id="4_3ynh6"]
 [ext_resource type="Script" path="res://sky/panel_raindrops_on_screen.gd" id="5_3t8p2"]
 [ext_resource type="Material" uid="uid://b1nulcpce6tfv" path="res://material/material_rain_falling_from_sky.tres" id="6_uqcgd"]
 [ext_resource type="Script" path="res://panel_rain_falling_in_sky.gd" id="7_av4gv"]
-
-[sub_resource type="Gradient" id="Gradient_if6ei"]
-offsets = PackedFloat32Array(0.352459, 1)
-colors = PackedColorArray(0, 0, 0.5, 1, 2, 1, 0.54, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_vmojv"]
-gradient = SubResource("Gradient_if6ei")
-fill_from = Vector2(0.0376344, 0.344086)
-fill_to = Vector2(0.784946, 0.5)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x5fru"]
 shader = ExtResource("1_rww6c")
@@ -35,7 +27,7 @@ shader_parameter/up_right = Vector2(2.045, 0)
 shader_parameter/down_right = Vector2(1, 0.7)
 shader_parameter/down_left = Vector2(0, 0.7)
 shader_parameter/plane_size = Vector2(12872, 4321)
-shader_parameter/skycolor = SubResource("GradientTexture2D_vmojv")
+shader_parameter/skycolor = ExtResource("3_blnq2")
 
 [sub_resource type="Gradient" id="Gradient_cxe53"]
 
@@ -52,7 +44,8 @@ glow_hdr_threshold = 0.32
 
 [node name="SkySetting" type="Node2D" groups=["SkySetting"]]
 script = ExtResource("1_tgvmj")
-rainAmount = 0.806
+rainAmount = 1.0
+rainDelta = -0.087
 
 [node name="Sky" type="TextureRect" parent="."]
 z_index = -100

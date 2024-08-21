@@ -99,7 +99,8 @@ shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
 [node name="Rootnode" type="Node2D"]
 
 [node name="SkySetting" parent="." instance=ExtResource("1_4piqk")]
-rainAmount = 0.504
+rainAmount = 0.0
+rainDelta = 0.018
 
 [node name="Bridge" parent="." instance=ExtResource("1_ehrt4")]
 modulate = Color(1.5, 1.5, 1.5, 1)
