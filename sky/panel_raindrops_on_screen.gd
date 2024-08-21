@@ -1,8 +1,8 @@
 extends Panel
 
-@export_range(-5.0,10.0) var rainAmount = 7.0
 
-func _process(delta: float) -> void:
-	material.set_shader_parameter("frequency", rainAmount)
-	rainAmount -= 0.008
-	rainAmount = clamp(rainAmount, 0, 7)
+func _ready() -> void:
+	get_tree().get_first_node_in_group("SkySetting").updateRainAmount.connect(setRainAmount)
+
+func setRainAmount(rainAmount):
+	material.set_shader_parameter("frequency", clamp(5.0 - rainAmount * 14.0, 0.0 , 7.0))

@@ -23,3 +23,7 @@ window/size/viewport_height=900
 [editor]
 
 movie_writer/movie_file="D:/Godot Projects/parallaxdemo/ParallaxDemoYokai/movie.avi"
+
+[global_group]
+
+SkySetting=""

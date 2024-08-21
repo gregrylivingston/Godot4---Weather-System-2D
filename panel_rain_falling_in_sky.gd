@@ -1,7 +1,9 @@
 extends Panel
 
-@export_range(-5.0,10.0) var rainAmount = -10
 
-func _process(delta: float) -> void:
-	material.set_shader_parameter("count", rainAmount)
-	rainAmount += 0.05
+func _ready() -> void:
+	get_tree().get_first_node_in_group("SkySetting").updateRainAmount.connect(setRainAmount)
+	
+
+func setRainAmount(rainAmount) -> void:
+	material.set_shader_parameter("count", clamp(rainAmount * 300, 0.0 , 500.0))
