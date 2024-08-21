@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://cmkgqllncyvjd"]
+[gd_scene load_steps=5 format=3 uid="uid://cmkgqllncyvjd"]
 
 [ext_resource type="Texture2D" uid="uid://cf4uvxmc5aj61" path="res://texture/t_bridge_section.png" id="1_5dpc0"]
 [ext_resource type="PackedScene" uid="uid://bdj8ouuohx8sd" path="res://Character_animegirl.tscn" id="2_so7dt"]
 [ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="3_5hvmm"]
+[ext_resource type="Texture2D" uid="uid://cm3w3vpowcfbv" path="res://texture/yokai/5a.png" id="3_nrkju"]
 
 [node name="Bridge" type="Node2D"]
 
@@ -59,13 +60,20 @@ scale = Vector2(1, 1)
 rotation = 1.51708
 
 [node name="LAnkle" parent="Bridge-Front/Node2D/Skeleton2D/Torso/Hip/LThigh/LKnee" index="0"]
-scale = Vector2(0.999999, 0.999999)
+scale = Vector2(0.999998, 0.999998)
 
 [node name="RThigh2" parent="Bridge-Front/Node2D/Skeleton2D/Torso/Hip/RThigh" index="0"]
 rotation = -1.3625
 
 [node name="RAnkle" parent="Bridge-Front/Node2D/Skeleton2D/Torso/Hip/RThigh/RThigh2/RKnee" index="0"]
-scale = Vector2(0.999999, 0.999999)
+scale = Vector2(0.999998, 0.999998)
+
+[node name="Sprite2D" type="Sprite2D" parent="Bridge-Front"]
+modulate = Color(0.71213, 0.712129, 0.712129, 1)
+position = Vector2(5058.63, 631.5)
+scale = Vector2(0.680894, 0.680894)
+texture = ExtResource("3_nrkju")
+flip_h = true
 
 [node name="eyeslug" parent="Bridge-Front" instance=ExtResource("3_5hvmm")]
 position = Vector2(-3011, 3.99995)

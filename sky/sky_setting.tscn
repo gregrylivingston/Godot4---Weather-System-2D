@@ -16,11 +16,9 @@ shader_parameter/cloudscale = 1.72
 shader_parameter/speed = 0.01
 shader_parameter/clouddark = 0.5
 shader_parameter/cloudlight = 0.3
-shader_parameter/cloudcover = 0.2
+shader_parameter/cloudcover = -15.0
 shader_parameter/cloudalpha = 8.0
 shader_parameter/skytint = 0.5
-shader_parameter/skycolour1 = Vector3(4, 4, 2)
-shader_parameter/skycolour2 = Vector3(0, 0, 0.5)
 shader_parameter/m = Transform2D(1.2, -1.2, 1.2, 1.6, 0, 0)
 shader_parameter/up_left = Vector2(-1, 0)
 shader_parameter/up_right = Vector2(2.045, 0)
@@ -44,8 +42,8 @@ glow_hdr_threshold = 0.32
 
 [node name="SkySetting" type="Node2D" groups=["SkySetting"]]
 script = ExtResource("1_tgvmj")
-rainAmount = 1.0
-rainDelta = -0.087
+rainAmount = -0.1
+rainDelta = 0.015
 
 [node name="Sky" type="TextureRect" parent="."]
 z_index = -100
@@ -66,7 +64,6 @@ pan_speed = 500.0
 [node name="RainController" type="CanvasLayer" parent="MapCamera2D"]
 
 [node name="Panel_Raindrops_On_Screen" type="Panel" parent="MapCamera2D/RainController"]
-unique_name_in_owner = true
 material = ExtResource("4_3ynh6")
 anchors_preset = 15
 anchor_right = 1.0
@@ -77,11 +74,11 @@ mouse_filter = 2
 script = ExtResource("5_3t8p2")
 
 [node name="Panel_rain_falling_in_sky" type="Panel" parent="MapCamera2D/RainController"]
-unique_name_in_owner = true
 material = ExtResource("6_uqcgd")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -507.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

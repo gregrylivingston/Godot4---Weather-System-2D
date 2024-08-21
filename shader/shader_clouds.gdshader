@@ -9,11 +9,10 @@ uniform float cloudscale = 1.1;
 uniform float speed = 0.01;
 uniform float clouddark = 0.5;
 uniform float cloudlight = 0.3;
-uniform float cloudcover = 0.2;
+uniform float cloudcover = 0.2; // no clouds is -20 fully cloudy is 5
 uniform float cloudalpha = 8.0;
 uniform float skytint = 0.5;
-uniform vec3 skycolour1 = vec3(0.2, 0.4, 0.6);
-uniform vec3 skycolour2 = vec3(0.4, 0.7, 1.0);
+
 uniform mat2 m = mat2(vec2(1.6,1.2),vec2(-1.2,1.6)); // changement
 uniform sampler2D skycolor;
 
@@ -188,9 +187,5 @@ vec2 p = FRAGCOORD.xy  / res.xy; // changement
     vec3 result = mix(skycolour, clamp(skytint * skycolour + cloudcolour, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
     
     COLOR.rgb = vec3(result); 
-	
-	
-
-	
 	
 }

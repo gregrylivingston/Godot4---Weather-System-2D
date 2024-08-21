@@ -1,16 +1,11 @@
+@tool
 extends TextureRect
-
-
-@export_range(-5.0,10.0) var cloudcover = -8.0
-
-
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	get_tree().get_first_node_in_group("SkySetting").updateCloudAmount.connect(setCloudAmount)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	material.set_shader_parameter("cloudcover", cloudcover)
-	cloudcover += 0.008
+	
+func setCloudAmount(cloudAmount) -> void:
+	material.set_shader_parameter("cloudcover", -15.0 + cloudAmount * 25.0)

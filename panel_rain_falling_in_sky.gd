@@ -7,4 +7,4 @@ func _ready() -> void:
 	
 
 func setRainAmount(rainAmount) -> void:
-	material.set_shader_parameter("count", clamp(rainAmount * 300, 0.0 , 500.0))
+	material.set_shader_parameter("count", clampi(rainAmount * 300, 0 , 10000))

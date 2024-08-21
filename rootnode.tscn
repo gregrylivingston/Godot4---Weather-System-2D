@@ -33,7 +33,7 @@ tracks/1/keys = {
 
 [sub_resource type="Animation" id="Animation_rse2w"]
 resource_name = "zoom_in"
-length = 28.0
+length = 130.0
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -41,7 +41,7 @@ tracks/0/path = NodePath("SkySetting/MapCamera2D:offset")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 8.23333, 26.1),
+"times": PackedFloat32Array(0, 9.96667, 41.8667),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [Vector2(3500, 750), Vector2(3000, 730), Vector2(2000, 500)]
@@ -53,7 +53,7 @@ tracks/1/path = NodePath("SkySetting/MapCamera2D:zoom")
 tracks/1/interp = 2
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 7.83333, 26.1),
+"times": PackedFloat32Array(0, 9.7, 41.5667),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [Vector2(1, 1), Vector2(1, 1), Vector2(0.25, 0.25)]
@@ -99,8 +99,9 @@ shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
 [node name="Rootnode" type="Node2D"]
 
 [node name="SkySetting" parent="." instance=ExtResource("1_4piqk")]
-rainAmount = 0.0
-rainDelta = 0.018
+rainAmount = -0.4
+rainDelta = 0.04
+cloudDelta = 0.03
 
 [node name="Bridge" parent="." instance=ExtResource("1_ehrt4")]
 modulate = Color(1.5, 1.5, 1.5, 1)

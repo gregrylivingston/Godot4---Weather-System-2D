@@ -45,7 +45,7 @@ void fragment() {
 		// compute random x position of line, multiply by 1.2 to cover the far edges more predictably
         float pos_mod_x = h1 * 1.2;
 		// there is probably better way to do this, to prevent line from moving too slow compared to other lines
-        float pos_mod_y = max(h2 * speed, pos_mod_x * speed);
+        float pos_mod_y = max(h2 * speed , pos_mod_x * speed );
 		// wrap y values around to loop the anim
         vec2 position = vec2(pos_mod_x + sl, -mod(-pos_mod_y * time * 0.1, -1.));
         float sdf = line_sdf(uv - position, s);
