@@ -30,5 +30,6 @@ func _ready() -> void:pass
 func _process(delta: float) -> void:
 	if not Engine.is_editor_hint():
 		SkyGradient2D.fill_to.y += 0.00025
+		SkyGradient2D.fill_to.x += 0.00005
 		rainAmount += float(rainDelta) / 100.0
 		cloudAmount += float(cloudDelta) / 100.0

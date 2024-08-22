@@ -1,0 +1,265 @@
+[gd_scene load_steps=24 format=3 uid="uid://cmgc2kbl2ldbg"]
+
+[ext_resource type="PackedScene" uid="uid://daf0l6760wxfn" path="res://sky/sky_setting.tscn" id="1_syt6a"]
+[ext_resource type="Texture2D" uid="uid://celurmwbf0sdv" path="res://texture/t_setting_beach.png" id="2_5jlin"]
+[ext_resource type="Shader" path="res://shader/shader_edgewaves.gdshader" id="3_yr0r6"]
+[ext_resource type="Shader" path="res://shader/shader_water.gdshader" id="4_p4o8a"]
+[ext_resource type="Texture2D" uid="uid://cridfmterudr8" path="res://texture/town/t_cityscape_1.png" id="5_f67k5"]
+[ext_resource type="Texture2D" uid="uid://c6rgl2amu8amp" path="res://texture/town/t_townscape_1.png" id="6_3dvr8"]
+[ext_resource type="Texture2D" uid="uid://cev3hbc5jc7tg" path="res://texture/setting/t_setting_bambooforest.png" id="7_nc5mq"]
+[ext_resource type="Texture2D" uid="uid://bvrcj2t8d6kfj" path="res://texture/setting/t_setting_teahouse.png" id="8_1ttfi"]
+[ext_resource type="PackedScene" uid="uid://mlq7piqbd0m2" path="res://scene/object/scene_object_lantern.tscn" id="9_hc7kj"]
+[ext_resource type="Texture2D" uid="uid://o0mxbtnh3u4n" path="res://texture/t_animegirl.png" id="10_bt0su"]
+[ext_resource type="Texture2D" uid="uid://3a4glxqmt37a" path="res://texture/character/t_character_Kawanabe.png" id="11_24acx"]
+[ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="12_khsoh"]
+[ext_resource type="Texture2D" uid="uid://cm3w3vpowcfbv" path="res://texture/yokai/5a.png" id="13_mqvv0"]
+
+[sub_resource type="Environment" id="Environment_kt0bb"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 2.64
+glow_strength = 1.17
+glow_bloom = 0.03
+glow_blend_mode = 0
+glow_hdr_threshold = 0.22
+glow_hdr_scale = 1.22
+
+[sub_resource type="Animation" id="Animation_lrebp"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SkySetting/MapCamera2D:offset")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(800, 450)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("SkySetting/MapCamera2D:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_rse2w"]
+resource_name = "zoom_in"
+length = 10.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SkySetting/MapCamera2D:offset")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5.6, 9.53333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(3500, 750), Vector2(3000, 750), Vector2(2000, 500)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("SkySetting/MapCamera2D:zoom")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 5.16667, 9.83333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1, 1), Vector2(0.25, 0.25)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_jktfc"]
+_data = {
+"RESET": SubResource("Animation_lrebp"),
+"zoom_in": SubResource("Animation_rse2w")
+}
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uc3r0"]
+shader = ExtResource("3_yr0r6")
+shader_parameter/DonutMaskCenter = Vector2(0.5, 0.575)
+shader_parameter/DonutMaskSize = 1.0
+shader_parameter/DonutMaskThickness = 1.0
+shader_parameter/OutlineWidth = 6.282
+shader_parameter/OutlinePixelSize = 8.805
+shader_parameter/UseRainbowColorOutline = true
+shader_parameter/RainbowColorLightOffset = 0.658
+shader_parameter/RainbowColorSinFrequency = 0.1
+shader_parameter/OutlineUseNoise = false
+shader_parameter/NoiseBlockSize = 6.55
+shader_parameter/NoiseMaxLineWidth = 8.935
+shader_parameter/NoiseMinLineWidth = 3.555
+shader_parameter/NoiseFreq = 8.525
+shader_parameter/BackgroundColor = Color(0.854902, 0.72549, 0.666667, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hf405"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0snh0"]
+seamless = true
+noise = SubResource("FastNoiseLite_hf405")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_jj7kr"]
+fractal_lacunarity = 4.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0uiy8"]
+seamless = true
+noise = SubResource("FastNoiseLite_jj7kr")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_343xw"]
+shader = ExtResource("4_p4o8a")
+shader_parameter/level = 0.5
+shader_parameter/water_albedo = Color(0.138986, 0.329283, 0.683356, 1)
+shader_parameter/water_opacity = 0.145
+shader_parameter/water_speed = 0.005
+shader_parameter/wave_distortion = 0.2
+shader_parameter/wave_multiplyer = 7
+shader_parameter/water_texture_on = true
+shader_parameter/water_texture_type = 1
+shader_parameter/reflection_X_offset = 0.02
+shader_parameter/reflection_Y_offset = 0.14
+shader_parameter/param1 = Vector2(0.015, 0.195)
+shader_parameter/param2 = Vector2(0.19, 0.195)
+shader_parameter/param3 = Vector2(0.195, 0.1)
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_0snh0")
+shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
+
+[node name="Rootnode" type="Node2D"]
+
+[node name="SkySetting" parent="." instance=ExtResource("1_syt6a")]
+rainAmount = 0.443
+rainDelta = -0.248
+cloudAmount = 0.605
+cloudDelta = -0.031
+
+[node name="MapCamera2D" parent="SkySetting" index="1"]
+offset = Vector2(800, 450)
+
+[node name="CanvasModulate" parent="SkySetting" index="2"]
+color = Color(0, 0, 0, 1)
+
+[node name="WorldEnvironment" parent="SkySetting" index="3"]
+environment = SubResource("Environment_kt0bb")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_jktfc")
+}
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
+z_index = 2
+position = Vector2(2771, 514)
+rotation = 0.356
+scale = Vector2(3.11621, 3.11621)
+texture = ExtResource("2_5jlin")
+flip_h = true
+
+[node name="ColorRect" type="ColorRect" parent="Sprite2D"]
+material = SubResource("ShaderMaterial_uc3r0")
+offset_left = -65.0322
+offset_top = -291.825
+offset_right = -25.0322
+offset_bottom = -251.825
+scale = Vector2(28.7946, 35.8186)
+
+[node name="Parallax2D" type="Parallax2D" parent="."]
+visible = false
+scroll_scale = Vector2(1.2, 1.2)
+
+[node name="ColorRect2_water" type="ColorRect" parent="Parallax2D"]
+material = SubResource("ShaderMaterial_343xw")
+offset_left = -1836.0
+offset_top = -1505.0
+offset_right = 13233.0
+offset_bottom = 3361.0
+mouse_filter = 2
+
+[node name="Parallax2D4" type="Parallax2D" parent="."]
+scale = Vector2(0.7, 0.7)
+scroll_scale = Vector2(0.6, 0.8)
+scroll_offset = Vector2(0, 232)
+
+[node name="TTownscape1" type="TextureRect" parent="Parallax2D4"]
+offset_left = 1501.0
+offset_top = -208.0
+offset_right = 8213.0
+offset_bottom = 816.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_f67k5")
+stretch_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Parallax2D2" type="Parallax2D" parent="."]
+scale = Vector2(0.7, 0.7)
+scroll_scale = Vector2(0.8, 0.8)
+scroll_offset = Vector2(0, 232)
+
+[node name="TTownscape1" type="TextureRect" parent="Parallax2D2"]
+offset_left = 1501.0
+offset_top = -104.0
+offset_right = 5595.0
+offset_bottom = 871.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("6_3dvr8")
+stretch_mode = 1
+
+[node name="Parallax2D3" type="Parallax2D" parent="."]
+
+[node name="TTownscape2" type="TextureRect" parent="Parallax2D3"]
+offset_left = 1013.0
+offset_top = -374.0
+offset_right = 5107.0
+offset_bottom = 650.0
+texture = ExtResource("7_nc5mq")
+stretch_mode = 1
+
+[node name="TextureRect" type="TextureRect" parent="Parallax2D3"]
+offset_left = 2961.0
+offset_top = 152.0
+offset_right = 3749.0
+offset_bottom = 667.0
+texture = ExtResource("8_1ttfi")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="TObjectLantern" parent="." instance=ExtResource("9_hc7kj")]
+position = Vector2(3254, 563)
+
+[node name="TObjectLantern2" parent="." instance=ExtResource("9_hc7kj")]
+position = Vector2(3626.59, 530)
+scale = Vector2(0.560927, 0.528735)
+
+[node name="TObjectLantern3" parent="." instance=ExtResource("9_hc7kj")]
+position = Vector2(3150, 489)
+scale = Vector2(0.332055, 0.347701)
+
+[node name="TAnimegirl" type="Sprite2D" parent="."]
+position = Vector2(3513, 450)
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_bt0su")
+
+[node name="TCharacterKawanabe" type="Sprite2D" parent="."]
+position = Vector2(3205, 454)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("11_24acx")
+
+[node name="EyeSlug" parent="." instance=ExtResource("12_khsoh")]
+position = Vector2(2747, 507)
+scale = Vector2(0.075, 0.075)
+
+[node name="5a" type="Sprite2D" parent="."]
+position = Vector2(3009, 446)
+scale = Vector2(0.371951, 0.371951)
+texture = ExtResource("13_mqvv0")
+
+[editable path="SkySetting"]
