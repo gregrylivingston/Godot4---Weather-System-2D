@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=23 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
 [ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cyhqqek00g8mk" path="res://texture/fx/plants/t_rose_outline.png" id="6_iauul"]
 [ext_resource type="Shader" path="res://shader/shader_outline.gdshader" id="6_of57k"]
 [ext_resource type="PackedScene" uid="uid://c1krk4kdyhi2i" path="res://scene/skeleton/skeleton_Kawanabe.tscn" id="9_tj8lu"]
+[ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="10_w1vvg"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epxqa"]
 shader = ExtResource("1_43x0d")
@@ -292,6 +293,10 @@ shape = SubResource("RectangleShape2D_0a00q")
 
 [node name="SkeletalPlayer2" parent="Classroom_A" instance=ExtResource("9_tj8lu")]
 position = Vector2(91, 659)
+scale = Vector2(5, 5)
+
+[node name="SkeletalPlayer" parent="Classroom_A" instance=ExtResource("10_w1vvg")]
+position = Vector2(237, 642)
 scale = Vector2(5, 5)
 
 [node name="Hallway" type="Node2D" parent="."]
