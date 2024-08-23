@@ -7,8 +7,8 @@
 [ext_resource type="Theme" uid="uid://53yxeiv4btl8" path="res://resource/theme/theme_Kyosai.tres" id="5_8lk2j"]
 [ext_resource type="Texture2D" uid="uid://btrwggm48fcab" path="res://texture/architecture/t_architecture_woodwall1_hires.png" id="5_llr43"]
 [ext_resource type="Texture2D" uid="uid://cyhqqek00g8mk" path="res://texture/fx/plants/t_rose_outline.png" id="6_iauul"]
-[ext_resource type="PackedScene" uid="uid://c657hgr7fcptm" path="res://scene/skeleton/player.tscn" id="6_j4h07"]
 [ext_resource type="Shader" path="res://shader/shader_outline.gdshader" id="6_of57k"]
+[ext_resource type="PackedScene" uid="uid://c1krk4kdyhi2i" path="res://scene/skeleton/skeleton_Kawanabe.tscn" id="9_tj8lu"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epxqa"]
 shader = ExtResource("1_43x0d")
@@ -71,7 +71,7 @@ shader_parameter/Texture_UV = Vector2(1, 1)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0a00q"]
-size = Vector2(1308, 100)
+size = Vector2(1943, 100)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xveso"]
 shader = ExtResource("1_43x0d")
@@ -272,16 +272,27 @@ texture = ExtResource("3_b2ogu")
 expand_mode = 2
 stretch_mode = 1
 
-[node name="SkeletalPlayer" parent="Classroom_A" instance=ExtResource("6_j4h07")]
-position = Vector2(472, 578)
-scale = Vector2(5, 5)
-
 [node name="StaticBody2D" type="StaticBody2D" parent="Classroom_A"]
+position = Vector2(504, 489)
 collision_layer = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Classroom_A/StaticBody2D"]
-position = Vector2(641, 665)
+position = Vector2(314.5, -1)
 shape = SubResource("RectangleShape2D_0a00q")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Classroom_A/StaticBody2D"]
+position = Vector2(-1616, 351)
+rotation = -0.357514
+shape = SubResource("RectangleShape2D_0a00q")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="Classroom_A/StaticBody2D"]
+position = Vector2(2223, 341)
+rotation = 0.34952
+shape = SubResource("RectangleShape2D_0a00q")
+
+[node name="SkeletalPlayer2" parent="Classroom_A" instance=ExtResource("9_tj8lu")]
+position = Vector2(91, 659)
+scale = Vector2(5, 5)
 
 [node name="Hallway" type="Node2D" parent="."]
 position = Vector2(-6557, 0)

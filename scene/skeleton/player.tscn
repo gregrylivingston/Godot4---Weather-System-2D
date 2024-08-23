@@ -1760,7 +1760,7 @@ nodes/walk_timescale/position = Vector2(720, 626.667)
 node_connections = [&"jump", 0, &"state", &"jump", 1, &"jump_animation", &"land", 0, &"jump", &"land", 1, &"land_animation", &"land_hard", 0, &"land", &"land_hard", 1, &"land_hard_animation", &"output", 0, &"land_hard", &"run_timescale", 0, &"run_animation", &"state", 0, &"idle_animation", &"state", 1, &"walk_timescale", &"state", 2, &"run_timescale", &"state", 3, &"fly_animation", &"state", 4, &"fall_animation", &"walk_timescale", 0, &"walk_animation"]
 
 [sub_resource type="RectangleShape2D" id="24"]
-size = Vector2(22, 32.8716)
+size = Vector2(16, 4)
 
 [node name="SkeletalPlayer" type="CharacterBody2D"]
 collision_mask = 28
@@ -1957,7 +1957,6 @@ bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 internal_vertex_count = 20
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0.776211, -16.4722)
 shape = SubResource("24")
 
 [node name="Camera2D" type="Camera2D" parent="."]
