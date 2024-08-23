@@ -1,0 +1,124 @@
+[gd_scene load_steps=8 format=3 uid="uid://by4ky3dpufivy"]
+
+[ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
+[ext_resource type="Texture2D" uid="uid://b1baaq6lx3e1p" path="res://texture/setting/t_setting_classroom.png" id="1_75fad"]
+[ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
+[ext_resource type="Texture2D" uid="uid://rcfohrj4ahlb" path="res://texture/architecture/t_architecture_woodwall1.png" id="3_b2ogu"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pac28"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 0.0
+shader_parameter/x_rot = 76.923
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(4, 4)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d70rw"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = -27.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_233k8"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 27.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+
+[node name="ClassroomScene" type="Node2D"]
+
+[node name="WoodFloor0402k-jpgColor" type="TextureRect" parent="."]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_pac28")
+offset_left = -2424.0
+offset_top = -966.0
+offset_right = 4086.0
+offset_bottom = 2124.0
+texture = ExtResource("2_nfjkv")
+
+[node name="Backwall3" type="TextureRect" parent="."]
+offset_left = -526.0
+offset_top = -76.0
+offset_right = 251.0
+offset_bottom = 471.0
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="TSettingClassroom" type="TextureRect" parent="."]
+offset_left = -4.0
+offset_top = -10.0
+offset_right = 1435.0
+offset_bottom = 530.0
+texture = ExtResource("1_75fad")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="Backwall1" type="TextureRect" parent="."]
+offset_left = 1058.0
+offset_top = -2.0
+offset_right = 1836.0
+offset_bottom = 545.0
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="Backwall2" type="TextureRect" parent="."]
+offset_left = -181.0
+offset_top = -1.0
+offset_right = 596.0
+offset_bottom = 546.0
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="SidwallRight" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_d70rw")
+offset_left = 1745.0
+offset_top = -64.0
+offset_right = 2478.0
+offset_bottom = 564.0
+scale = Vector2(1.23, 1.23)
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="SidwallRight2" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_d70rw")
+offset_left = 2134.0
+offset_top = -258.0
+offset_right = 2867.0
+offset_bottom = 370.0
+scale = Vector2(1.93, 1.93)
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="SidwallRight3" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_233k8")
+offset_left = -578.0
+offset_top = -61.0
+offset_right = 155.0
+offset_bottom = 567.0
+scale = Vector2(1.23, 1.23)
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="SidwallRight4" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_233k8")
+offset_left = -1239.0
+offset_top = -247.0
+offset_right = -506.0
+offset_bottom = 381.0
+scale = Vector2(1.93, 1.93)
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1

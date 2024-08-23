@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://ce6n3y4eidlxj"]
+[gd_scene load_steps=26 format=3 uid="uid://ce6n3y4eidlxj"]
 
 [ext_resource type="PackedScene" uid="uid://daf0l6760wxfn" path="res://sky/sky_setting.tscn" id="1_4piqk"]
 [ext_resource type="Texture2D" uid="uid://celurmwbf0sdv" path="res://texture/t_setting_beach.png" id="2_0maht"]
@@ -10,7 +10,19 @@
 [ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="7_k8v3o"]
 [ext_resource type="Texture2D" uid="uid://cx1t8g5erq8lb" path="res://texture/setting/t_setting_roses_background.png" id="7_mo0qm"]
 [ext_resource type="Texture2D" uid="uid://cm3w3vpowcfbv" path="res://texture/yokai/5a.png" id="8_lfqd1"]
+[ext_resource type="Texture2D" uid="uid://lwgvqtsh0883" path="res://texture/fx/t_falling_petal.png" id="8_t8i7i"]
 [ext_resource type="Texture2D" uid="uid://3a4glxqmt37a" path="res://texture/character/t_character_Kawanabe.png" id="9_27f1r"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_wx25x"]
+particle_flag_disable_z = true
+particle_flag_damping_as_friction = true
+angle_min = 1.07288e-05
+angle_max = 702.1
+spread = 12.692
+initial_velocity_max = 50.0
+gravity = Vector3(0, 2, 0)
+scale_min = 0.1
+scale_max = 0.4
 
 [sub_resource type="Environment" id="Environment_kt0bb"]
 background_mode = 3
@@ -131,6 +143,28 @@ shader_parameter/param3 = Vector2(0.195, 0.1)
 shader_parameter/noise_texture = SubResource("NoiseTexture2D_0snh0")
 shader_parameter/noise_texture2 = SubResource("NoiseTexture2D_0uiy8")
 
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_wflhu"]
+particle_flag_disable_z = true
+particle_flag_damping_as_friction = true
+angle_min = 1.07288e-05
+angle_max = 702.1
+spread = 12.692
+initial_velocity_max = 50.0
+gravity = Vector3(0, 2, 0)
+scale_min = 0.0
+scale_max = 0.15
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_75ab3"]
+particle_flag_disable_z = true
+particle_flag_damping_as_friction = true
+angle_min = 1.07288e-05
+angle_max = 702.1
+spread = 12.692
+initial_velocity_max = 50.0
+gravity = Vector3(0, 2, 0)
+scale_min = 0.0
+scale_max = 0.3
+
 [node name="Rootnode" type="Node2D"]
 
 [node name="SkySetting" parent="." instance=ExtResource("1_4piqk")]
@@ -141,6 +175,24 @@ cloudDelta = -0.031
 
 [node name="MapCamera2D" parent="SkySetting" index="1"]
 offset = Vector2(800, 450)
+
+[node name="GPUParticles2D3" type="GPUParticles2D" parent="SkySetting/MapCamera2D/RainController" index="2"]
+modulate = Color(1.3, 1.3, 1.3, 1)
+z_index = 2
+position = Vector2(6, 1)
+amount = 150
+process_material = SubResource("ParticleProcessMaterial_wx25x")
+texture = ExtResource("8_t8i7i")
+lifetime = 194.7
+
+[node name="GPUParticles2D4" type="GPUParticles2D" parent="SkySetting/MapCamera2D/RainController" index="3"]
+modulate = Color(1.3, 1.3, 1.3, 1)
+z_index = 2
+position = Vector2(722, 3)
+amount = 150
+process_material = SubResource("ParticleProcessMaterial_wx25x")
+texture = ExtResource("8_t8i7i")
+lifetime = 194.7
 
 [node name="CanvasModulate" parent="SkySetting" index="2"]
 color = Color(0.601223, 0.601223, 0.601223, 1)
@@ -210,9 +262,19 @@ scale = Vector2(0.5, 0.5)
 texture = ExtResource("6_5sf7a")
 stretch_mode = 1
 
+[node name="GPUParticles2D3" type="GPUParticles2D" parent="Parallax2D2/TTownscape1"]
+modulate = Color(1.3, 1.3, 1.3, 1)
+position = Vector2(3358, 450)
+scale = Vector2(2, 2)
+amount = 500
+process_material = SubResource("ParticleProcessMaterial_wflhu")
+texture = ExtResource("8_t8i7i")
+lifetime = 194.7
+
 [node name="Parallax2D3" type="Parallax2D" parent="."]
 
 [node name="TTownscape2" type="TextureRect" parent="Parallax2D3"]
+z_index = 1
 offset_left = 1013.0
 offset_top = -374.0
 offset_right = 5107.0
@@ -220,22 +282,40 @@ offset_bottom = 650.0
 texture = ExtResource("7_mo0qm")
 stretch_mode = 1
 
-[node name="TAnimegirl" type="Sprite2D" parent="."]
-position = Vector2(3217, 435)
+[node name="GPUParticles2D" type="GPUParticles2D" parent="Parallax2D3/TTownscape2"]
+modulate = Color(1.3, 1.3, 1.3, 1)
+z_index = -1
+position = Vector2(1680, 405)
+amount = 500
+process_material = SubResource("ParticleProcessMaterial_75ab3")
+texture = ExtResource("8_t8i7i")
+lifetime = 194.7
+
+[node name="GPUParticles2D2" type="GPUParticles2D" parent="Parallax2D3/TTownscape2"]
+modulate = Color(1.3, 1.3, 1.3, 1)
+z_index = -1
+position = Vector2(1417, 428)
+amount = 500
+process_material = SubResource("ParticleProcessMaterial_75ab3")
+texture = ExtResource("8_t8i7i")
+lifetime = 194.7
+
+[node name="TAnimegirl" type="Sprite2D" parent="Parallax2D3/TTownscape2"]
+position = Vector2(2204, 809)
 scale = Vector2(0.12, 0.12)
 texture = ExtResource("6_p3qxm")
 
-[node name="TCharacterKawanabe" type="Sprite2D" parent="."]
-position = Vector2(3097, 428)
+[node name="TCharacterKawanabe" type="Sprite2D" parent="Parallax2D3/TTownscape2"]
+position = Vector2(2084, 802)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("9_27f1r")
 
-[node name="EyeSlug" parent="." instance=ExtResource("7_k8v3o")]
-position = Vector2(2741, 416)
+[node name="EyeSlug" parent="Parallax2D3/TTownscape2" instance=ExtResource("7_k8v3o")]
+position = Vector2(1728, 790)
 scale = Vector2(0.075, 0.075)
 
-[node name="5a" type="Sprite2D" parent="."]
-position = Vector2(2866, 502)
+[node name="5a" type="Sprite2D" parent="Parallax2D3/TTownscape2"]
+position = Vector2(1853, 876)
 rotation = 0.260907
 scale = Vector2(0.371951, 0.371951)
 texture = ExtResource("8_lfqd1")
