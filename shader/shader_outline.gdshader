@@ -1,52 +1,69 @@
-shader_type spatial;
-render_mode unshaded,blend_mix,depth_prepass_alpha,cull_disabled,specular_disabled;
-uniform sampler2D sprite_texture : source_color, filter_linear;
+shader_type canvas_item;
+render_mode unshaded;
 
-uniform vec4 line_color : source_color = vec4(1.0,1.0,1.0,1.0); // Glow or outline color
-uniform float glowSize: hint_range(0.0, 300) = 15.0; // Size of glow
-uniform int glowDensity: hint_range(0, 30) = 3; // How many stamps to repeat in one direction
-uniform int glowRadialCoverage: hint_range(0, 32) = 4; // How many directions to spread out
-uniform float glowAngle: hint_range(0.0, 6.28) = 1.57; // The starting angle. More important if you want to use this as a trail.
-uniform float glowSharpness: hint_range(0.0, 5.0) = 1.0; // Effect how quickly stamps become transparent as they move out
-uniform float alphaThreshold: hint_range(0.0, 1.0) =  0.2; // Alpha level a pixel should be considered a glow
+uniform float thickness : hint_range(0.0, 100.0);
+uniform int ring_count : hint_range(1,128) = 16;
+uniform float ring_offset : hint_range(0.0, 1.0, 0.01);
+uniform vec4 outline_color : source_color;
+uniform bool border_clipping_fix = true;
+uniform float aspect_ratio : hint_range(0.1, 10.0, 0.01) = 1.0;
+uniform bool square_border = false;
+uniform vec2 offset;
+uniform bool max_or_add = false;
 
-//Goes through every single pixle and does thing
-void fragment() {
-	vec4 col = texture(sprite_texture, UV); // Gets color at uv position of pixel
+void vertex(){
+	if (border_clipping_fix){
+		vec2 o = (UV * 2.0 - 1.0);
+		VERTEX += o * thickness - offset;
+		VERTEX.x *= 1.0 + (aspect_ratio-1.0) * (thickness * TEXTURE_PIXEL_SIZE.x) * 2.0;
+	}
+}
+
+vec2 square(float i){ // samples a square pattern
+	i *= 2.0;
+	return (vec2(
+		clamp(abs(mod(i,2.0)-1.0),0.25,0.75),
+		clamp(abs(mod(i+0.5,2.0)-1.0),0.25,0.75)
+		)-0.5)*4.0;
+}
+
+vec4 tex(sampler2D sampler, vec2 uv){
+	vec4 clr;
+	if (uv.x > 0.0 && uv.y > 0.0 && uv.x < 1.0 && uv.y < 1.0){ // bleeding texture sampling fix
+		clr = texture(sampler, uv);
+	}else{clr = vec4(0.0);}
+	return clr;
+}
+
+void fragment(){
+	vec2 o = offset / vec2(textureSize(TEXTURE, 0));
+	vec2 uv = UV;
+	uv -= vec2(0.5);
+	if (border_clipping_fix){
+		uv.x *= 1.0 + (aspect_ratio-1.0) * thickness * TEXTURE_PIXEL_SIZE.x * 2.0;
+		uv *= (1.0 + (thickness * TEXTURE_PIXEL_SIZE * 2.0));
+		uv -= o;
+		}
+	uv += vec2(0.5);
+	vec2 size = vec2(thickness) / vec2(textureSize(TEXTURE, 0));
 	
-	// Sets source image as default pixel
-	ALBEDO = col.rgb;
-	ALPHA = col.a;
+	vec4 sprite_color = tex(TEXTURE, uv);
 	
-	vec2 pixel_size = 1.0 / vec2(textureSize(sprite_texture, 0)); // Set pixel size
-	float alph = 0.0; // Start with a 0 alpha to add to with each check
-	for (int i = 0; i < glowRadialCoverage; i++) { // Goes around in a circle
-		for (int j = 0; j < glowDensity; j++) { // Extends out
-			float radians360 = 6.28;
-			// The angle from which to grab pixel information
-			float angle = (radians360 / float(glowRadialCoverage))*float(i+1) + glowAngle;
-			// The distance to reach to grab pixel information
-			float dist = glowSize * float(j + 1) / float(glowDensity);
-			// Pixel coordinate to grab
-			vec2 pixel_coor = vec2( sin(angle) , cos(angle) );
-			// Gets the pixel based on the previous information
-    		vec4 tex = texture(sprite_texture, UV + pixel_coor * pixel_size * dist);
-			
-			// Sharpness. If you don't care about this, enable the next line and delete the next 3
-			//alph += tex.a * line_color.a;
-			float distFrom = float(glowDensity-j) / float(glowDensity); // Distance iteration number (how far out)
-			float sharpness = mix(0.0, 1.0, pow(distFrom, glowSharpness) ); // Figure out sharpness level, interplote with distance and Glow Sharpness modifier
-			alph += (tex.a * line_color.a) * sharpness; // Apply sharpness
+	float alpha = sprite_color.a;
+	if (square_border){
+		for(int i=0;i<ring_count;++i){
+			float r = float(i) / float(ring_count) + ring_offset;
+			alpha = max(alpha,texture(TEXTURE, uv + o + size * square(r) * vec2(aspect_ratio,1.0)).a * outline_color.a);}// texture sampling fix is disabled because both with and without give the same result
+	}else{
+		for(int i=0;i<ring_count;++i){
+			float r = float(i) * 3.14159 / float(ring_count) * 2.0 + ring_offset;
+			if (max_or_add){
+				alpha = alpha+tex(TEXTURE, uv + o +  vec2(size.x * sin(r) * aspect_ratio, size.y * cos(r))).a * outline_color.a;
+			}else{
+				alpha = max(alpha,tex(TEXTURE, uv + o +  vec2(size.x * sin(r) * aspect_ratio, size.y * cos(r))).a * outline_color.a);
+			}
 		}
 	}
-	
-	// Adds outline if this part of the image is transparent
-	if (ALPHA < alphaThreshold){
-		ALBEDO = line_color.rgb;
-		ALPHA = alph;
-	}
-	
-	// Enabling this line will cut out the image and leave the outline
-	//ALPHA -= col.a * 10.0; 
-	// if you set blend to add, and set this as a second pass, you'll get a better glow effect
+    vec3 final_color = mix(outline_color.rgb, sprite_color.rgb, sprite_color.a);
+    COLOR = vec4(final_color, clamp(alpha, 0.0, 1.0));
 }

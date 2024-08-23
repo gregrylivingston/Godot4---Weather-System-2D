@@ -1,9 +1,9 @@
-[gd_scene load_steps=18 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=22 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
-[ext_resource type="Texture2D" uid="uid://b1baaq6lx3e1p" path="res://texture/setting/t_setting_classroom.png" id="1_75fad"]
 [ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
 [ext_resource type="Texture2D" uid="uid://rcfohrj4ahlb" path="res://texture/architecture/t_architecture_woodwall1.png" id="3_b2ogu"]
+[ext_resource type="Texture2D" uid="uid://hsg2tv2ws1sm" path="res://texture/architecture/t_architecture_chalkboardwall_hd.png" id="4_w4cf6"]
 [ext_resource type="Theme" uid="uid://53yxeiv4btl8" path="res://resource/theme/theme_Kyosai.tres" id="5_8lk2j"]
 [ext_resource type="Texture2D" uid="uid://btrwggm48fcab" path="res://texture/architecture/t_architecture_woodwall1_hires.png" id="5_llr43"]
 [ext_resource type="Texture2D" uid="uid://cyhqqek00g8mk" path="res://texture/fx/plants/t_rose_outline.png" id="6_iauul"]
@@ -21,7 +21,7 @@ shader_parameter/Texture_UV = Vector2(12, 4)
 shader_parameter/modulate = Color(0.686246, 0.62921, 0.55234, 1)
 
 [sub_resource type="Gradient" id="Gradient_31484"]
-offsets = PackedFloat32Array(0, 0.147619)
+offsets = PackedFloat32Array(0, 0.195238)
 colors = PackedColorArray(0, 0, 0, 0.5, 0, 0, 0, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_0354f"]
@@ -39,16 +39,16 @@ shader_parameter/Texture_UV = Vector2(4, 4)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_535sa"]
-render_priority = 0
 shader = ExtResource("6_of57k")
-shader_parameter/line_color = Color(1, 1, 1, 1)
-shader_parameter/glowSize = 15.0
-shader_parameter/glowDensity = 3
-shader_parameter/glowRadialCoverage = 4
-shader_parameter/glowAngle = 1.57
-shader_parameter/glowSharpness = 1.0
-shader_parameter/alphaThreshold = 0.2
-shader_parameter/sprite_texture = ExtResource("6_iauul")
+shader_parameter/thickness = 9.401
+shader_parameter/ring_count = 16
+shader_parameter/ring_offset = null
+shader_parameter/outline_color = Color(1, 1, 1, 1)
+shader_parameter/border_clipping_fix = true
+shader_parameter/aspect_ratio = 1.0
+shader_parameter/square_border = true
+shader_parameter/offset = null
+shader_parameter/max_or_add = false
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_d70rw"]
 shader = ExtResource("1_43x0d")
@@ -73,12 +73,54 @@ shader_parameter/modulate = Color(1, 1, 1, 1)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0a00q"]
 size = Vector2(1308, 100)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xveso"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = -58.462
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rt48l"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = -58.462
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6jsm7"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 58.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7bjia"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 58.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
 [node name="ClassroomScene" type="Node2D"]
 
-[node name="Parallax2D" type="Parallax2D" parent="."]
+[node name="Classroom_A" type="Node2D" parent="."]
+
+[node name="Parallax2D" type="Parallax2D" parent="Classroom_A"]
 scroll_scale = Vector2(1.1, 1.1)
 
-[node name="WoodFloor0402k-jpgColor3" type="TextureRect" parent="Parallax2D"]
+[node name="WoodFloor0402k-jpgColor3" type="TextureRect" parent="Classroom_A/Parallax2D"]
 texture_repeat = 2
 material = SubResource("ShaderMaterial_epxqa")
 offset_left = 4034.0
@@ -88,7 +130,7 @@ offset_bottom = 4123.0
 rotation = 3.14159
 texture = ExtResource("2_nfjkv")
 
-[node name="TextureRect" type="TextureRect" parent="Parallax2D/WoodFloor0402k-jpgColor3"]
+[node name="TextureRect" type="TextureRect" parent="Classroom_A/Parallax2D/WoodFloor0402k-jpgColor3"]
 layout_mode = 0
 offset_left = 1280.0
 offset_top = 1100.0
@@ -97,7 +139,7 @@ offset_bottom = 1164.0
 scale = Vector2(64.16, 17.04)
 texture = SubResource("GradientTexture2D_0354f")
 
-[node name="Backwall3" type="TextureRect" parent="Parallax2D"]
+[node name="Backwall3" type="TextureRect" parent="Classroom_A/Parallax2D"]
 offset_left = -508.0
 offset_top = -104.0
 offset_right = 9880.0
@@ -106,7 +148,7 @@ scale = Vector2(0.27, 0.35)
 texture = ExtResource("5_llr43")
 stretch_mode = 1
 
-[node name="WoodFloor0402k-jpgColor" type="TextureRect" parent="."]
+[node name="WoodFloor0402k-jpgColor" type="TextureRect" parent="Classroom_A"]
 texture_repeat = 2
 material = SubResource("ShaderMaterial_pac28")
 offset_left = -2424.0
@@ -115,42 +157,42 @@ offset_right = 4086.0
 offset_bottom = 2276.0
 texture = ExtResource("2_nfjkv")
 
-[node name="T_Chalkboard" type="TextureRect" parent="."]
-offset_left = -4.0
+[node name="T_Chalkboard" type="TextureRect" parent="Classroom_A"]
+offset_left = 552.0
 offset_top = -1.0
-offset_right = 1435.0
-offset_bottom = 539.0
-texture = ExtResource("1_75fad")
-expand_mode = 2
-stretch_mode = 1
+offset_right = 2592.0
+offset_bottom = 2175.0
+scale = Vector2(0.255, 0.255)
+texture = ExtResource("4_w4cf6")
+stretch_mode = 4
 
-[node name="Label" type="Label" parent="T_Chalkboard"]
+[node name="Label" type="Label" parent="Classroom_A/T_Chalkboard"]
 layout_mode = 0
-offset_left = 642.0
-offset_top = 190.0
-offset_right = 864.0
-offset_bottom = 261.0
+offset_left = 333.333
+offset_top = 768.628
+offset_right = 555.333
+offset_bottom = 839.628
 theme = ExtResource("5_8lk2j")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 90
 text = "Kyosai's Yokai"
 
-[node name="Label2" type="Label" parent="T_Chalkboard"]
+[node name="Label2" type="Label" parent="Classroom_A/T_Chalkboard"]
 layout_mode = 0
-offset_left = 711.0
-offset_top = 325.0
-offset_right = 933.0
-offset_bottom = 396.0
+offset_left = 588.235
+offset_top = 1301.96
+offset_right = 1503.24
+offset_bottom = 1477.96
 theme = ExtResource("5_8lk2j")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 120
 text = "1. The Rose Garden"
 
-[node name="TRoseOutline" type="Sprite2D" parent="T_Chalkboard"]
+[node name="TRoseOutline" type="Sprite2D" parent="Classroom_A/T_Chalkboard"]
 material = SubResource("ShaderMaterial_535sa")
-position = Vector2(845, 269)
-scale = Vector2(0.0815288, 0.0815288)
+position = Vector2(1015.69, 1078.43)
+scale = Vector2(0.255, 0.255)
 texture = ExtResource("6_iauul")
 
-[node name="Backwall2" type="TextureRect" parent="."]
+[node name="Backwall2" type="TextureRect" parent="Classroom_A"]
 offset_left = -177.0
 offset_top = -1.0
 offset_right = 2787.0
@@ -160,7 +202,7 @@ texture = ExtResource("5_llr43")
 expand_mode = 4
 stretch_mode = 1
 
-[node name="Backwall4" type="TextureRect" parent="."]
+[node name="Backwall4" type="TextureRect" parent="Classroom_A"]
 offset_left = 1049.0
 offset_top = -1.0
 offset_right = 4013.0
@@ -170,7 +212,7 @@ texture = ExtResource("5_llr43")
 expand_mode = 4
 stretch_mode = 1
 
-[node name="Backwall5" type="ColorRect" parent="."]
+[node name="Backwall5" type="ColorRect" parent="Classroom_A"]
 offset_left = -178.0
 offset_top = 2.0
 offset_right = -155.0
@@ -179,16 +221,16 @@ rotation = -1.5708
 scale = Vector2(0.25, 0.25)
 color = Color(0.219608, 0.129412, 0.133333, 1)
 
-[node name="WoodFloor0402k-jpgColor2" type="TextureRect" parent="."]
+[node name="WoodFloor0402k-jpgColor2" type="TextureRect" parent="Classroom_A"]
 texture_repeat = 2
 material = SubResource("ShaderMaterial_pac28")
 offset_left = -2424.0
-offset_top = -801.0
+offset_top = -807.0
 offset_right = 4086.0
-offset_bottom = 2289.0
+offset_bottom = 2283.0
 texture = ExtResource("2_nfjkv")
 
-[node name="SidwallRight" type="TextureRect" parent="."]
+[node name="SidwallRight" type="TextureRect" parent="Classroom_A"]
 material = SubResource("ShaderMaterial_d70rw")
 offset_left = 1727.0
 offset_top = -64.0
@@ -198,7 +240,7 @@ scale = Vector2(0.308, 0.308)
 texture = ExtResource("5_llr43")
 stretch_mode = 1
 
-[node name="SidwallRight2" type="TextureRect" parent="."]
+[node name="SidwallRight2" type="TextureRect" parent="Classroom_A"]
 material = SubResource("ShaderMaterial_d70rw")
 offset_left = 2124.0
 offset_top = -250.0
@@ -208,7 +250,7 @@ scale = Vector2(0.483, 0.483)
 texture = ExtResource("5_llr43")
 stretch_mode = 1
 
-[node name="SidwallRight3" type="TextureRect" parent="."]
+[node name="SidwallRight3" type="TextureRect" parent="Classroom_A"]
 material = SubResource("ShaderMaterial_233k8")
 offset_left = -578.0
 offset_top = -61.0
@@ -219,7 +261,7 @@ texture = ExtResource("3_b2ogu")
 expand_mode = 2
 stretch_mode = 1
 
-[node name="SidwallRight4" type="TextureRect" parent="."]
+[node name="SidwallRight4" type="TextureRect" parent="Classroom_A"]
 material = SubResource("ShaderMaterial_233k8")
 offset_left = -1239.0
 offset_top = -247.0
@@ -230,13 +272,108 @@ texture = ExtResource("3_b2ogu")
 expand_mode = 2
 stretch_mode = 1
 
-[node name="SkeletalPlayer" parent="." instance=ExtResource("6_j4h07")]
+[node name="SkeletalPlayer" parent="Classroom_A" instance=ExtResource("6_j4h07")]
 position = Vector2(472, 578)
 scale = Vector2(5, 5)
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
+[node name="StaticBody2D" type="StaticBody2D" parent="Classroom_A"]
 collision_layer = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Classroom_A/StaticBody2D"]
 position = Vector2(641, 665)
 shape = SubResource("RectangleShape2D_0a00q")
+
+[node name="Hallway" type="Node2D" parent="."]
+position = Vector2(-6557, 0)
+
+[node name="Parallax2D" type="Parallax2D" parent="Hallway"]
+
+[node name="WoodFloor0402k-jpgColor3" type="TextureRect" parent="Hallway/Parallax2D"]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_epxqa")
+offset_left = 4034.0
+offset_top = 1033.0
+offset_right = 10544.0
+offset_bottom = 4123.0
+rotation = 3.14159
+texture = ExtResource("2_nfjkv")
+metadata/_edit_lock_ = true
+
+[node name="TextureRect" type="TextureRect" parent="Hallway/Parallax2D/WoodFloor0402k-jpgColor3"]
+layout_mode = 0
+offset_left = 1280.0
+offset_top = 1100.0
+offset_right = 1344.0
+offset_bottom = 1164.0
+scale = Vector2(64.16, 17.04)
+texture = SubResource("GradientTexture2D_0354f")
+
+[node name="Backwall3" type="TextureRect" parent="Hallway/Parallax2D"]
+offset_left = -598.0
+offset_top = -106.0
+offset_right = 9790.0
+offset_bottom = 2078.0
+scale = Vector2(0.27, 0.295)
+texture = ExtResource("5_llr43")
+stretch_mode = 1
+
+[node name="WoodFloor0402k-jpgColor" type="TextureRect" parent="Hallway"]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_pac28")
+offset_left = -2424.0
+offset_top = -814.0
+offset_right = 4086.0
+offset_bottom = 2276.0
+texture = ExtResource("2_nfjkv")
+metadata/_edit_lock_ = true
+
+[node name="WoodFloor0402k-jpgColor2" type="TextureRect" parent="Hallway"]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_pac28")
+offset_left = -2424.0
+offset_top = -902.0
+offset_right = 4086.0
+offset_bottom = 2188.0
+texture = ExtResource("2_nfjkv")
+
+[node name="SidwallRight" type="TextureRect" parent="Hallway"]
+material = SubResource("ShaderMaterial_xveso")
+offset_left = 1007.0
+offset_top = -64.0
+offset_right = 2503.0
+offset_bottom = 2120.0
+scale = Vector2(0.308, 0.308)
+texture = ExtResource("5_llr43")
+stretch_mode = 1
+
+[node name="SidwallRight2" type="TextureRect" parent="Hallway"]
+material = SubResource("ShaderMaterial_rt48l")
+offset_left = 1077.0
+offset_top = -547.0
+offset_right = 2573.0
+offset_bottom = 1637.0
+scale = Vector2(0.763, 0.763)
+texture = ExtResource("5_llr43")
+stretch_mode = 1
+
+[node name="SidwallRight3" type="TextureRect" parent="Hallway"]
+material = SubResource("ShaderMaterial_6jsm7")
+offset_left = 166.0
+offset_top = -61.0
+offset_right = 899.0
+offset_bottom = 567.0
+scale = Vector2(1.23, 1.23)
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
+
+[node name="SidwallRight4" type="TextureRect" parent="Hallway"]
+material = SubResource("ShaderMaterial_7bjia")
+offset_left = -623.0
+offset_top = -613.0
+offset_right = 110.0
+offset_bottom = 15.0
+scale = Vector2(3.175, 3.175)
+texture = ExtResource("3_b2ogu")
+expand_mode = 2
+stretch_mode = 1
