@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://lwgvqtsh0883"
-path="res://.godot/imported/t_falling_petal.png-4a0cfb1db35521d3edb987c8b50dc746.ctex"
+uid="uid://btrwggm48fcab"
+path="res://.godot/imported/t_architecture_woodwall1_hires.png-f15dd427c9326a59e58154c49ac8eab4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://texture/fx/t_falling_petal.png"
-dest_files=["res://.godot/imported/t_falling_petal.png-4a0cfb1db35521d3edb987c8b50dc746.ctex"]
+source_file="res://texture/architecture/t_architecture_woodwall1_hires.png"
+dest_files=["res://.godot/imported/t_architecture_woodwall1_hires.png-f15dd427c9326a59e58154c49ac8eab4.ctex"]
 
 [params]
 

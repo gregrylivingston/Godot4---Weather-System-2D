@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="7_k8v3o"]
 [ext_resource type="Texture2D" uid="uid://cx1t8g5erq8lb" path="res://texture/setting/t_setting_roses_background.png" id="7_mo0qm"]
 [ext_resource type="Texture2D" uid="uid://cm3w3vpowcfbv" path="res://texture/yokai/5a.png" id="8_lfqd1"]
-[ext_resource type="Texture2D" uid="uid://lwgvqtsh0883" path="res://texture/fx/t_falling_petal.png" id="8_t8i7i"]
+[ext_resource type="Texture2D" uid="uid://lwgvqtsh0883" path="res://texture/fx/plants/t_falling_petal.png" id="8_t8i7i"]
 [ext_resource type="Texture2D" uid="uid://3a4glxqmt37a" path="res://texture/character/t_character_Kawanabe.png" id="9_27f1r"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_wx25x"]

@@ -17,6 +17,7 @@ uniform float inset : hint_range(0, 1) = 0.0;
 // Consider changing this to a uniform and changing it from code
 
 uniform vec2 Texture_UV = vec2(1.0,1.0);
+uniform vec4 modulate: source_color = vec4(1.0);
 
 varying flat vec2 o;
 varying vec3 p;
@@ -55,6 +56,6 @@ void vertex(){
 void fragment(){
 	if (cull_back && p.z <= 0.0) discard;
 	vec2 uv = (p.xy / p.z).xy - o;
-    COLOR = texture(TEXTURE, uv * Texture_UV + 0.5);
+    COLOR = texture(TEXTURE, uv * Texture_UV + 0.5) * modulate;
 	COLOR.a *= step(max(abs(uv.x), abs(uv.y)), 0.5);
 }
