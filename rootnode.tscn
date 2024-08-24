@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://ce6n3y4eidlxj"]
+[gd_scene load_steps=31 format=3 uid="uid://ce6n3y4eidlxj"]
 
 [ext_resource type="PackedScene" uid="uid://daf0l6760wxfn" path="res://sky/sky_setting.tscn" id="1_4piqk"]
 [ext_resource type="Texture2D" uid="uid://celurmwbf0sdv" path="res://texture/t_setting_beach.png" id="2_0maht"]
@@ -6,13 +6,16 @@
 [ext_resource type="Shader" path="res://shader/shader_water.gdshader" id="5_34p74"]
 [ext_resource type="Texture2D" uid="uid://dm4v662y7atae" path="res://texture/setting/t_setting_roses_background2.png" id="6_5sf7a"]
 [ext_resource type="Texture2D" uid="uid://c6mssnacw23ar" path="res://texture/town/t_villagescape_1.png" id="6_7mqbu"]
-[ext_resource type="Texture2D" uid="uid://o0mxbtnh3u4n" path="res://texture/t_animegirl.png" id="6_p3qxm"]
 [ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="7_k8v3o"]
+[ext_resource type="PackedScene" uid="uid://cry6t8woenkes" path="res://scene/plant/scene_plant_rosebush.tscn" id="8_jqspi"]
 [ext_resource type="Texture2D" uid="uid://cm3w3vpowcfbv" path="res://texture/yokai/5a.png" id="8_lfqd1"]
 [ext_resource type="Texture2D" uid="uid://lwgvqtsh0883" path="res://texture/fx/plants/t_falling_petal.png" id="8_t8i7i"]
 [ext_resource type="Texture2D" uid="uid://q50a47b21ho4" path="res://texture/setting/t_setting_roses_level.png" id="8_tigxy"]
-[ext_resource type="Texture2D" uid="uid://3a4glxqmt37a" path="res://texture/character/t_character_Kawanabe.png" id="9_27f1r"]
-[ext_resource type="Texture2D" uid="uid://0687fluvoxy4" path="res://texture/plant/t_plant_rosebush.png" id="13_a2yh4"]
+[ext_resource type="Texture2D" uid="uid://f13k6h3bgb" path="res://texture/plant/t_plant_rosetrellis.png" id="14_dajqe"]
+[ext_resource type="PackedScene" uid="uid://vbyh86l00ca4" path="res://scene/skeleton/skeleton_artteacher.tscn" id="14_mck0m"]
+[ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="14_nwu8y"]
+[ext_resource type="Texture2D" uid="uid://3nr8brof7sua" path="res://texture/plant/t_plant_rosebox.png" id="14_pg5ba"]
+[ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="15_triw5"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_wx25x"]
 particle_flag_disable_z = true
@@ -166,6 +169,16 @@ gravity = Vector3(0, 2, 0)
 scale_min = 0.0
 scale_max = 0.3
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xlx5i"]
+shader = ExtResource("14_nwu8y")
+shader_parameter/fov = 26.103
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 15.385
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
 [node name="Rootnode" type="Node2D"]
 
 [node name="SkySetting" parent="." instance=ExtResource("1_4piqk")]
@@ -176,6 +189,9 @@ cloudDelta = -0.031
 
 [node name="MapCamera2D" parent="SkySetting" index="1"]
 offset = Vector2(800, 450)
+
+[node name="RainController" parent="SkySetting/MapCamera2D" index="0"]
+visible = false
 
 [node name="GPUParticles2D3" type="GPUParticles2D" parent="SkySetting/MapCamera2D/RainController" index="2"]
 modulate = Color(1.3, 1.3, 1.3, 1)
@@ -235,30 +251,29 @@ offset_right = 13233.0
 offset_bottom = 3361.0
 mouse_filter = 2
 
-[node name="Parallax2D4" type="Parallax2D" parent="."]
+[node name="Parallax2D_Background" type="Parallax2D" parent="."]
 scale = Vector2(0.7, 0.7)
 scroll_scale = Vector2(0.6, 0.8)
 scroll_offset = Vector2(0, 83)
 
-[node name="TTownscape1" type="TextureRect" parent="Parallax2D4"]
+[node name="TTownscape1" type="TextureRect" parent="Parallax2D_Background"]
 texture_repeat = 2
-offset_left = 745.714
+offset_left = -288.571
 offset_top = 9.14299
-offset_right = 20745.7
+offset_right = 19711.4
 offset_bottom = 1033.14
 scale = Vector2(0.37, 0.37)
 texture = ExtResource("6_7mqbu")
 stretch_mode = 1
-metadata/_edit_use_anchors_ = true
 
 [node name="Parallax2D2" type="Parallax2D" parent="."]
 scroll_scale = Vector2(0.8, 0.8)
 scroll_offset = Vector2(0, 83)
 
 [node name="TTownscape1" type="TextureRect" parent="Parallax2D2"]
-offset_left = 853.0
+offset_left = 3.99994
 offset_top = -104.0
-offset_right = 13147.0
+offset_right = 12298.0
 offset_bottom = 920.0
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("6_5sf7a")
@@ -273,65 +288,122 @@ process_material = SubResource("ParticleProcessMaterial_wflhu")
 texture = ExtResource("8_t8i7i")
 lifetime = 194.7
 
-[node name="Parallax2D3" type="Parallax2D" parent="."]
+[node name="TPlantRosebush2" parent="Parallax2D2/TTownscape1" instance=ExtResource("8_jqspi")]
+layout_mode = 0
+offset_left = 3042.0
+offset_top = 696.0
+offset_right = 17583.0
+offset_bottom = 2720.0
 
-[node name="TTownscape2" type="TextureRect" parent="Parallax2D3"]
+[node name="Parallax2D5" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.83, 0.83)
+scroll_offset = Vector2(0, 83)
+
+[node name="TTownscape1" type="TextureRect" parent="Parallax2D5"]
+offset_left = 3.99994
+offset_top = -104.0
+offset_right = 12298.0
+offset_bottom = 920.0
+scale = Vector2(0.5, 0.5)
+stretch_mode = 1
+
+[node name="TPlantRosebush3" parent="Parallax2D5/TTownscape1" instance=ExtResource("8_jqspi")]
+layout_mode = 0
+offset_left = 2946.0
+offset_top = 704.0
+offset_right = 17487.0
+offset_bottom = 2775.0
+
+[node name="Parallax2D6" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.86, 0.86)
+scroll_offset = Vector2(0, 83)
+
+[node name="TTownscape1" type="TextureRect" parent="Parallax2D6"]
+offset_left = 3.99994
+offset_top = -104.0
+offset_right = 12298.0
+offset_bottom = 920.0
+scale = Vector2(0.5, 0.5)
+stretch_mode = 1
+
+[node name="TPlantRosebush3" parent="Parallax2D6/TTownscape1" instance=ExtResource("8_jqspi")]
+layout_mode = 0
+offset_left = 3002.0
+offset_top = 724.0
+offset_right = 17567.0
+offset_bottom = 2795.0
+
+[node name="Parallax2D_Level" type="Parallax2D" parent="."]
+y_sort_enabled = true
+
+[node name="TTownscape2" type="TextureRect" parent="Parallax2D_Level"]
 z_index = 1
-offset_left = 30.0
-offset_top = -330.0
-offset_right = 9665.0
-offset_bottom = 694.0
+offset_left = -159.0
+offset_top = -292.0
+offset_right = 9476.0
+offset_bottom = 732.0
 texture = ExtResource("8_tigxy")
 stretch_mode = 1
 
-[node name="GPUParticles2D" type="GPUParticles2D" parent="Parallax2D3/TTownscape2"]
+[node name="GPUParticles2D" type="GPUParticles2D" parent="Parallax2D_Level/TTownscape2"]
 modulate = Color(1.3, 1.3, 1.3, 1)
 z_index = -1
-position = Vector2(1680, 405)
+position = Vector2(1734, 405)
 amount = 500
 process_material = SubResource("ParticleProcessMaterial_75ab3")
 texture = ExtResource("8_t8i7i")
 lifetime = 194.7
 
-[node name="GPUParticles2D2" type="GPUParticles2D" parent="Parallax2D3/TTownscape2"]
+[node name="GPUParticles2D2" type="GPUParticles2D" parent="Parallax2D_Level/TTownscape2"]
 modulate = Color(1.3, 1.3, 1.3, 1)
 z_index = -1
-position = Vector2(1417, 428)
+position = Vector2(1471, 428)
 amount = 500
 process_material = SubResource("ParticleProcessMaterial_75ab3")
 texture = ExtResource("8_t8i7i")
 lifetime = 194.7
 
-[node name="TAnimegirl" type="Sprite2D" parent="Parallax2D3/TTownscape2"]
-position = Vector2(2204, 809)
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("6_p3qxm")
-
-[node name="TCharacterKawanabe" type="Sprite2D" parent="Parallax2D3/TTownscape2"]
-position = Vector2(2084, 802)
-scale = Vector2(0.2, 0.2)
-texture = ExtResource("9_27f1r")
-
-[node name="EyeSlug" parent="Parallax2D3/TTownscape2" instance=ExtResource("7_k8v3o")]
-position = Vector2(1728, 790)
-scale = Vector2(0.075, 0.075)
-
-[node name="5a" type="Sprite2D" parent="Parallax2D3/TTownscape2"]
-position = Vector2(1853, 876)
+[node name="5a" type="Sprite2D" parent="Parallax2D_Level/TTownscape2"]
+modulate = Color(0.877616, 0.877616, 0.877616, 1)
+position = Vector2(1850, 777)
 rotation = 0.260907
 scale = Vector2(0.371951, 0.371951)
 texture = ExtResource("8_lfqd1")
 
-[node name="TPlantRosebush" type="TextureRect" parent="Parallax2D3/TTownscape2"]
-custom_minimum_size = Vector2(10, 10)
+[node name="TPlantRosebush" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("8_jqspi")]
 layout_mode = 0
-offset_left = 2405.0
-offset_top = 653.0
-offset_right = 6487.0
-offset_bottom = 2677.0
-scale = Vector2(0.085, 0.085)
-texture = ExtResource("13_a2yh4")
-expand_mode = 2
-stretch_mode = 1
+offset_left = 2388.0
+offset_top = 672.0
+offset_right = 6012.0
+offset_bottom = 2696.0
+
+[node name="TPlantRosetrellis" type="Sprite2D" parent="Parallax2D_Level/TTownscape2"]
+material = SubResource("ShaderMaterial_xlx5i")
+position = Vector2(1809, 629)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("14_dajqe")
+
+[node name="TPlantRosebox" type="Sprite2D" parent="Parallax2D_Level/TTownscape2"]
+position = Vector2(1305, 915)
+scale = Vector2(0.113, 0.113)
+texture = ExtResource("14_pg5ba")
+
+[node name="Sk_ArtTeacher" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_mck0m")]
+position = Vector2(1947, 845)
+scale = Vector2(6, 6)
+
+[node name="SkeletalPlayer" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+position = Vector2(1908, 902)
+scale = Vector2(4.875, 4.875)
+
+[node name="EyeSlug" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("7_k8v3o")]
+position = Vector2(2508, 811)
+scale = Vector2(0.075, 0.075)
+
+[node name="TPlantRosetrellis2" type="Sprite2D" parent="Parallax2D_Level/TTownscape2"]
+position = Vector2(1801, 925.249)
+scale = Vector2(0.3696, 0.3696)
+texture = ExtResource("14_dajqe")
+offset = Vector2(0, -700)
 
 [editable path="SkySetting"]

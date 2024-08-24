@@ -72,13 +72,11 @@ func _physics_process(delta: float) -> void:
 
 			
 	#make sure the art is facing the right direction - x
-	if not is_zero_approx(velocity.y) && is_instance_valid(backTexture):
-		## facing towards screen (we seen front of character)
-		if velocity.y > 0.0:
-			set_textures(true)
-		# facing away from screen (we see back of character)	
-		else:
+	if (not is_zero_approx(velocity.y) or not is_zero_approx(velocity.x)) && is_instance_valid(backTexture):
+		if velocity.y < 0.0:
 			set_textures(false)
+		else:
+			set_textures(true)
 
 			
 	move_and_slide()
@@ -121,14 +119,14 @@ func _physics_process(delta: float) -> void:
 			$AnimationTree["parameters/state/transition_request"] = States.FLY
 
 func set_textures(isFront: bool) -> void:
-	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, %Head, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm, $Sprite2D/Polygons/Mouth]:
-		if isFront:	
-			i.texture = frontTexture
-			%Mouth.visible = true
+	if isFront:
+		%Mouth.visible = true
+	else:
+		%Mouth.visible = false
 
-		else: 
-			i.texture = backTexture
-			%Mouth.visible = false
+	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, %Head, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm]:
+		if isFront:i.texture = frontTexture
+		else:i.texture = backTexture
 	for i in [%LeftArm, %RightArm, %RightLeg, %LeftLeg]:
 		if isFront && i.scale.x < 0 :i.scale.x *= -1
 		elif not isFront &&  i.scale.x > 0:i.scale.x *= -1

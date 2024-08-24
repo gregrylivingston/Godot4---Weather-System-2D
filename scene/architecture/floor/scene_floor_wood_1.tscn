@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=25 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
 [ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
@@ -9,7 +9,6 @@
 [ext_resource type="Texture2D" uid="uid://cyhqqek00g8mk" path="res://texture/fx/plants/t_rose_outline.png" id="6_iauul"]
 [ext_resource type="Shader" path="res://shader/shader_outline.gdshader" id="6_of57k"]
 [ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="9_itj40"]
-[ext_resource type="PackedScene" uid="uid://c1krk4kdyhi2i" path="res://scene/skeleton/skeleton_Kawanabe.tscn" id="9_tj8lu"]
 [ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="10_w1vvg"]
 [ext_resource type="PackedScene" uid="uid://vbyh86l00ca4" path="res://scene/skeleton/skeleton_artteacher.tscn" id="11_v2hqy"]
 [ext_resource type="PackedScene" uid="uid://b4ky65urxt58g" path="res://scene/skeleton/skeleton_classmate1.tscn" id="12_bprqv"]
@@ -301,15 +300,9 @@ position = Vector2(2223, 341)
 rotation = 0.34952
 shape = SubResource("RectangleShape2D_0a00q")
 
-[node name="character_kyosaiold" parent="Classroom_A" instance=ExtResource("9_tj8lu")]
-y_sort_enabled = true
-position = Vector2(91, 659)
-scale = Vector2(6.5, 6.5)
-
 [node name="character_kyosai_hd" parent="Classroom_A" instance=ExtResource("10_w1vvg")]
 y_sort_enabled = true
 position = Vector2(436, 762)
-scale = Vector2(6.5, 6.5)
 
 [node name="character_teacher" parent="Classroom_A" instance=ExtResource("11_v2hqy")]
 y_sort_enabled = true
@@ -318,7 +311,7 @@ scale = Vector2(8, 8)
 
 [node name="character_classmate1" parent="Classroom_A" instance=ExtResource("12_bprqv")]
 y_sort_enabled = true
-position = Vector2(651, 605)
+position = Vector2(753, 748)
 scale = Vector2(5.8, 6)
 
 [node name="Hallway" type="Node2D" parent="."]

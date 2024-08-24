@@ -12,10 +12,10 @@ WALK_SPEED = 220.0
 backTexture = ExtResource("2_bkbiw")
 
 [node name="Hip" parent="Sprite2D/Skeleton2D" index="0"]
-scale = Vector2(1, 1)
+scale = Vector2(0.999999, 0.999999)
 
 [node name="Head" parent="Sprite2D/Skeleton2D/Hip/Chest" index="0"]
-scale = Vector2(1, 1)
+scale = Vector2(0.999999, 0.999999)
 
 [node name="Chin" parent="Sprite2D/Skeleton2D/Hip/Chest/Head" index="0"]
 scale = Vector2(1, 1)
@@ -86,6 +86,7 @@ bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 
 [node name="Mouth" parent="Sprite2D/Polygons" index="7"]
 visible = true
+z_index = 1
 position = Vector2(-2.545, -253.93)
 scale = Vector2(0.51, 0.51)
 offset = Vector2(-64.02, -38.105)

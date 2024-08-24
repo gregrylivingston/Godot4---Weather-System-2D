@@ -4,6 +4,13 @@
 [ext_resource type="Texture2D" uid="uid://cw67u3lh00jgy" path="res://texture/character/t_character_kawanabe_hd.png" id="2_0rybd"]
 
 [node name="SkeletalPlayer" instance=ExtResource("1_x876n")]
+scale = Vector2(6.5, 6.5)
+
+[node name="Hip" parent="Sprite2D/Skeleton2D" index="0"]
+scale = Vector2(1, 1)
+
+[node name="Head" parent="Sprite2D/Skeleton2D/Hip/Chest" index="0"]
+scale = Vector2(1, 1)
 
 [node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
 rotation = 0.400647
