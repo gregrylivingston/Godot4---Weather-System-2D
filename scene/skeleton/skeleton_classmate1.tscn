@@ -7,6 +7,9 @@
 [node name="SkeletalPlayer" instance=ExtResource("1_76fhd")]
 WALK_SPEED = 190.0
 
+[node name="Head" parent="Sprite2D/Skeleton2D/Hip/Chest" index="0"]
+scale = Vector2(1, 1)
+
 [node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
 rotation = 0.400647
 

@@ -145,7 +145,7 @@ cloudDelta = -0.031
 offset = Vector2(800, 450)
 
 [node name="CanvasModulate" parent="SkySetting" index="2"]
-color = Color(0, 0, 0, 1)
+color = Color(0.381703, 0.381703, 0.381703, 1)
 
 [node name="WorldEnvironment" parent="SkySetting" index="3"]
 environment = SubResource("Environment_kt0bb")
