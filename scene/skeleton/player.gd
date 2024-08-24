@@ -25,6 +25,11 @@ var no_move_horizontal_time = 0.0
 @onready var sprite_scale = sprite.scale.x
 
 
+@export_category("Textures")
+@export var backTexture: Texture2D
+@onready var frontTexture = %Head.texture
+var isFrontFacing: bool = true
+
 func _ready():
 	$AnimationTree.active = true
 
@@ -51,13 +56,31 @@ func _physics_process(delta: float) -> void:
 		velocity.x = 0.0
 		no_move_horizontal_time -= delta
 
+	#make sure the art is facing the right direction - x
 	if not is_zero_approx(velocity.x):
 		if velocity.x > 0.0:
-			sprite.scale.x = 1.0 * sprite_scale
-			if is_instance_valid(%Mouth):if %Mouth.scale.x < 0: %Mouth.scale.x *= -1.0
+			if isFrontFacing:
+				sprite.scale.x = 1.0 * sprite_scale
+				if is_instance_valid(%Mouth):if %Mouth.scale.x < 0: %Mouth.scale.x *= -1.0
+			else: sprite.scale.x = -1.0 * sprite_scale
+
 		else:
-			sprite.scale.x = -1.0 * sprite_scale
-			if is_instance_valid(%Mouth):if %Mouth.scale.x < 0: %Mouth.scale.x *= 1.0
+			if isFrontFacing:
+				sprite.scale.x = -1.0 * sprite_scale
+				if is_instance_valid(%Mouth):if %Mouth.scale.x < 0: %Mouth.scale.x *= 1.0
+			else: sprite.scale.x = 1.0 * sprite_scale
+
+			
+	#make sure the art is facing the right direction - x
+	if not is_zero_approx(velocity.y) && is_instance_valid(backTexture):
+		## facing towards screen (we seen front of character)
+		if velocity.y > 0.0:
+			set_textures(true)
+		# facing away from screen (we see back of character)	
+		else:
+			set_textures(false)
+
+			
 	move_and_slide()
 
 	# After applying our motion, update our animation to match.
@@ -96,6 +119,19 @@ func _physics_process(delta: float) -> void:
 			$AnimationTree["parameters/state/transition_request"] = States.FALL
 		else:
 			$AnimationTree["parameters/state/transition_request"] = States.FLY
+
+func set_textures(isFront: bool) -> void:
+	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, %Head, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm, $Sprite2D/Polygons/Mouth]:
+		if isFront:	
+			i.texture = frontTexture
+			%Mouth.visible = true
+
+		else: 
+			i.texture = backTexture
+			%Mouth.visible = false
+	for i in [%LeftArm, %RightArm, %RightLeg, %LeftLeg]:
+		if isFront && i.scale.x < 0 :i.scale.x *= -1
+		elif not isFront &&  i.scale.x > 0:i.scale.x *= -1
 
 
 
