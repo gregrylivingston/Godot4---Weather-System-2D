@@ -54,9 +54,10 @@ func _physics_process(delta: float) -> void:
 	if not is_zero_approx(velocity.x):
 		if velocity.x > 0.0:
 			sprite.scale.x = 1.0 * sprite_scale
+			if is_instance_valid(%Mouth):if %Mouth.scale.x < 0: %Mouth.scale.x *= -1.0
 		else:
 			sprite.scale.x = -1.0 * sprite_scale
-
+			if is_instance_valid(%Mouth):if %Mouth.scale.x < 0: %Mouth.scale.x *= 1.0
 	move_and_slide()
 
 	# After applying our motion, update our animation to match.

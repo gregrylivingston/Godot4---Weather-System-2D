@@ -9,6 +9,9 @@
 [node name="Sk_ArtTeacher" instance=ExtResource("1_fq7bq")]
 WALK_SPEED = 220.0
 
+[node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
+scale = Vector2(1, 1)
+
 [node name="RightForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm" index="0"]
 scale = Vector2(1, 1)
 
@@ -16,7 +19,7 @@ scale = Vector2(1, 1)
 scale = Vector2(1, 1)
 
 [node name="LeftLowerLeg" parent="Sprite2D/Skeleton2D/Hip/LeftLeg" index="0"]
-scale = Vector2(1, 1)
+scale = Vector2(0.999999, 0.999999)
 
 [node name="LeftFoot" parent="Sprite2D/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" index="0"]
 scale = Vector2(1, 1)
@@ -64,12 +67,15 @@ uv = PackedVector2Array(869.868, 467.689, 813.868, 483.689, 701.868, 507.689, 64
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), "Hip/Chest/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/LeftArm", PackedFloat32Array(0.53, 0.53, 0.53, 1, 1, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1, 1, 0.53), "Hip/Chest/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 1, 1, 1, 0.5, 0, 0, 0, 0.5, 1, 1, 0.5, 0, 0, 0), "Hip/Chest/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1, 1, 1, 0.5, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
 
 [node name="Mouth" parent="Sprite2D/Polygons" index="7"]
+unique_name_in_owner = true
 visible = true
-position = Vector2(-33.333, -274.002)
+position = Vector2(-2.545, -253.93)
 scale = Vector2(0.51, 0.51)
+offset = Vector2(-64.02, -38.105)
 texture = ExtResource("3_401by")
+texture_offset = Vector2(70.645, 42.235)
 polygon = PackedVector2Array(3.93796, -4.73712, 3.93796, 91.2629, 123.938, 91.2629, 123.938, -4.73712)
-uv = PackedVector2Array(3.24012, -12.8458, 3.24012, 107.154, 123.24, 107.154, 123.24, -12.8458)
+uv = PackedVector2Array(-80.7785, -50.1508, -80.7785, 53.8492, 63.2215, 53.8492, 63.2215, -50.1508)
 script = ExtResource("3_mycpn")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Sprite2D/Polygons/Mouth" index="0"]
