@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=26 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
 [ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://btrwggm48fcab" path="res://texture/architecture/t_architecture_woodwall1_hires.png" id="5_llr43"]
 [ext_resource type="Texture2D" uid="uid://cyhqqek00g8mk" path="res://texture/fx/plants/t_rose_outline.png" id="6_iauul"]
 [ext_resource type="Shader" path="res://shader/shader_outline.gdshader" id="6_of57k"]
+[ext_resource type="PackedScene" uid="uid://c1aah4rqn880f" path="res://scene/yokai/eyeslug/yokai_eyeslug.tscn" id="9_itj40"]
 [ext_resource type="PackedScene" uid="uid://c1krk4kdyhi2i" path="res://scene/skeleton/skeleton_Kawanabe.tscn" id="9_tj8lu"]
 [ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="10_w1vvg"]
 [ext_resource type="PackedScene" uid="uid://vbyh86l00ca4" path="res://scene/skeleton/skeleton_artteacher.tscn" id="11_v2hqy"]
@@ -117,13 +118,16 @@ shader_parameter/Texture_UV = Vector2(1, 1)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [node name="ClassroomScene" type="Node2D"]
+y_sort_enabled = true
 
 [node name="Classroom_A" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="Parallax2D" type="Parallax2D" parent="Classroom_A"]
 scroll_scale = Vector2(1.1, 1.1)
 
 [node name="WoodFloor0402k-jpgColor3" type="TextureRect" parent="Classroom_A/Parallax2D"]
+z_index = -10
 texture_repeat = 2
 material = SubResource("ShaderMaterial_epxqa")
 offset_left = 4034.0
@@ -134,6 +138,7 @@ rotation = 3.14159
 texture = ExtResource("2_nfjkv")
 
 [node name="TextureRect" type="TextureRect" parent="Classroom_A/Parallax2D/WoodFloor0402k-jpgColor3"]
+z_index = 1
 layout_mode = 0
 offset_left = 1280.0
 offset_top = 1100.0
@@ -143,6 +148,7 @@ scale = Vector2(64.16, 17.04)
 texture = SubResource("GradientTexture2D_0354f")
 
 [node name="Backwall3" type="TextureRect" parent="Classroom_A/Parallax2D"]
+z_index = -8
 offset_left = -508.0
 offset_top = -104.0
 offset_right = 9880.0
@@ -196,6 +202,7 @@ scale = Vector2(0.255, 0.255)
 texture = ExtResource("6_iauul")
 
 [node name="Backwall2" type="TextureRect" parent="Classroom_A"]
+z_index = -1
 offset_left = -177.0
 offset_top = -1.0
 offset_right = 2787.0
@@ -206,6 +213,7 @@ expand_mode = 4
 stretch_mode = 1
 
 [node name="Backwall4" type="TextureRect" parent="Classroom_A"]
+z_index = -1
 offset_left = 1049.0
 offset_top = -1.0
 offset_right = 4013.0
@@ -294,18 +302,22 @@ rotation = 0.34952
 shape = SubResource("RectangleShape2D_0a00q")
 
 [node name="character_kyosaiold" parent="Classroom_A" instance=ExtResource("9_tj8lu")]
+y_sort_enabled = true
 position = Vector2(91, 659)
 scale = Vector2(6.5, 6.5)
 
 [node name="character_kyosai_hd" parent="Classroom_A" instance=ExtResource("10_w1vvg")]
-position = Vector2(318, 723)
+y_sort_enabled = true
+position = Vector2(436, 762)
 scale = Vector2(6.5, 6.5)
 
 [node name="character_teacher" parent="Classroom_A" instance=ExtResource("11_v2hqy")]
+y_sort_enabled = true
 position = Vector2(466, 576)
 scale = Vector2(8, 8)
 
 [node name="character_classmate1" parent="Classroom_A" instance=ExtResource("12_bprqv")]
+y_sort_enabled = true
 position = Vector2(651, 605)
 scale = Vector2(5.8, 6)
 
@@ -403,3 +415,7 @@ scale = Vector2(3.175, 3.175)
 texture = ExtResource("3_b2ogu")
 expand_mode = 2
 stretch_mode = 1
+
+[node name="EyeSlug" parent="." instance=ExtResource("9_itj40")]
+position = Vector2(70, 751)
+scale = Vector2(0.18, 0.18)

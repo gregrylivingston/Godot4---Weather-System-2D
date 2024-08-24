@@ -130,12 +130,12 @@ _data = {
 }
 
 [node name="EyeSlug" type="CharacterBody2D"]
-position = Vector2(491.803, 0)
+position = Vector2(-10, 5)
 script = ExtResource("1_bginw")
 
 [node name="eyeslug" type="Polygon2D" parent="."]
 material = SubResource("ShaderMaterial_3cxpu")
-position = Vector2(-2759, -752)
+position = Vector2(-2764.23, -1117.88)
 rotation = -0.320775
 scale = Vector2(2.82, 2.82)
 texture = ExtResource("2_gnxv1")
@@ -157,7 +157,7 @@ scale = Vector2(0.875, 0.875)
 texture = ExtResource("4_uvmlo")
 
 [node name="Skeleton2D" type="Skeleton2D" parent="."]
-position = Vector2(969, 552)
+position = Vector2(963.772, 186.124)
 
 [node name="Slugbone1" type="Bone2D" parent="Skeleton2D"]
 rest = Transform2D(1, 0, 0, 1, 0, 0)

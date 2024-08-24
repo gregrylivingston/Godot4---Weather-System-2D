@@ -11,7 +11,6 @@ rotation = 0.400647
 
 [node name="RightForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm" index="0"]
 rotation = -0.612246
-scale = Vector2(1, 1)
 
 [node name="LeftArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="2"]
 rotation = -0.677643
