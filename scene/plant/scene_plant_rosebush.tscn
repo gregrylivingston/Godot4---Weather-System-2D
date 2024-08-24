@@ -4,10 +4,10 @@
 
 [node name="TPlantRosebush" type="TextureRect"]
 custom_minimum_size = Vector2(10, 10)
-offset_left = 5949.0
-offset_top = 653.0
-offset_right = 10031.0
-offset_bottom = 2677.0
+offset_left = -31.0
+offset_top = -154.0
+offset_right = 1993.0
+offset_bottom = 1870.0
 scale = Vector2(0.085, 0.085)
 texture = ExtResource("1_kwcqc")
 expand_mode = 2

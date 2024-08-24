@@ -17,34 +17,10 @@ scale = Vector2(0.999999, 0.999999)
 [node name="Head" parent="Sprite2D/Skeleton2D/Hip/Chest" index="0"]
 scale = Vector2(0.999999, 0.999999)
 
-[node name="Chin" parent="Sprite2D/Skeleton2D/Hip/Chest/Head" index="0"]
-scale = Vector2(1, 1)
-
-[node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
-scale = Vector2(0.999999, 0.999999)
-
-[node name="RightForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm" index="0"]
-scale = Vector2(0.999999, 0.999999)
-
 [node name="LeftArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="2"]
 scale = Vector2(0.999999, 0.999999)
 
 [node name="LeftForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/LeftArm" index="0"]
-scale = Vector2(0.999999, 0.999999)
-
-[node name="LeftLeg" parent="Sprite2D/Skeleton2D/Hip" index="1"]
-scale = Vector2(0.999999, 0.999999)
-
-[node name="LeftLowerLeg" parent="Sprite2D/Skeleton2D/Hip/LeftLeg" index="0"]
-scale = Vector2(0.999999, 0.999999)
-
-[node name="LeftFoot" parent="Sprite2D/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" index="0"]
-scale = Vector2(0.999999, 0.999999)
-
-[node name="RightLeg" parent="Sprite2D/Skeleton2D/Hip" index="2"]
-scale = Vector2(0.999999, 0.999999)
-
-[node name="RightFoot" parent="Sprite2D/Skeleton2D/Hip/RightLeg/RightLowerLeg" index="0"]
 scale = Vector2(0.999999, 0.999999)
 
 [node name="RightArm" parent="Sprite2D/Polygons" index="0"]

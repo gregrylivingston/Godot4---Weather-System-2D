@@ -14,6 +14,7 @@ scale = Vector2(1, 1)
 
 [node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
 rotation = 0.400647
+scale = Vector2(0.999999, 0.999999)
 
 [node name="RightForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm" index="0"]
 rotation = -0.612246
@@ -38,6 +39,7 @@ scale = Vector2(1, 1)
 
 [node name="RightLeg" parent="Sprite2D/Skeleton2D/Hip" index="2"]
 rotation = -0.469925
+scale = Vector2(0.999999, 0.999999)
 
 [node name="RightLowerLeg" parent="Sprite2D/Skeleton2D/Hip/RightLeg" index="0"]
 rotation = 0.0882679
