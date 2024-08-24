@@ -297,11 +297,11 @@ position = Vector2(91, 659)
 scale = Vector2(6.5, 6.5)
 
 [node name="SkeletalPlayer" parent="Classroom_A" instance=ExtResource("10_w1vvg")]
-position = Vector2(237, 642)
+position = Vector2(318, 723)
 scale = Vector2(6.5, 6.5)
 
 [node name="SkeletalPlayer3" parent="Classroom_A" instance=ExtResource("11_v2hqy")]
-position = Vector2(354, 573)
+position = Vector2(466, 576)
 scale = Vector2(8, 8)
 
 [node name="Hallway" type="Node2D" parent="."]

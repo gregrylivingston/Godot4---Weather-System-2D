@@ -8,6 +8,46 @@
 [node name="Skeleton2D" parent="Sprite2D" index="0"]
 visible = false
 
+[node name="Chest" parent="Sprite2D/Skeleton2D/Hip" index="0"]
+rotation = 0.0
+
+[node name="Head" parent="Sprite2D/Skeleton2D/Hip/Chest" index="0"]
+rotation = 0.0
+
+[node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
+rotation = 0.400647
+
+[node name="RightForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm" index="0"]
+rotation = -0.612246
+
+[node name="RightHand" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm/RightForearm" index="0"]
+scale = Vector2(1, 1)
+
+[node name="LeftArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="2"]
+rotation = -0.677643
+
+[node name="LeftForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/LeftArm" index="0"]
+rotation = -0.484994
+
+[node name="LeftLeg" parent="Sprite2D/Skeleton2D/Hip" index="1"]
+rotation = 0.347774
+
+[node name="LeftLowerLeg" parent="Sprite2D/Skeleton2D/Hip/LeftLeg" index="0"]
+rotation = 0.420368
+scale = Vector2(1, 1)
+
+[node name="LeftFoot" parent="Sprite2D/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" index="0"]
+rotation = -0.335377
+
+[node name="RightLeg" parent="Sprite2D/Skeleton2D/Hip" index="2"]
+rotation = -0.469925
+
+[node name="RightLowerLeg" parent="Sprite2D/Skeleton2D/Hip/RightLeg" index="0"]
+rotation = 0.0882679
+
+[node name="RightFoot" parent="Sprite2D/Skeleton2D/Hip/RightLeg/RightLowerLeg" index="0"]
+rotation = 0.294599
+
 [node name="RightArm" parent="Sprite2D/Polygons" index="0"]
 position = Vector2(-150, -233.333)
 texture = ExtResource("2_0rybd")
