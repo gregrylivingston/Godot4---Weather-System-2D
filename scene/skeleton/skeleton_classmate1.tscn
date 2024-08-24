@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://dj0nrhi2f16mr" path="res://texture/character/t_character_classmate1.png" id="3_p0xd0"]
 
 [node name="SkeletalPlayer" instance=ExtResource("1_76fhd")]
+WALK_SPEED = 190.0
 
 [node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
 rotation = 0.400647

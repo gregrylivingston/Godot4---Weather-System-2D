@@ -419,3 +419,5 @@ stretch_mode = 1
 [node name="EyeSlug" parent="." instance=ExtResource("9_itj40")]
 position = Vector2(70, 751)
 scale = Vector2(0.18, 0.18)
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
