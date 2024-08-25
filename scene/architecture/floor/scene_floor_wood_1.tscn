@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=35 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
 [ext_resource type="Script" path="res://scene/setting/scene_animator_classroom1.gd" id="1_g3rdn"]
@@ -116,6 +116,87 @@ shader = ExtResource("1_43x0d")
 shader_parameter/fov = 90.0
 shader_parameter/cull_back = true
 shader_parameter/y_rot = 58.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="Animation" id="Animation_82i5l"]
+resource_name = "classroom_scene_1"
+length = 60.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.0333333, 2, 10.0333, 10.8333, 29.8667, 30.4333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(319, 298), Vector2(319, 298), Vector2(319, 298), Vector2(350, 350), Vector2(350, 350), Vector2(476, 400)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.0666667, 2, 10.0667, 10.8, 29.8667, 30.4),
+"transitions": PackedFloat32Array(1, 1, 1.27456, 1.27456, 1.56917, 1.46409),
+"update": 0,
+"values": [Vector2(5.83, 5.83), Vector2(5.83, 5.83), Vector2(5.83, 5.83), Vector2(2.5, 2.5), Vector2(2.5, 2.5), Vector2(1.68, 1.68)]
+}
+
+[sub_resource type="Animation" id="Animation_tmrtm"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(5.83, 5.83)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(319, 298)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_k4g6k"]
+_data = {
+"RESET": SubResource("Animation_tmrtm"),
+"classroom_scene_1": SubResource("Animation_82i5l")
+}
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nljgg"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 12.307
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h53jc"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 12.307
 shader_parameter/x_rot = 0.0
 shader_parameter/inset = 0.0
 shader_parameter/Texture_UV = Vector2(1, 1)
@@ -297,7 +378,7 @@ position = Vector2(314.5, -1)
 shape = SubResource("RectangleShape2D_0a00q")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="Classroom_A/StaticBody2D"]
-position = Vector2(445.75, 383)
+position = Vector2(441, 524)
 shape = SubResource("RectangleShape2D_0a00q")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Classroom_A/StaticBody2D"]
@@ -419,15 +500,25 @@ expand_mode = 2
 stretch_mode = 1
 
 [node name="MapCamera2D" type="Camera2D" parent="."]
-position = Vector2(483, 332)
+position = Vector2(319, 298)
+zoom = Vector2(5.83, 5.83)
 script = ExtResource("14_ruh3c")
+pan_speed = 0.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="MapCamera2D"]
+libraries = {
+"": SubResource("AnimationLibrary_k4g6k")
+}
+autoplay = "classroom_scene_1"
 
 [node name="ClassRow_FirstRow" type="Parallax2D" parent="."]
 z_index = 2
-scroll_scale = Vector2(1.15, 1.15)
+scroll_scale = Vector2(1.15, 1.25)
+scroll_offset = Vector2(-17, -43)
 
 [node name="TEiselstick" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
+material = SubResource("ShaderMaterial_nljgg")
 position = Vector2(500, 658)
 
 [node name="TEiselstick2" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
@@ -436,15 +527,17 @@ position = Vector2(734, 658)
 
 [node name="TEiselstick3" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
+material = SubResource("ShaderMaterial_h53jc")
 position = Vector2(67, 658)
 
 [node name="TEiselstick4" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
+material = SubResource("ShaderMaterial_nljgg")
 position = Vector2(310.446, 658)
 
 [node name="TEiselstick5" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(1043.45, 658)
+position = Vector2(902.446, 658)
 
 [node name="TEiselstick6" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
@@ -465,6 +558,11 @@ z_index = 1
 position = Vector2(715, 681)
 scale = Vector2(5.8, 6)
 
+[node name="character_classmate3" parent="ClassRow_FirstRow" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(888.996, 677)
+scale = Vector2(5.8, 6)
+
 [node name="character_classmate2" parent="ClassRow_FirstRow" instance=ExtResource("12_bprqv")]
 z_index = 1
 position = Vector2(301, 681)
@@ -473,50 +571,131 @@ scale = Vector2(7, -6)
 
 [node name="ClassRow_SecondRow" type="Parallax2D" parent="."]
 z_index = 3
-scroll_scale = Vector2(1.3, 1.3)
+scroll_scale = Vector2(1.3, 1.5)
+scroll_offset = Vector2(0, -16)
 
 [node name="TEiselstick7" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(444, 743.561)
+material = SubResource("ShaderMaterial_nljgg")
+position = Vector2(434.179, 700.875)
+scale = Vector2(0.25, 0.25)
 
 [node name="TEiselstick8" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(710, 743.561)
+position = Vector2(700.179, 700.875)
+scale = Vector2(0.25, 0.25)
 
 [node name="TEiselstick9" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(-93.5543, 743.561)
+material = SubResource("ShaderMaterial_h53jc")
+position = Vector2(-103.375, 700.875)
+scale = Vector2(0.25, 0.25)
 
 [node name="TEiselstick10" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(172.446, 743.561)
+material = SubResource("ShaderMaterial_nljgg")
+position = Vector2(213.446, 700.875)
+scale = Vector2(0.25, 0.25)
 
 [node name="TEiselstick11" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(905.446, 743.561)
+position = Vector2(895.625, 700.875)
+scale = Vector2(0.25, 0.25)
 
 [node name="TEiselstick12" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
 z_index = 1
-position = Vector2(1171.45, 743.561)
+position = Vector2(1161.63, 700.875)
+scale = Vector2(0.25, 0.25)
 
 [node name="character_kyosai_hd3" parent="ClassRow_SecondRow" instance=ExtResource("10_w1vvg")]
 z_index = 1
-position = Vector2(418, 769)
+position = Vector2(408.179, 726.314)
 scale = Vector2(7.04, 7.04)
 
 [node name="character_kyosai_hd4" parent="ClassRow_SecondRow" instance=ExtResource("10_w1vvg")]
 z_index = 1
-position = Vector2(-103, 762)
+position = Vector2(-112.821, 719.314)
 rotation = 3.14159
 scale = Vector2(7.185, -7.185)
 
 [node name="character_classmate3" parent="ClassRow_SecondRow" instance=ExtResource("12_bprqv")]
 z_index = 1
-position = Vector2(613, 773)
+position = Vector2(603.179, 730.314)
+scale = Vector2(7.245, 7.495)
+
+[node name="character_classmate5" parent="ClassRow_SecondRow" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(866.179, 730.314)
 scale = Vector2(7.245, 7.495)
 
 [node name="character_classmate4" parent="ClassRow_SecondRow" instance=ExtResource("12_bprqv")]
 z_index = 1
-position = Vector2(126, 773)
+position = Vector2(167, 730.314)
+rotation = 3.14159
+scale = Vector2(8.93, -7.654)
+
+[node name="ClassRow_SecondRow2" type="Parallax2D" parent="."]
+z_index = 5
+scale = Vector2(1.095, 1.095)
+scroll_scale = Vector2(1.45, 1.75)
+scroll_offset = Vector2(-142, -21)
+
+[node name="TEiselstick7" parent="ClassRow_SecondRow2" instance=ExtResource("13_jjo5f")]
+z_index = 1
+material = SubResource("ShaderMaterial_nljgg")
+position = Vector2(426.179, 702.87)
+scale = Vector2(0.25, 0.25)
+
+[node name="TEiselstick8" parent="ClassRow_SecondRow2" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(692.179, 702.87)
+scale = Vector2(0.25, 0.25)
+
+[node name="TEiselstick9" parent="ClassRow_SecondRow2" instance=ExtResource("13_jjo5f")]
+z_index = 1
+material = SubResource("ShaderMaterial_h53jc")
+position = Vector2(-111.375, 702.87)
+scale = Vector2(0.25, 0.25)
+
+[node name="TEiselstick10" parent="ClassRow_SecondRow2" instance=ExtResource("13_jjo5f")]
+z_index = 1
+material = SubResource("ShaderMaterial_nljgg")
+position = Vector2(154.625, 702.87)
+scale = Vector2(0.25, 0.25)
+
+[node name="TEiselstick11" parent="ClassRow_SecondRow2" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(887.625, 702.87)
+scale = Vector2(0.25, 0.25)
+
+[node name="TEiselstick12" parent="ClassRow_SecondRow2" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(1153.63, 702.87)
+scale = Vector2(0.25, 0.25)
+
+[node name="character_kyosai_hd3" parent="ClassRow_SecondRow2" instance=ExtResource("10_w1vvg")]
+z_index = 1
+position = Vector2(407.306, 715.068)
+scale = Vector2(7.04, 7.04)
+
+[node name="character_kyosai_hd4" parent="ClassRow_SecondRow2" instance=ExtResource("10_w1vvg")]
+z_index = 1
+position = Vector2(-115.068, 726.941)
+rotation = 3.14159
+scale = Vector2(7.185, -7.185)
+
+[node name="character_classmate3" parent="ClassRow_SecondRow2" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(601.827, 717.808)
+scale = Vector2(7.245, 7.495)
+
+[node name="character_classmate5" parent="ClassRow_SecondRow2" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(862.179, 705.309)
+scale = Vector2(7.245, 7.495)
+
+[node name="character_classmate4" parent="ClassRow_SecondRow2" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(126.941, 717.808)
 rotation = 3.14159
 scale = Vector2(8.93, -7.654)

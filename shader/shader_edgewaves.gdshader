@@ -22,7 +22,7 @@ uniform float NoiseMinLineWidth = 5.0;
 uniform float NoiseFreq = 1.0;
 
 uniform vec4 BackgroundColor : source_color = vec4(0.95, 0.95, 0.95, 1.0);
-uniform sampler2D SCREEN_TEXTURE: hint_screen_texture, filter_linear_mipmap ; 
+uniform sampler2D SCREEN_TEXTURE: hint_screen_texture, filter_linear_mipmap ;
 
 // Noise Constants
 const int ANGLE_RESOLUTION = 16;
@@ -35,7 +35,7 @@ float createDonutMask(
 	float ratio = inputTexturePixelSize.x / inputTexturePixelSize.y;
 	vec2 scaledUV = (inputUV - vec2(DonutMaskCenter.x, 0.0)) / vec2(ratio, 1.0) + vec2(DonutMaskCenter.x, 0.0);
 	return (1.0 - smoothstep(DonutMaskSize - 0.2, DonutMaskSize, length(scaledUV - DonutMaskCenter))) *
-		smoothstep(DonutMaskSize - DonutMaskThickness - 0.1, 
+		smoothstep(DonutMaskSize - DonutMaskThickness - 0.1,
 		DonutMaskSize - DonutMaskThickness, length(scaledUV - DonutMaskCenter)
 	);
 }
@@ -52,7 +52,7 @@ vec4 handleInline(vec4 finalPixelColor, vec4 outlineColor, vec4 originalPixelCol
     if (finalPixelColor.r < BackgroundColor.r || finalPixelColor.g < BackgroundColor.g || finalPixelColor.b < BackgroundColor.b) {
         finalPixelColor.rgb = mix(outlineColor.rgb, finalPixelColor.rgb, 1.0 - tanh(3.0*originalPixelColor.b));
     }
-	
+
 	return finalPixelColor;
 }
 
@@ -78,7 +78,7 @@ float getLineWidth(vec2 p, float s) {
 		p /= 2.0;
 		intensity /= 2.0;
 	}
-	
+
 	return mix(NoiseMaxLineWidth, NoiseMinLineWidth, w);
 }
 
@@ -94,9 +94,9 @@ bool pixelInRange(sampler2D text, vec2 uv, vec2 dist) {
 
 float getClosestDistance(sampler2D text, vec2 uv, vec2 maxDist) {
 	if (!pixelInRange(text, uv, maxDist)) return -1.0;
-	
+
 	float hi = 1.0; float lo = 0.0;
-	
+
 	for (int i = 1; i <= GRADIENT_RESOLUTION; i++) {
 		float curr = (hi + lo) / 2.0;
 		if (pixelInRange(text, uv, curr * maxDist)) {
@@ -107,38 +107,38 @@ float getClosestDistance(sampler2D text, vec2 uv, vec2 maxDist) {
 		}
 	}
 	return hi;
-	
+
 }
 
 vec4 handleNoise(
-	vec4 finalPixelColor, 
-	float t,  
+	vec4 finalPixelColor,
+	float t,
 	vec2 pixelSize,
 	sampler2D inputTexture,
 	vec2 inputUV,
 	vec4 originalPixelColor) {
-		
+
 	float timeStep = floor(NoiseFreq * t);
 	vec2 scaledDistance = pixelSize * getLineWidth(inputUV / pixelSize, timeStep);
 	float weight = getClosestDistance(inputTexture, inputUV, scaledDistance);
-	
+
 	if ( weight > 0.0) {
 	    finalPixelColor.a = mix(0.0, finalPixelColor.a, tanh(5.0*weight));
 	} else {
 		finalPixelColor = originalPixelColor;
 	}
-	
+
 	return finalPixelColor;
 }
 
-vec4 handleOutline(vec4 finalPixelColor, 
-					vec4 outlineColor, 
-					vec4 originalPixelColor, 
-					sampler2D inputTexture, 
+vec4 handleOutline(vec4 finalPixelColor,
+					vec4 outlineColor,
+					vec4 originalPixelColor,
+					sampler2D inputTexture,
 					vec2 inputUV) {
 	if (finalPixelColor.r > 0.05 || finalPixelColor.g > 0.05 || finalPixelColor.b > 0.05) {
 		vec2 unit = (OutlinePixelSize ) / vec2(textureSize(inputTexture, 0));
-		
+
         finalPixelColor.rgb = mix(outlineColor.rgb, finalPixelColor.rgb, 1.0 - tanh(3.0*originalPixelColor.b));
 		finalPixelColor.a = 0.0;
 
@@ -155,7 +155,7 @@ vec4 handleOutline(vec4 finalPixelColor,
             }
         }
     }
-	
+
 	return finalPixelColor;
 }
 
@@ -163,33 +163,33 @@ void fragment() {
 	float mask = createDonutMask(
 		TEXTURE_PIXEL_SIZE,
 		UV);
-		
+
 	vec4 outlineColor = vec4(1.0, 0.0, 0.0, 1.0);
 	if (UseRainbowColorOutline){
 		outlineColor = createRainbowColor(TIME);
 	}
-	
+
 	vec4 finalPixelColor = texture(SCREEN_TEXTURE, SCREEN_UV);
 	vec4 originalPixelColor = finalPixelColor;
-	
+
 	finalPixelColor = handleInline(finalPixelColor, outlineColor, originalPixelColor);
-	finalPixelColor = handleOutline(finalPixelColor, 
+	finalPixelColor = handleOutline(finalPixelColor,
 		outlineColor,
 		originalPixelColor,
-		SCREEN_TEXTURE, 
+		SCREEN_TEXTURE,
 		SCREEN_UV);
-	
+
 	finalPixelColor.a = finalPixelColor.a * mask;
-	
+
 	if (OutlineUseNoise) {
 		finalPixelColor = handleNoise(
-			finalPixelColor, 
-			TIME,  
+			finalPixelColor,
+			TIME,
 			SCREEN_PIXEL_SIZE,
 			SCREEN_TEXTURE,
 			SCREEN_UV,
 			originalPixelColor);
 	}
-	
+
 	COLOR = finalPixelColor;
 }

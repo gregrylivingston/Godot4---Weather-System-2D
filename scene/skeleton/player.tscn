@@ -1761,7 +1761,7 @@ nodes/walk_timescale/position = Vector2(720, 626.667)
 node_connections = [&"jump", 0, &"state", &"jump", 1, &"jump_animation", &"land", 0, &"jump", &"land", 1, &"land_animation", &"land_hard", 0, &"land", &"land_hard", 1, &"land_hard_animation", &"output", 0, &"land_hard", &"run_timescale", 0, &"run_animation", &"state", 0, &"idle_animation", &"state", 1, &"walk_timescale", &"state", 2, &"run_timescale", &"state", 3, &"fly_animation", &"state", 4, &"fall_animation", &"walk_timescale", 0, &"walk_animation"]
 
 [sub_resource type="RectangleShape2D" id="24"]
-size = Vector2(16, 4)
+size = Vector2(12, 2)
 
 [node name="SkeletalPlayer" type="CharacterBody2D"]
 collision_mask = 28
@@ -1841,7 +1841,6 @@ rest = Transform2D(1, 0, 0, 1, -11, 97)
 [node name="RightHand" type="Bone2D" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm/RightForearm"]
 position = Vector2(13, 94)
 rotation = 1.22745
-scale = Vector2(1, 1)
 rest = Transform2D(0.336639, 0.941634, -0.941634, 0.336639, 13, 94)
 auto_calculate_length_and_angle = false
 length = 16.0
