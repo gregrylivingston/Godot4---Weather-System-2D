@@ -1774,6 +1774,7 @@ script = ExtResource("1")
 libraries = {
 "": SubResource("AnimationLibrary_sx6h1")
 }
+autoplay = "idle"
 
 [node name="AnimationTree" type="AnimationTree" parent="."]
 active = false
@@ -1828,7 +1829,7 @@ bone_angle = -2.49648
 
 [node name="RightArm" type="Bone2D" parent="Sprite2D/Skeleton2D/Hip/Chest"]
 position = Vector2(80, -100)
-rotation = 0.532143
+rotation = -0.524992
 scale = Vector2(0.999999, 0.999999)
 rest = Transform2D(1, 0, 0, 1, 80, -100)
 
@@ -1839,7 +1840,8 @@ rest = Transform2D(1, 0, 0, 1, -11, 97)
 
 [node name="RightHand" type="Bone2D" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm/RightForearm"]
 position = Vector2(13, 94)
-rotation = 1.13653
+rotation = 1.22745
+scale = Vector2(1, 1)
 rest = Transform2D(0.336639, 0.941634, -0.941634, 0.336639, 13, 94)
 auto_calculate_length_and_angle = false
 length = 16.0
@@ -1870,7 +1872,7 @@ rest = Transform2D(1, 0, 0, 1, -72, 26)
 
 [node name="LeftLowerLeg" type="Bone2D" parent="Sprite2D/Skeleton2D/Hip/LeftLeg"]
 position = Vector2(-13, 91)
-rotation = 0.68516
+rotation = 0.613454
 scale = Vector2(0.999999, 0.999999)
 rest = Transform2D(1, 0, 0, 1, -13, 91)
 
@@ -2000,5 +2002,6 @@ shape = SubResource("24")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(0, -32)
+enabled = false
 zoom = Vector2(4, 4)
 script = ExtResource("3_ph0fx")

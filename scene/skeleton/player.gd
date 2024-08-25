@@ -37,21 +37,6 @@ func _ready():
 
 
 func _physics_process(delta: float) -> void:
-	var is_jumping = false
-	if Input.is_action_just_pressed("jump"):
-		is_jumping = try_jump()
-	elif Input.is_action_just_released("jump") and velocity.y < 0.0:
-		# The player let go of jump early, reduce vertical momentum.
-		velocity.y *= 0.6
-	# Fall.
-	#velocity.y = minf(TERMINAL_VELOCITY, velocity.y + gravity * delta)
-
-	var direction := Input.get_axis("move_left", "move_right") * WALK_SPEED
-	velocity.x = move_toward(velocity.x, direction, ACCELERATION_SPEED * delta)
-
-	var directionxy := Input.get_axis("move_up", "move_down") * WALK_SPEED
-	velocity.y = move_toward(velocity.y, directionxy, ACCELERATION_SPEED * delta)
-
 
 	if no_move_horizontal_time > 0.0:
 		# After doing a hard fall, don't move for a short time.
@@ -92,53 +77,45 @@ func _physics_process(delta: float) -> void:
 	elif velocity.y > 300:
 		falling_slow = true
 
-	if is_jumping:
-		$AnimationTree["parameters/jump/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+	# Most animations change when we run, land, or take off.
+	if falling_fast:
+		$AnimationTree["parameters/land_hard/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+		no_move_horizontal_time = 0.4
+	elif falling_slow:
+		$AnimationTree["parameters/land/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
 
-	if true:#is_on_floor():
-		# Most animations change when we run, land, or take off.
-		if falling_fast:
-			$AnimationTree["parameters/land_hard/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
-			no_move_horizontal_time = 0.4
-		elif falling_slow:
-			$AnimationTree["parameters/land/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
-
-		if abs(velocity.x) > 50 or abs(velocity.y) > 50:
-			$AnimationTree["parameters/state/transition_request"] = States.WALK#States.RUN
-			$AnimationTree["parameters/run_timescale/scale"] = abs(velocity.x) / 60
-		elif velocity.x:
-			$AnimationTree["parameters/state/transition_request"] = States.WALK
-			$AnimationTree["parameters/walk_timescale/scale"] = abs(velocity.x) / 12
-		else:
-			$AnimationTree["parameters/state/transition_request"] = States.IDLE
-
-		falling_fast = false
-		falling_slow = false
+	if abs(velocity.x) > 50 or abs(velocity.y) > 50:
+		$AnimationTree["parameters/state/transition_request"] = States.WALK#States.RUN
+		$AnimationTree["parameters/run_timescale/scale"] = abs(velocity.x) / 60
+	elif velocity.x:
+		$AnimationTree["parameters/state/transition_request"] = States.WALK
+		$AnimationTree["parameters/walk_timescale/scale"] = abs(velocity.x) / 12
 	else:
-		if velocity.y > 0:
-			$AnimationTree["parameters/state/transition_request"] = States.FALL
-		else:
-			$AnimationTree["parameters/state/transition_request"] = States.FLY
+		$AnimationTree["parameters/state/transition_request"] = States.IDLE
+
+	falling_fast = false
+	falling_slow = false
+
 
 func set_textures(isFront: bool) -> void:
-	if isFront:
-		%Mouth.visible = true
-		%Head.texture = headTexture
-	else:
-		%Mouth.visible = false
-		%Head.texture = backOfHeadTexture
-
+	if isFront:set_textures_frontfacing()
+	else:set_textures_backfacing()
+		
+func set_textures_backfacing() -> void:
+	%Mouth.visible = false
+	%Head.texture = backOfHeadTexture
 	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm]:
-		if isFront:
-			i.texture = frontTexture
-		else:
-			i.texture = backTexture
-			
+		i.texture = backTexture
 	for i in [%LeftArm, %RightArm, %RightLeg, %LeftLeg]:
-		pass
-#		if isFront && i.scale.x < 0 :i.scale.x *= -1
-#		elif not isFront &&  i.scale.x > 0:i.scale.x *= -1
+		if i.scale.x > 0:i.scale.x *= -1
 
+func set_textures_frontfacing() -> void:
+	%Mouth.visible = true
+	%Head.texture = headTexture
+	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm]:
+		i.texture = frontTexture
+	for i in [%LeftArm, %RightArm, %RightLeg, %LeftLeg]:
+		if i.scale.x < 0 :i.scale.x *= -1
 
 
 func try_jump() -> bool:

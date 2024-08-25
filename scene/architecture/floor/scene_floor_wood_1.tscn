@@ -1,6 +1,7 @@
-[gd_scene load_steps=26 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=30 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
+[ext_resource type="Script" path="res://scene/setting/scene_animator_classroom1.gd" id="1_g3rdn"]
 [ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
 [ext_resource type="Texture2D" uid="uid://rcfohrj4ahlb" path="res://texture/architecture/t_architecture_woodwall1.png" id="3_b2ogu"]
 [ext_resource type="Texture2D" uid="uid://hsg2tv2ws1sm" path="res://texture/architecture/t_architecture_chalkboardwall_hd.png" id="4_w4cf6"]
@@ -12,7 +13,10 @@
 [ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="10_w1vvg"]
 [ext_resource type="PackedScene" uid="uid://vbyh86l00ca4" path="res://scene/skeleton/skeleton_artteacher.tscn" id="11_v2hqy"]
 [ext_resource type="PackedScene" uid="uid://b4ky65urxt58g" path="res://scene/skeleton/skeleton_classmate1.tscn" id="12_bprqv"]
+[ext_resource type="PackedScene" uid="uid://caben4c440412" path="res://scene/player/player_controller.tscn" id="12_vtg2w"]
 [ext_resource type="PackedScene" uid="uid://616eaco27cfu" path="res://scene/object/scene_object_eisel.tscn" id="13_jjo5f"]
+[ext_resource type="Script" path="res://scene/player/player_controller.gd" id="13_ydrjq"]
+[ext_resource type="Script" path="res://MapCamera2D.gd" id="14_ruh3c"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epxqa"]
 shader = ExtResource("1_43x0d")
@@ -119,6 +123,7 @@ shader_parameter/modulate = Color(1, 1, 1, 1)
 
 [node name="ClassroomScene" type="Node2D"]
 y_sort_enabled = true
+script = ExtResource("1_g3rdn")
 
 [node name="Classroom_A" type="Node2D" parent="."]
 y_sort_enabled = true
@@ -305,72 +310,18 @@ position = Vector2(2223, 341)
 rotation = 0.34952
 shape = SubResource("RectangleShape2D_0a00q")
 
-[node name="TEiselstick" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(582, 658)
-
-[node name="TEiselstick2" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(848, 658)
-
-[node name="TEiselstick3" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(44.4457, 658)
-
-[node name="TEiselstick4" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(310.446, 658)
-
-[node name="TEiselstick5" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(1043.45, 658)
-
-[node name="TEiselstick6" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(1309.45, 658)
-
-[node name="TEiselstick7" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(444, 743.561)
-
-[node name="TEiselstick8" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(710, 743.561)
-
-[node name="TEiselstick9" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(-93.5543, 743.561)
-
-[node name="TEiselstick10" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(172.446, 743.561)
-
-[node name="TEiselstick11" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(905.446, 743.561)
-
-[node name="TEiselstick12" parent="Classroom_A" instance=ExtResource("13_jjo5f")]
-z_index = 1
-position = Vector2(1171.45, 743.561)
-
-[node name="character_kyosai_hd" parent="Classroom_A" instance=ExtResource("10_w1vvg")]
-z_index = 1
-position = Vector2(555, 679)
-
 [node name="character_teacher" parent="Classroom_A" instance=ExtResource("11_v2hqy")]
 z_index = 1
-position = Vector2(466, 576)
+position = Vector2(302, 576)
 scale = Vector2(8, 8)
+
+[node name="PlayerController" parent="Classroom_A/character_teacher" instance=ExtResource("12_vtg2w")]
+script = ExtResource("13_ydrjq")
 
 [node name="EyeSlug" parent="Classroom_A" instance=ExtResource("9_itj40")]
 z_index = 1
 position = Vector2(1625, 665)
 scale = Vector2(0.12, 0.12)
-
-[node name="character_classmate1" parent="Classroom_A" instance=ExtResource("12_bprqv")]
-z_index = 1
-position = Vector2(827, 681)
-scale = Vector2(5.8, 6)
 
 [node name="Hallway" type="Node2D" parent="."]
 position = Vector2(-6557, 0)
@@ -467,4 +418,105 @@ texture = ExtResource("3_b2ogu")
 expand_mode = 2
 stretch_mode = 1
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="MapCamera2D" type="Camera2D" parent="."]
+position = Vector2(483, 332)
+script = ExtResource("14_ruh3c")
+
+[node name="ClassRow_FirstRow" type="Parallax2D" parent="."]
+z_index = 2
+scroll_scale = Vector2(1.15, 1.15)
+
+[node name="TEiselstick" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(500, 658)
+
+[node name="TEiselstick2" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(734, 658)
+
+[node name="TEiselstick3" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(67, 658)
+
+[node name="TEiselstick4" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(310.446, 658)
+
+[node name="TEiselstick5" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(1043.45, 658)
+
+[node name="TEiselstick6" parent="ClassRow_FirstRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(1309.45, 658)
+
+[node name="character_kyosai_hd" parent="ClassRow_FirstRow" instance=ExtResource("10_w1vvg")]
+z_index = 1
+position = Vector2(482, 701)
+
+[node name="character_kyosai_hd2" parent="ClassRow_FirstRow" instance=ExtResource("10_w1vvg")]
+z_index = 1
+position = Vector2(64, 698)
+rotation = 3.14159
+scale = Vector2(6.5, -6.5)
+
+[node name="character_classmate1" parent="ClassRow_FirstRow" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(715, 681)
+scale = Vector2(5.8, 6)
+
+[node name="character_classmate2" parent="ClassRow_FirstRow" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(301, 681)
+rotation = 3.14159
+scale = Vector2(7, -6)
+
+[node name="ClassRow_SecondRow" type="Parallax2D" parent="."]
+z_index = 3
+scroll_scale = Vector2(1.3, 1.3)
+
+[node name="TEiselstick7" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(444, 743.561)
+
+[node name="TEiselstick8" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(710, 743.561)
+
+[node name="TEiselstick9" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(-93.5543, 743.561)
+
+[node name="TEiselstick10" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(172.446, 743.561)
+
+[node name="TEiselstick11" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(905.446, 743.561)
+
+[node name="TEiselstick12" parent="ClassRow_SecondRow" instance=ExtResource("13_jjo5f")]
+z_index = 1
+position = Vector2(1171.45, 743.561)
+
+[node name="character_kyosai_hd3" parent="ClassRow_SecondRow" instance=ExtResource("10_w1vvg")]
+z_index = 1
+position = Vector2(418, 769)
+scale = Vector2(7.04, 7.04)
+
+[node name="character_kyosai_hd4" parent="ClassRow_SecondRow" instance=ExtResource("10_w1vvg")]
+z_index = 1
+position = Vector2(-103, 762)
+rotation = 3.14159
+scale = Vector2(7.185, -7.185)
+
+[node name="character_classmate3" parent="ClassRow_SecondRow" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(613, 773)
+scale = Vector2(7.245, 7.495)
+
+[node name="character_classmate4" parent="ClassRow_SecondRow" instance=ExtResource("12_bprqv")]
+z_index = 1
+position = Vector2(126, 773)
+rotation = 3.14159
+scale = Vector2(8.93, -7.654)
