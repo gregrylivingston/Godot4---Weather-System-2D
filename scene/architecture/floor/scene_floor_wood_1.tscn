@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://by4ky3dpufivy"]
+[gd_scene load_steps=27 format=3 uid="uid://by4ky3dpufivy"]
 
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="1_43x0d"]
 [ext_resource type="Texture2D" uid="uid://dpfpign2yhmeq" path="res://texture/seamless/wood_floor_1/WoodFloor040_2K-JPG_Color.jpg" id="2_nfjkv"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="10_w1vvg"]
 [ext_resource type="PackedScene" uid="uid://vbyh86l00ca4" path="res://scene/skeleton/skeleton_artteacher.tscn" id="11_v2hqy"]
 [ext_resource type="PackedScene" uid="uid://b4ky65urxt58g" path="res://scene/skeleton/skeleton_classmate1.tscn" id="12_bprqv"]
+[ext_resource type="Texture2D" uid="uid://tg77otpqcvj6" path="res://texture/object/t_eisel.png" id="13_6g0ej"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epxqa"]
 shader = ExtResource("1_43x0d")
@@ -111,6 +112,16 @@ shader = ExtResource("1_43x0d")
 shader_parameter/fov = 90.0
 shader_parameter/cull_back = true
 shader_parameter/y_rot = 58.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+shader_parameter/Texture_UV = Vector2(1, 1)
+shader_parameter/modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j0enr"]
+shader = ExtResource("1_43x0d")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 0.0
 shader_parameter/x_rot = 0.0
 shader_parameter/inset = 0.0
 shader_parameter/Texture_UV = Vector2(1, 1)
@@ -414,3 +425,9 @@ position = Vector2(70, 751)
 scale = Vector2(0.18, 0.18)
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+
+[node name="TEisel" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_j0enr")
+position = Vector2(474, 582)
+scale = Vector2(0.288008, 0.288008)
+texture = ExtResource("13_6g0ej")

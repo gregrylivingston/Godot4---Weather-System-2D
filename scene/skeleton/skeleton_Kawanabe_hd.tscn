@@ -1,10 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1t1q7meccu32"]
+[gd_scene load_steps=5 format=3 uid="uid://b1t1q7meccu32"]
 
 [ext_resource type="PackedScene" uid="uid://c657hgr7fcptm" path="res://scene/skeleton/player.tscn" id="1_x876n"]
 [ext_resource type="Texture2D" uid="uid://cw67u3lh00jgy" path="res://texture/character/t_character_kawanabe_hd.png" id="2_0rybd"]
+[ext_resource type="Texture2D" uid="uid://n4oe57rxl2fp" path="res://texture/character/t_characterback_kawanabe_hd.png" id="2_1rssx"]
+[ext_resource type="Texture2D" uid="uid://h3edmxx071mw" path="res://texture/character/t_mouth_wide.png" id="4_t2yn3"]
 
-[node name="SkeletalPlayer" instance=ExtResource("1_x876n")]
+[node name="Character_KawanabeHD" instance=ExtResource("1_x876n")]
 scale = Vector2(6.5, 6.5)
+backTexture = ExtResource("2_1rssx")
+backOfHeadTexture = ExtResource("2_1rssx")
 
 [node name="Hip" parent="Sprite2D/Skeleton2D" index="0"]
 scale = Vector2(1, 1)
@@ -83,3 +87,12 @@ texture = ExtResource("2_0rybd")
 polygon = PackedVector2Array(90.0201, 29.9803, 74.0201, 29.9803, 58.0201, 37.9803, 42.0201, 61.9803, 34.062, 88.4414, 30.3267, 119.802, 29.1865, 180.861, 23.5575, 198.582, 20.5741, 240.67, 36.842, 321.531, 61.244, 359.809, 125.837, 353.11, 137.799, 309.569, 122.967, 287.56, 110.327, 207.802, 110.327, 183.802, 118.327, 127.802, 113.542, 89.2179, 113.542, 73.2179, 98.0201, 45.9803)
 uv = PackedVector2Array(549.297, 755.896, 525.297, 771.896, 493.297, 827.896, 461.297, 891.896, 429.297, 947.896, 389.297, 1003.9, 357.297, 1059.9, 282.834, 1175.99, 218.834, 1287.99, 121.379, 1444.7, 100.449, 1630.9, 100.449, 1838.9, 380.449, 1886.9, 436.449, 1782.9, 478.58, 1679.06, 513.553, 1228.58, 541.617, 974.951, 569.8, 860.629, 569.8, 828.629, 573.297, 739.896)
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), "Hip/Chest/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/LeftArm", PackedFloat32Array(0.53, 0.53, 0.53, 1, 1, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1, 1, 0.53), "Hip/Chest/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 1, 1, 1, 0.5, 0, 0, 0, 0.5, 1, 1, 0.5, 0, 0, 0), "Hip/Chest/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1, 1, 1, 0.5, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
+
+[node name="Mouth" parent="Sprite2D/Polygons" index="7"]
+position = Vector2(2.56411, -275.641)
+scale = Vector2(-0.465, 0.465)
+offset = Vector2(-60, 0)
+texture = ExtResource("4_t2yn3")
+texture_offset = Vector2(70.645, 42.235)
+polygon = PackedVector2Array(3.93796, -4.73712, 3.93796, 91.2629, 123.938, 91.2629, 123.938, -4.73712)
+uv = PackedVector2Array(-80.7785, -50.1508, -80.7785, 53.8492, 63.2215, 53.8492, 63.2215, -50.1508)

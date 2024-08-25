@@ -10,6 +10,7 @@
 [node name="Sk_ArtTeacher" instance=ExtResource("1_fq7bq")]
 WALK_SPEED = 220.0
 backTexture = ExtResource("2_bkbiw")
+backOfHeadTexture = ExtResource("2_bkbiw")
 
 [node name="Hip" parent="Sprite2D/Skeleton2D" index="0"]
 scale = Vector2(0.999999, 0.999999)

@@ -1927,6 +1927,7 @@ bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "H
 internal_vertex_count = 14
 
 [node name="Body" type="Polygon2D" parent="Sprite2D/Polygons"]
+unique_name_in_owner = true
 position = Vector2(-436, -294)
 texture = ExtResource("2")
 skeleton = NodePath("../../Skeleton2D")

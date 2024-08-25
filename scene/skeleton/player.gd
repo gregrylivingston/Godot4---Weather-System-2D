@@ -27,7 +27,9 @@ var no_move_horizontal_time = 0.0
 
 @export_category("Textures")
 @export var backTexture: Texture2D
-@onready var frontTexture = %Head.texture
+@onready var frontTexture = %Body.texture
+@export var backOfHeadTexture: Texture2D
+@onready var headTexture = %Head.texture
 var isFrontFacing: bool = true
 
 func _ready():
@@ -121,15 +123,21 @@ func _physics_process(delta: float) -> void:
 func set_textures(isFront: bool) -> void:
 	if isFront:
 		%Mouth.visible = true
+		%Head.texture = headTexture
 	else:
 		%Mouth.visible = false
+		%Head.texture = backOfHeadTexture
 
-	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, %Head, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm]:
-		if isFront:i.texture = frontTexture
-		else:i.texture = backTexture
+	for i in [$Sprite2D/Polygons/RightArm, $Sprite2D/Polygons/RightLeg, $Sprite2D/Polygons/Body, $Sprite2D/Polygons/LeftLeg, $Sprite2D/Polygons/Chin, $Sprite2D/Polygons/LeftArm]:
+		if isFront:
+			i.texture = frontTexture
+		else:
+			i.texture = backTexture
+			
 	for i in [%LeftArm, %RightArm, %RightLeg, %LeftLeg]:
-		if isFront && i.scale.x < 0 :i.scale.x *= -1
-		elif not isFront &&  i.scale.x > 0:i.scale.x *= -1
+		pass
+#		if isFront && i.scale.x < 0 :i.scale.x *= -1
+#		elif not isFront &&  i.scale.x > 0:i.scale.x *= -1
 
 
 
