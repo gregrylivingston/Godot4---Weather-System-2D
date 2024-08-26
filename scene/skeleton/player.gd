@@ -31,9 +31,12 @@ var no_move_horizontal_time = 0.0
 @export var backOfHeadTexture: Texture2D
 @onready var headTexture = %Head.texture
 var isFrontFacing: bool = true
+@export var startFacingBackwards: bool = false
 
 func _ready():
 	$AnimationTree.active = true
+	if startFacingBackwards:
+		set_textures_backfacing()
 
 
 func _physics_process(delta: float) -> void:

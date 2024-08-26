@@ -1,4 +1,5 @@
 shader_type canvas_item;
+// from https://godotshaders.com/shader/all-in-one-outline-shader/
 render_mode unshaded;
 
 uniform float thickness : hint_range(0.0, 100.0);

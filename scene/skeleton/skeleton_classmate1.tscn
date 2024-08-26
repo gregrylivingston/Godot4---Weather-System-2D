@@ -13,45 +13,55 @@ backTexture = ExtResource("2_y3wcl")
 backOfHeadTexture = ExtResource("3_1xm8h")
 
 [node name="Hip" parent="Sprite2D/Skeleton2D" index="0"]
-scale = Vector2(1, 1)
+position = Vector2(-3, -9.65691)
+rotation = 0.0
+
+[node name="Chest" parent="Sprite2D/Skeleton2D/Hip" index="0"]
+rotation = 0.0
 
 [node name="Head" parent="Sprite2D/Skeleton2D/Hip/Chest" index="0"]
-scale = Vector2(1, 1)
+rotation = 0.0
+
+[node name="Chin" parent="Sprite2D/Skeleton2D/Hip/Chest/Head" index="0"]
+rotation = 0.00169551
 
 [node name="RightArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="1"]
-rotation = 0.400647
-scale = Vector2(0.999999, 0.999999)
+rotation = -0.27613
 
 [node name="RightForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm" index="0"]
-rotation = -0.612246
+rotation = -0.672922
+scale = Vector2(1, 1)
+
+[node name="RightHand" parent="Sprite2D/Skeleton2D/Hip/Chest/RightArm/RightForearm" index="0"]
 scale = Vector2(1, 1)
 
 [node name="LeftArm" parent="Sprite2D/Skeleton2D/Hip/Chest" index="2"]
-rotation = -0.677643
+rotation = 0.32948
+scale = Vector2(0.999998, 0.999998)
 
 [node name="LeftForearm" parent="Sprite2D/Skeleton2D/Hip/Chest/LeftArm" index="0"]
-rotation = -0.484994
+rotation = -0.638925
 
 [node name="LeftLeg" parent="Sprite2D/Skeleton2D/Hip" index="1"]
-rotation = 0.347774
+rotation = -0.455638
 
 [node name="LeftLowerLeg" parent="Sprite2D/Skeleton2D/Hip/LeftLeg" index="0"]
-rotation = 0.420368
+rotation = 0.246135
 scale = Vector2(1, 1)
 
 [node name="LeftFoot" parent="Sprite2D/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" index="0"]
-rotation = -0.335377
+rotation = 0.151548
 scale = Vector2(1, 1)
 
 [node name="RightLeg" parent="Sprite2D/Skeleton2D/Hip" index="2"]
-rotation = -0.469925
+rotation = 0.501405
 scale = Vector2(0.999999, 0.999999)
 
 [node name="RightLowerLeg" parent="Sprite2D/Skeleton2D/Hip/RightLeg" index="0"]
-rotation = 0.0882679
+rotation = 0.328827
 
 [node name="RightFoot" parent="Sprite2D/Skeleton2D/Hip/RightLeg/RightLowerLeg" index="0"]
-rotation = 0.294599
+rotation = -0.0204323
 
 [node name="RightArm" parent="Sprite2D/Polygons" index="0"]
 texture = ExtResource("2_bsxvq")

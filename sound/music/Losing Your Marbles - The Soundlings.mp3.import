@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c00f4wimtjavw"
+path="res://.godot/imported/Losing Your Marbles - The Soundlings.mp3-3e6c9309adf079cd609e518515d5fda6.mp3str"
+
+[deps]
+
+source_file="res://sound/music/Losing Your Marbles - The Soundlings.mp3"
+dest_files=["res://.godot/imported/Losing Your Marbles - The Soundlings.mp3-3e6c9309adf079cd609e518515d5fda6.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

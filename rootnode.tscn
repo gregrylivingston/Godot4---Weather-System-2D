@@ -1,7 +1,6 @@
-[gd_scene load_steps=31 format=3 uid="uid://ce6n3y4eidlxj"]
+[gd_scene load_steps=40 format=3 uid="uid://ce6n3y4eidlxj"]
 
 [ext_resource type="PackedScene" uid="uid://daf0l6760wxfn" path="res://sky/sky_setting.tscn" id="1_4piqk"]
-[ext_resource type="Texture2D" uid="uid://celurmwbf0sdv" path="res://texture/t_setting_beach.png" id="2_0maht"]
 [ext_resource type="Shader" path="res://shader/shader_edgewaves.gdshader" id="2_5dhwq"]
 [ext_resource type="Shader" path="res://shader/shader_water.gdshader" id="5_34p74"]
 [ext_resource type="Texture2D" uid="uid://dm4v662y7atae" path="res://texture/setting/t_setting_roses_background2.png" id="6_5sf7a"]
@@ -11,11 +10,17 @@
 [ext_resource type="Texture2D" uid="uid://lwgvqtsh0883" path="res://texture/fx/plants/t_falling_petal.png" id="8_t8i7i"]
 [ext_resource type="Texture2D" uid="uid://q50a47b21ho4" path="res://texture/setting/t_setting_roses_level.png" id="8_tigxy"]
 [ext_resource type="Shader" path="res://shader/shader_perspectiveSkew.gdshader" id="13_i2i0x"]
+[ext_resource type="Script" path="res://scene/player/player_controller.gd" id="13_nu6i6"]
+[ext_resource type="PackedScene" uid="uid://caben4c440412" path="res://scene/player/player_controller.tscn" id="14_boh74"]
 [ext_resource type="Texture2D" uid="uid://f13k6h3bgb" path="res://texture/plant/t_plant_rosetrellis.png" id="14_dajqe"]
 [ext_resource type="PackedScene" uid="uid://cknun6af5bulo" path="res://scene/plant/scene_plant_rosebush_full.tscn" id="14_e4qoa"]
 [ext_resource type="Texture2D" uid="uid://jvx4vmqjo604" path="res://texture/object/t_object_woodsign.png" id="14_omxyg"]
+[ext_resource type="PackedScene" uid="uid://b4ky65urxt58g" path="res://scene/skeleton/skeleton_classmate1.tscn" id="14_xtog2"]
 [ext_resource type="Theme" uid="uid://53yxeiv4btl8" path="res://resource/theme/theme_Kyosai.tres" id="15_l2sll"]
 [ext_resource type="PackedScene" uid="uid://b1t1q7meccu32" path="res://scene/skeleton/skeleton_Kawanabe_hd.tscn" id="15_triw5"]
+[ext_resource type="AudioStream" uid="uid://c00f4wimtjavw" path="res://sound/music/Losing Your Marbles - The Soundlings.mp3" id="17_h24hv"]
+[ext_resource type="AudioStream" uid="uid://dbx5r0v7nnwpn" path="res://sound/speech/speech_youbettergetstarted.mp3" id="21_5qjv0"]
+[ext_resource type="PackedScene" uid="uid://616eaco27cfu" path="res://scene/object/scene_object_eisel.tscn" id="22_n3u7t"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_wx25x"]
 particle_flag_disable_z = true
@@ -39,7 +44,7 @@ glow_hdr_threshold = 0.22
 glow_hdr_scale = 1.22
 
 [sub_resource type="Animation" id="Animation_lrebp"]
-length = 0.001
+length = 60.0
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -47,10 +52,10 @@ tracks/0/path = NodePath("SkySetting/MapCamera2D:offset")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0.0333333),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(-0.0333333, 2, 10.2333, 10.8, 15.1, 18.3333, 21.2, 23.6667, 28.2, 29.2667, 31.7667, 34.2333, 37.1, 40.7333, 44.3, 51.1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector2(0, 600)]
+"values": [Vector2(-350, 900), Vector2(-350, 900), Vector2(-350, 600), Vector2(-350, 600), Vector2(500, 600), Vector2(1000, 550), Vector2(1250, 350), Vector2(1350, 350), Vector2(1900, 550), Vector2(1900, 550), Vector2(2650, 750), Vector2(2800, 750), Vector2(2700, 450), Vector2(2900, 450), Vector2(3100, 350), Vector2(3700, 450)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -59,10 +64,34 @@ tracks/1/path = NodePath("SkySetting/MapCamera2D:zoom")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0.0333333),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0.0333333, 2, 14.5333, 17.3, 21.2, 23.6333, 28.2, 29.3667, 31.8333, 34.2333, 37.0333, 40.9, 42.6333, 51.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector2(2, 2)]
+"values": [Vector2(3, 3), Vector2(3, 3), Vector2(3, 3), Vector2(5, 5), Vector2(7, 7), Vector2(7, 7), Vector2(3, 3), Vector2(3, 3), Vector2(3, 3), Vector2(3, 3), Vector2(7, 7), Vector2(8, 8), Vector2(7, 7), Vector2(1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AudioStreamPlayer_speech:playing")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(51.2667),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AudioStreamPlayer_music:volume_db")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(50.6667, 51.6333, 54.0333, 57),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -8.0, -8.0, -60.0]
 }
 
 [sub_resource type="Animation" id="Animation_rse2w"]
@@ -98,6 +127,9 @@ _data = {
 "RESET": SubResource("Animation_lrebp"),
 "zoom_in": SubResource("Animation_rse2w")
 }
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_1hspf"]
+load_path = "res://.godot/imported/t_setting_beach.png-f5df30bd3a38b05ac5ef8e57fa1fd5b1.ctex"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uc3r0"]
 shader = ExtResource("2_5dhwq")
@@ -179,10 +211,92 @@ shader_parameter/inset = 0.0
 shader_parameter/Texture_UV = Vector2(1, 1)
 shader_parameter/modulate = Color(1, 1, 1, 1)
 
+[sub_resource type="Shader" id="Shader_4win2"]
+code = "// Heyo! This shader tries to simulate a 3D rotation on CanvasItems. Feel free to change its code to your desired use!
+// from https://godotshaders.com/shader/3d-rotation-in-2d/
+shader_type canvas_item;
+
+uniform bool isInRadians = false;
+
+group_uniforms ShaderParameters.RadianRotation;
+uniform float xRadians: hint_range(0, 6.2830); // X IS FIXED
+uniform float yRadians: hint_range(0, 6.2830); // Y IS FIXED
+uniform float zRadians: hint_range(0, 6.2830); // Z IS FIXED
+group_uniforms;
+
+group_uniforms ShaderParameters.DegreesRotation;
+uniform float xDegrees: hint_range(0, 360); // X IS FIXED
+uniform float yDegrees: hint_range(0, 360); // Y IS FIXED
+uniform float zDegrees: hint_range(0, 360); // Z IS FIXED
+group_uniforms;
+
+float degToRad(float angle) {
+	return angle * PI / 180.0;
+}
+
+void vertex() {
+	float radX = xRadians;
+	float radY = yRadians;
+	float radZ = zRadians;
+	
+	if (!isInRadians) {
+		radX = degToRad(xDegrees);
+		radY = degToRad(yDegrees);
+		radZ = degToRad(zDegrees);
+	}
+	
+	float cosX = cos(radX);
+	float cosY = cos(radY);
+	float cosZ = cos(radZ);
+	
+	float sinX = sin(radX);
+	float sinY = sin(radY);
+	float sinZ = sin(radZ);
+	
+	mat3 finalRot;
+	finalRot[0][0] = cosZ * cosY;
+	finalRot[1][0] = cosZ * sinY * sinX - sinZ * cosX;
+	finalRot[2][0] = sinZ * sinX + cosZ * sinY * cosX;
+	
+	finalRot[0][1] = sinZ * cosY;
+	finalRot[1][1] = cosZ * cosX + sinZ * sinY * sinX;
+	finalRot[2][1] = sinZ * sinY * cosX - cosZ * sinX;
+	
+	finalRot[0][2] = -sinY;
+	finalRot[1][2] = cosY * sinX;
+	finalRot[2][2] = cosY * cosX;
+	
+	vec3 pos = vec3(VERTEX.xy, 0) * finalRot;
+	VERTEX = pos.xy;
+}
+
+void fragment() {
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i3s63"]
+shader = SubResource("Shader_4win2")
+shader_parameter/isInRadians = false
+shader_parameter/xRadians = null
+shader_parameter/yRadians = null
+shader_parameter/zRadians = null
+shader_parameter/xDegrees = null
+shader_parameter/yDegrees = null
+shader_parameter/zDegrees = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_guglj"]
+shader = SubResource("Shader_4win2")
+shader_parameter/isInRadians = false
+shader_parameter/xRadians = null
+shader_parameter/yRadians = null
+shader_parameter/zRadians = null
+shader_parameter/xDegrees = null
+shader_parameter/yDegrees = 155.675
+shader_parameter/zDegrees = null
+
 [node name="Rootnode" type="Node2D"]
 
 [node name="SkySetting" parent="." instance=ExtResource("1_4piqk")]
-rainAmount = 0.0
+rainAmount = 0.561
 rainDelta = 0.0
 cloudAmount = 0.561
 
@@ -191,8 +305,8 @@ offset_top = -2563.0
 
 [node name="MapCamera2D" parent="SkySetting" index="1"]
 z_index = 100
-offset = Vector2(0, 600)
-zoom = Vector2(2, 2)
+offset = Vector2(-350, 900)
+zoom = Vector2(3, 3)
 
 [node name="RainController" parent="SkySetting/MapCamera2D" index="0"]
 visible = false
@@ -225,6 +339,7 @@ environment = SubResource("Environment_kt0bb")
 libraries = {
 "": SubResource("AnimationLibrary_jktfc")
 }
+autoplay = "RESET"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 visible = false
@@ -232,7 +347,7 @@ z_index = 2
 position = Vector2(2771, 514)
 rotation = 0.356
 scale = Vector2(3.11621, 3.11621)
-texture = ExtResource("2_0maht")
+texture = SubResource("CompressedTexture2D_1hspf")
 flip_h = true
 
 [node name="ColorRect" type="ColorRect" parent="Sprite2D"]
@@ -550,10 +665,50 @@ expand_mode = 1
 stretch_mode = 1
 flip_h = true
 
-[node name="SkeletalPlayer" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+[node name="Character_KawanabeHD" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
 z_index = 1
-position = Vector2(285, 1639)
-scale = Vector2(9.005, 9.005)
+position = Vector2(-292, 1619)
+
+[node name="PlayerController" parent="Parallax2D_Level/TTownscape2/Character_KawanabeHD" instance=ExtResource("14_boh74")]
+script = ExtResource("13_nu6i6")
+
+[node name="Character_Classmate1" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(-146, 1632)
+scale = Vector2(8.735, 8.735)
+
+[node name="PlayerController2" parent="Parallax2D_Level/TTownscape2/Character_Classmate1" instance=ExtResource("14_boh74")]
+script = ExtResource("13_nu6i6")
+
+[node name="Character_KawanabeHD5" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+z_index = 1
+position = Vector2(-777, 1579)
+
+[node name="PlayerController" parent="Parallax2D_Level/TTownscape2/Character_KawanabeHD5" instance=ExtResource("14_boh74")]
+script = ExtResource("13_nu6i6")
+
+[node name="Character_Classmate8" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(-631, 1592)
+scale = Vector2(8.735, 8.735)
+
+[node name="PlayerController2" parent="Parallax2D_Level/TTownscape2/Character_Classmate8" instance=ExtResource("14_boh74")]
+script = ExtResource("13_nu6i6")
+
+[node name="Character_KawanabeHD6" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+z_index = 1
+position = Vector2(-844, 1609)
+
+[node name="PlayerController" parent="Parallax2D_Level/TTownscape2/Character_KawanabeHD6" instance=ExtResource("14_boh74")]
+script = ExtResource("13_nu6i6")
+
+[node name="Character_Classmate9" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(-698, 1622)
+scale = Vector2(8.735, 8.735)
+
+[node name="PlayerController2" parent="Parallax2D_Level/TTownscape2/Character_Classmate9" instance=ExtResource("14_boh74")]
+script = ExtResource("13_nu6i6")
 
 [node name="TPlantRosebush_full4" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_e4qoa")]
 z_index = 1
@@ -593,8 +748,8 @@ text = "Rose Garden"
 
 [node name="EyeSlug" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("7_k8v3o")]
 z_index = 1
-position = Vector2(2366, 1460)
-scale = Vector2(0.075, 0.075)
+position = Vector2(4701, 1320)
+scale = Vector2(0.0373032, 0.0373032)
 
 [node name="TPlantRosetrellis2" type="Sprite2D" parent="Parallax2D_Level/TTownscape2"]
 z_index = 1
@@ -603,6 +758,93 @@ scale = Vector2(0.43322, 0.43322)
 texture = ExtResource("14_dajqe")
 offset = Vector2(0, -700)
 flip_h = true
+
+[node name="TEiselstick" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("22_n3u7t")]
+z_index = 1
+material = SubResource("ShaderMaterial_i3s63")
+position = Vector2(1429, 1569)
+scale = Vector2(0.230537, 0.230537)
+
+[node name="TEiselstick2" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("22_n3u7t")]
+z_index = 1
+material = SubResource("ShaderMaterial_guglj")
+position = Vector2(1612, 1577)
+scale = Vector2(0.230537, 0.230537)
+
+[node name="Character_KawanabeHD2" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+z_index = 1
+position = Vector2(1630, 1586)
+startFacingBackwards = true
+
+[node name="Character_Classmate2" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(1401, 1573)
+scale = Vector2(-6.016, 6.016)
+startFacingBackwards = true
+
+[node name="TEiselstick3" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("22_n3u7t")]
+z_index = 1
+material = SubResource("ShaderMaterial_i3s63")
+position = Vector2(1966.54, 1350.56)
+scale = Vector2(0.230537, 0.230537)
+
+[node name="TEiselstick4" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("22_n3u7t")]
+material = SubResource("ShaderMaterial_guglj")
+position = Vector2(3755.54, 1335.56)
+scale = Vector2(0.201, 0.201)
+
+[node name="Character_KawanabeHD7" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+position = Vector2(3773.54, 1344.56)
+scale = Vector2(5.6, 5.6)
+startFacingBackwards = true
+
+[node name="Character_Classmate3" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(1938.54, 1354.56)
+scale = Vector2(-6.016, 6.016)
+startFacingBackwards = true
+
+[node name="Character_KawanabeHD3" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+z_index = 1
+position = Vector2(2660, 1575.44)
+startFacingBackwards = true
+
+[node name="Character_Classmate4" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(2431, 1562.44)
+scale = Vector2(-6.016, 6.016)
+startFacingBackwards = true
+
+[node name="Character_Classmate5" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(2525, 1597)
+scale = Vector2(-6.016, 6.016)
+startFacingBackwards = true
+
+[node name="Character_KawanabeHD4" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+z_index = 1
+position = Vector2(3572, 1730)
+scale = Vector2(-7.485, 7.485)
+
+[node name="Character_Classmate6" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(3314, 1750)
+scale = Vector2(7.485, 7.485)
+
+[node name="Character_Classmate7" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("14_xtog2")]
+z_index = 1
+position = Vector2(3437, 1751.56)
+scale = Vector2(7.485, 7.485)
+
+[node name="TEiselstick5" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("22_n3u7t")]
+material = SubResource("ShaderMaterial_guglj")
+position = Vector2(4831.14, 1335.38)
+scale = Vector2(0.146, 0.146)
+
+[node name="Character_KawanabeHD8" parent="Parallax2D_Level/TTownscape2" instance=ExtResource("15_triw5")]
+position = Vector2(4849.14, 1344.38)
+scale = Vector2(4.71, 4.71)
+startFacingBackwards = true
 
 [node name="Parallax2D3" type="Parallax2D" parent="."]
 z_index = 5
@@ -627,5 +869,12 @@ offset_top = 453.0
 offset_right = 20854.0
 offset_bottom = 2477.0
 scale = Vector2(0.84, 0.84)
+
+[node name="AudioStreamPlayer_music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("17_h24hv")
+autoplay = true
+
+[node name="AudioStreamPlayer_speech" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("21_5qjv0")
 
 [editable path="SkySetting"]
