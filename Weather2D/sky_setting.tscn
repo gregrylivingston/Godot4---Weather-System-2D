@@ -1,14 +1,14 @@
 [gd_scene load_steps=14 format=3 uid="uid://daf0l6760wxfn"]
 
 [ext_resource type="Shader" path="res://Weather2D/shader/shader_clouds.gdshader" id="1_rww6c"]
-[ext_resource type="Script" path="res://Weather2D/sky/sky_setting.gd" id="1_tgvmj"]
-[ext_resource type="Script" path="res://Weather2D/sky/sky.gd" id="2_fu5rx"]
-[ext_resource type="Texture2D" uid="uid://ybhgqoqbiy7n" path="res://Weather2D/sky/Gradient2D_Sky.tres" id="3_blnq2"]
+[ext_resource type="Script" path="res://Weather2D/sky_setting.gd" id="1_tgvmj"]
+[ext_resource type="Script" path="res://Weather2D/scene/sky.gd" id="2_fu5rx"]
+[ext_resource type="Texture2D" uid="uid://ybhgqoqbiy7n" path="res://Weather2D/scene/Gradient2D_Sky.tres" id="3_blnq2"]
 [ext_resource type="Script" path="res://MapCamera2D.gd" id="3_ihn1m"]
 [ext_resource type="Material" uid="uid://cnoqvolirupw" path="res://Weather2D/material/material_raindrops_on_screen.tres" id="4_3ynh6"]
-[ext_resource type="Script" path="res://Weather2D/sky/panel_raindrops_on_screen.gd" id="5_3t8p2"]
+[ext_resource type="Script" path="res://Weather2D/scene/panel_raindrops_on_screen.gd" id="5_3t8p2"]
 [ext_resource type="Material" uid="uid://b1nulcpce6tfv" path="res://Weather2D/material/material_rain_falling_from_sky.tres" id="6_uqcgd"]
-[ext_resource type="Script" path="res://Weather2D/sky/panel_rain_falling_in_sky.gd" id="7_av4gv"]
+[ext_resource type="Script" path="res://Weather2D/scene/panel_rain_falling_in_sky.gd" id="7_av4gv"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x5fru"]
 shader = ExtResource("1_rww6c")

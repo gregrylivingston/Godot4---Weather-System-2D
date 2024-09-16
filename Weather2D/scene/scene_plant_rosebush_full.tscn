@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cknun6af5bulo"]
 
 [ext_resource type="Texture2D" uid="uid://qfkh11imfu6i" path="res://Weather2D/demo-scene-texture/t_rosebush_seamless.png" id="1_yrfpg"]
-[ext_resource type="PackedScene" uid="uid://cry6t8woenkes" path="res://Weather2D/scene/plant/scene_plant_rosebush.tscn" id="2_brhpp"]
+[ext_resource type="PackedScene" uid="uid://cry6t8woenkes" path="res://Weather2D/scene/scene_plant_rosebush.tscn" id="2_brhpp"]
 
 [node name="TPlantRosebush_full" type="TextureRect"]
 custom_minimum_size = Vector2(100, 100)
