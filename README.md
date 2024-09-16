@@ -1,6 +1,9 @@
-Godot4 Weather System 2D includes a variety of tools to help create cool weather effects quickly.
-Originally used to create a basic anime short over a few days.
+Godot4 Weather System 2D 
 
+![image](https://github.com/user-attachments/assets/930c2468-c58b-4c69-9b0b-86449aad2a6b)
+
+Includes a variety of tools to help create cool weather effects quickly.
+Originally used to create a basic anime short over a few days.
 
 1. The SkySetting Node provides a handful of variables to make it easy to quickly create a dynamic sky:
 	- Set amount of rain.
@@ -14,7 +17,12 @@ Originally used to create a basic anime short over a few days.
 
 3. Reflective water texture included.
 
-4. ![image](https://github.com/user-attachments/assets/930c2468-c58b-4c69-9b0b-86449aad2a6b)
+See a video with example use here: https://drive.google.com/file/d/1AFCj9rX0jrPF2mGHhBMslishc6YZvUd_/view?usp=sharing
 
 
-See it the final result here: https://drive.google.com/file/d/1AFCj9rX0jrPF2mGHhBMslishc6YZvUd_/view?usp=sharing
+Credits:
+4 Helpful shaders adapted from...
+1. Water - https://godotshaders.com/shader/2d-water-with-reflections/
+2. Falling Rain - https://godotshaders.com/shader/simple-rain-snow-shader/
+3. Raindrops on Screen - https://godotshaders.com/shader/rain-drops-on-screen-notexture/
+4. Clouds - https://godotshaders.com/shader/cloudy-skies/

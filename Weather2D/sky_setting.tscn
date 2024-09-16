@@ -44,7 +44,6 @@ glow_hdr_threshold = 0.32
 script = ExtResource("1_tgvmj")
 rainAmount = -0.1
 rainDelta = 0.015
-sunsetRate = null
 
 [node name="Sky" type="TextureRect" parent="."]
 z_index = -100
