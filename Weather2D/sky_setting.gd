@@ -24,9 +24,7 @@ signal updateCloudAmount
 
 @export_range(0.0,0.25) var sunsetRate := 0.0
 
-var SkyGradient2D: GradientTexture2D = load("res://sky/Gradient2D_Sky.tres")
-
-func _ready() -> void:pass
+var SkyGradient2D: GradientTexture2D = load("res://Weather2D/scene/Gradient2D_Sky.tres")
 
 func _process(delta: float) -> void:
 	if not Engine.is_editor_hint():  
