@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="ParallaxDemo"
+config/name="Weather System 2D"
 run/main_scene="res://Weather2D/demo-rose-garden.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
