@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://cry6t8woenkes"]
+
+[ext_resource type="Texture2D" uid="uid://0687fluvoxy4" path="res://Weather2D/demo-scene-texture/t_plant_rosebush.png" id="1_kwcqc"]
+
+[node name="TPlantRosebush" type="TextureRect"]
+custom_minimum_size = Vector2(10, 10)
+offset_left = -31.0
+offset_top = -154.0
+offset_right = 1993.0
+offset_bottom = 1870.0
+scale = Vector2(0.085, 0.085)
+texture = ExtResource("1_kwcqc")
+expand_mode = 2
+stretch_mode = 1

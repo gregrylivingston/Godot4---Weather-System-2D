@@ -36,7 +36,6 @@ var _drag_movement = Vector2()
 
 func _ready():
 	_pan_direction = Vector2.ZERO
-	
 	get_viewport().size_changed.connect(clamp_offset)
 
 func _process(delta):

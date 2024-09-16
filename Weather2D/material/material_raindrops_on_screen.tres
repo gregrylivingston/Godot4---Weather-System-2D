@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cnoqvolirupw"]
+
+[ext_resource type="Shader" path="res://Weather2D/shader/shader_raindrops_on_screen.gdshader" id="1_emwdj"]
+
+[resource]
+shader = ExtResource("1_emwdj")
+shader_parameter/frequency = 4.0
+shader_parameter/size = 0.015

@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://b1nulcpce6tfv"]
+
+[ext_resource type="Shader" path="res://Weather2D/shader/shader_rain_snow.gdshader" id="1_o815j"]
+
+[resource]
+shader = ExtResource("1_o815j")
+shader_parameter/count = 630
+shader_parameter/slant = -0.01
+shader_parameter/speed = 50.0
+shader_parameter/blur = 0.0055
+shader_parameter/colour = Color(1, 1, 1, 1)
+shader_parameter/size = Vector2(0.01, 0.3)

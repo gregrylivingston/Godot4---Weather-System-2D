@@ -1,7 +1,0 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://53yxeiv4btl8"]
-
-[ext_resource type="FontFile" uid="uid://b4seabasyxeou" path="res://resource/font/KaushanScript-Regular.ttf" id="1_03vb1"]
-
-[resource]
-default_font = ExtResource("1_03vb1")
-default_font_size = 48
