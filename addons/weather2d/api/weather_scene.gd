@@ -36,7 +36,12 @@ var _prop_textures: Array[Texture2D] = []
 var _scatter_birds := false
 var _bird_count := 5
 var _painterly := false
-var _rain_amount := -1.0 # <0 = follow the weather preset
+var _rain_amount := -1.0  # <0 = follow the weather preset
+var _fog_amount := -1.0
+var _wind_amount := -1.0
+var _cloud_amount := -1.0
+var _snow_force := -1     # -1 follow preset, 0 off, 1 on
+var _wind_effective := 0.3
 
 const _DEFAULT_FOLIAGE_PATHS := [
 	"res://assets/svg/tree_round.svg",
@@ -50,6 +55,8 @@ const _DEFAULT_ACCENT_PATHS := [
 ]
 const _BIRD_PATH := "res://assets/svg/bird.svg"
 const _RAIN_SHADER := "res://addons/weather2d/shaders/rain.gdshader"
+const _FOG_SHADER := "res://addons/weather2d/shaders/fog.gdshader"
+const _CLOUD_SHADER := "res://addons/weather2d/shaders/clouds.gdshader"
 
 
 func set_seed(s: int) -> WeatherScene:
@@ -130,6 +137,30 @@ func rain(amount: float) -> WeatherScene:
 	return self
 
 
+## Override fog density (0..1). Negative follows the weather preset.
+func fog(amount: float) -> WeatherScene:
+	_fog_amount = amount
+	return self
+
+
+## Override wind (0..1) — drives foliage sway and rain slant. Negative follows the preset.
+func wind(amount: float) -> WeatherScene:
+	_wind_amount = amount
+	return self
+
+
+## Override cloud coverage (0..1). Negative follows the weather preset.
+func clouds(amount: float) -> WeatherScene:
+	_cloud_amount = amount
+	return self
+
+
+## Force snow on/off. By default snow follows the weather preset.
+func snow(on: bool) -> WeatherScene:
+	_snow_force = 1 if on else 0
+	return self
+
+
 ## Add the painterly post-process (soft focus + grain + vignette) on top of the scene.
 func painterly(enable := true) -> WeatherScene:
 	_painterly = enable
@@ -171,6 +202,27 @@ func build() -> Node2D:
 	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(sky)
 
+	# Effective weather values (explicit override, else the preset, else a default).
+	var eff_fog: float = _fog_amount if _fog_amount >= 0.0 else (_weather.fog if _weather != null else 0.0)
+	var eff_cloud: float = _cloud_amount if _cloud_amount >= 0.0 else (_weather.clouds if _weather != null else 0.0)
+	var eff_snow: bool = (_snow_force == 1) if _snow_force >= 0 else (_weather.snow if _weather != null else false)
+	_wind_effective = _wind_amount if _wind_amount >= 0.0 else (_weather.wind if _weather != null else 0.3)
+
+	# Drifting clouds sit over the sky gradient but behind the terrain.
+	if eff_cloud > 0.02:
+		var cloud_rect := ColorRect.new()
+		cloud_rect.name = "Clouds"
+		cloud_rect.position = Vector2(-w * 0.5, -h * 0.5)
+		cloud_rect.size = _size
+		cloud_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var cmat := ShaderMaterial.new()
+		cmat.shader = load(_CLOUD_SHADER)
+		cmat.set_shader_parameter("amount", eff_cloud)
+		if _weather != null:
+			cmat.set_shader_parameter("cloud_color", _weather.cloud_color)
+		cloud_rect.material = cmat
+		root.add_child(cloud_rect)
+
 	# Find a ground layer so the water can share its coastline.
 	var ground: TerrainLayer = null
 	for l in _layers:
@@ -187,11 +239,6 @@ func build() -> Node2D:
 		var occ: int = role_seen.get(src.role, 0)
 		role_seen[src.role] = occ + 1
 		_add_band(root, src, i, occ, w, h)
-
-	# Props sit on the beach/shore by default; for a river they sit on the green back bank.
-	var prop_line := 0.60
-	if _include_water and _water_mode == WaterBody2D.Mode.RIVER:
-		prop_line = 0.55
 
 	if _include_water:
 		var body := WaterBody2D.new()
@@ -228,20 +275,8 @@ func build() -> Node2D:
 		role_seen[src.role] = occ + 1
 		_add_band(root, src, i, occ, w, h)
 
-	var haze := _weather.sky_bottom if _weather != null else Color(0.72, 0.80, 0.88)
-
 	if _scatter_props:
-		# Foliage (trees/palms/bushes) sways; rocks/driftwood are static accents.
-		var foliage: Array[Texture2D] = _prop_textures.duplicate()
-		if foliage.is_empty():
-			foliage = _load_textures(_DEFAULT_FOLIAGE_PATHS)
-			var accents := _load_textures(_DEFAULT_ACCENT_PATHS)
-			var accent_scatter := _make_scatter("Accents", _seed + 150, maxi(2, _prop_count / 4),
-				w, h, accents, haze, PropScatter2D.ANIM_NONE, prop_line)
-			root.add_child(accent_scatter)
-		var scatter := _make_scatter("Props", _seed + 100, _prop_count,
-			w, h, foliage, haze, PropScatter2D.ANIM_SWAY, prop_line)
-		root.add_child(scatter)
+		_add_prop_rows(root, w, h)
 
 	if _scatter_birds:
 		var flock := PropScatter2D.new()
@@ -264,7 +299,24 @@ func build() -> Node2D:
 			flock.textures = [bird]
 		root.add_child(flock)
 
-	# Rain overlay (from the weather preset, or an explicit .rain() override).
+	# Fog / distance haze over the scene (under rain and painterly).
+	if eff_fog > 0.02:
+		var fog_layer := CanvasLayer.new()
+		fog_layer.name = "Fog"
+		fog_layer.layer = 7
+		var fog_rect := ColorRect.new()
+		fog_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		fog_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var fog_mat := ShaderMaterial.new()
+		fog_mat.shader = load(_FOG_SHADER)
+		fog_mat.set_shader_parameter("density", eff_fog)
+		if _weather != null:
+			fog_mat.set_shader_parameter("fog_color", _weather.fog_color)
+		fog_rect.material = fog_mat
+		fog_layer.add_child(fog_rect)
+		root.add_child(fog_layer)
+
+	# Rain / snow overlay (from the weather preset, or an explicit .rain() override).
 	var rain_amt := _rain_amount if _rain_amount >= 0.0 else (_weather.rain if _weather != null else 0.0)
 	if rain_amt > 0.02:
 		var rain_layer := CanvasLayer.new()
@@ -276,6 +328,8 @@ func build() -> Node2D:
 		var rain_mat := ShaderMaterial.new()
 		rain_mat.shader = load(_RAIN_SHADER)
 		rain_mat.set_shader_parameter("amount", rain_amt)
+		rain_mat.set_shader_parameter("snow", eff_snow)
+		rain_mat.set_shader_parameter("slant", -0.02 - _wind_effective * 0.18)
 		rain_rect.material = rain_mat
 		rain_layer.add_child(rain_rect)
 		root.add_child(rain_layer)
@@ -312,21 +366,56 @@ func _load_textures(paths: Array) -> Array[Texture2D]:
 	return out
 
 
-func _make_scatter(node_name: String, s: int, count: int, w: float, h: float,
-		textures: Array[Texture2D], haze: Color, anim: int, line: float) -> PropScatter2D:
+# Per-role planting: where props sit on each layer, how big, and how hazy. Further-back
+# layers (hills) get smaller, hazier props; nearer layers (foreground) get big, crisp ones.
+const _ROW_CONFIG := {
+	TerrainLayer.Role.HILL:       {"line": 0.575, "smin": 0.28, "smax": 0.48, "haze": 0.55, "band": 0.035, "count_mul": 0.6, "accents": false},
+	TerrainLayer.Role.TREELINE:   {"line": 0.600, "smin": 0.42, "smax": 0.62, "haze": 0.42, "band": 0.040, "count_mul": 0.8, "accents": false},
+	TerrainLayer.Role.GROUND:     {"line": 0.655, "smin": 0.55, "smax": 0.92, "haze": 0.25, "band": 0.050, "count_mul": 1.0, "accents": true},
+	TerrainLayer.Role.FOREGROUND: {"line": 0.850, "smin": 0.85, "smax": 1.30, "haze": 0.10, "band": 0.050, "count_mul": 0.7, "accents": true},
+}
+
+
+## Plant props on each terrain layer, anchored to that layer's surface and scaled by depth.
+func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
+	var haze_col: Color = _weather.sky_bottom if _weather != null else Color(0.72, 0.80, 0.88)
+	var override: Array[Texture2D] = _prop_textures.duplicate()
+	var foliage: Array[Texture2D] = override if not override.is_empty() else _load_textures(_DEFAULT_FOLIAGE_PATHS)
+	var accents: Array[Texture2D] = _load_textures(_DEFAULT_ACCENT_PATHS)
+
+	var row_n := 0
+	for i in _layers.size():
+		var src: TerrainLayer = _layers[i]
+		if src == null or not _ROW_CONFIG.has(src.role):
+			continue
+		var cfg: Dictionary = _ROW_CONFIG[src.role]
+		var count := maxi(2, int(round(_prop_count * float(cfg["count_mul"]))))
+		root.add_child(_make_row("Props%d_%s" % [row_n, _role_name(src.role)],
+			_seed + 100 + i * 7, count, w, h, foliage, haze_col, cfg, PropScatter2D.ANIM_SWAY))
+		# Rocks/driftwood on the nearer rows (only with the default prop set).
+		if override.is_empty() and bool(cfg["accents"]) and not accents.is_empty():
+			root.add_child(_make_row("Accents%d" % row_n,
+				_seed + 150 + i * 7, maxi(1, count / 5), w, h, accents, haze_col, cfg, PropScatter2D.ANIM_NONE))
+		row_n += 1
+
+
+func _make_row(node_name: String, s: int, count: int, w: float, h: float,
+		textures: Array[Texture2D], haze_col: Color, cfg: Dictionary, anim: int) -> PropScatter2D:
 	var scatter := PropScatter2D.new()
 	scatter.name = node_name
 	scatter.seed = s
 	scatter.count = count
 	scatter.width = w * 0.94
-	scatter.band_height = h * 0.09 # depth: back props higher, front props lower
-	scatter.position = Vector2(0.0, (line - 0.5) * h)
-	scatter.scale_min = 0.38
-	scatter.scale_max = 0.9
-	scatter.haze_amount = 0.4
-	scatter.haze_color = haze
+	scatter.band_height = h * float(cfg["band"])
+	scatter.position = Vector2(0.0, (float(cfg["line"]) - 0.5) * h)
+	scatter.scale_min = float(cfg["smin"])
+	scatter.scale_max = float(cfg["smax"])
+	scatter.haze_amount = float(cfg["haze"])
+	scatter.haze_color = haze_col
 	scatter.cast_shadows = true
 	scatter.animation = anim
+	scatter.sway_strength = 2.5 + _wind_effective * 8.0
+	scatter.sway_speed = 0.8 + _wind_effective * 1.3
 	scatter.textures = textures
 	return scatter
 

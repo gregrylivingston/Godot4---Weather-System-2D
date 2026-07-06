@@ -143,7 +143,9 @@ calm stylized look. Generated from **shaders + hybrid SVG vector assets**.
 - [x] Scatter system: `PropScatter2D` — stratified placement with depth-scaling and
       atmospheric haze; layered same-role terrain bands for background depth.
 - [x] Painterly art pass: smooth quintic/domain-warped noise + `PainterlyLayer` post-process.
-- [x] Animated props: foliage sway + bird flap/drift shaders; prop ground shadows.
+- [x] Animated props: foliage sway (wind-driven) + birds that fly across the sky; shadows.
+- [x] Layer-anchored prop distribution — props planted per terrain layer, sized by depth.
+- [x] Weather options: fog, snow, drifting clouds, wind + 7 mood presets.
 - [ ] Density-map placement (paint where props go) instead of uniform stratification.
 
 **Definition of done:** a landscape assembled from `TerrainLayer` bands (procedural hills +

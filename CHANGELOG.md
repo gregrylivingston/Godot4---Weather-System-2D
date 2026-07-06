@@ -6,9 +6,20 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Weather options:** seven presets (Clear Noon, Golden Hour, Overcast Dusk, Foggy, Storm,
+  Snowy Dusk, Night) plus **fog** (`fog.gdshader`), **snow** (rain shader snow mode),
+  **drifting clouds** (`clouds.gdshader`), and **wind** that drives foliage sway and rain
+  slant. Exposed via `WeatherScene.fog()/.wind()/.clouds()/.snow()` and the launcher sliders
+  (selecting a preset fills the sliders with its mood).
+- **Layer-anchored prop distribution:** props are now planted **per terrain layer** — small,
+  hazy trees on the back hills; big, crisp trees/palms/rocks on the near shore/foreground —
+  instead of one flat random row. Further layers get smaller, hazier props (`_ROW_CONFIG`).
+- **Better birds:** each bird has its own flap phase (they no longer beat in unison) and
+  actually **flies across the sky** (script-driven travel + wrap, facing its direction).
 - **Launcher / playground (`demos/launcher.tscn`, now the main scene):** pick a **scenario**
-  (Beach / Small Island / River / Lake / Mountains), a **weather** mood, drag **rain**, and
-  toggle props / birds / painterly — the scene rebuilds live. Plus a seed field + Randomize.
+  (Beach / Small Island / River / Lake / Mountains), a **weather** mood, drag **rain / fog /
+  wind**, toggle **snow** / props / birds / painterly — the scene rebuilds live. Plus a seed
+  field + Randomize.
 - **`Scenarios`** helper — five ready-made scene recipes (`Scenarios.build(name, opts)`),
   each a configured `WeatherScene`.
 - **Animated props:** `foliage_wind.gdshader` (trees/bushes sway, each out of phase) and

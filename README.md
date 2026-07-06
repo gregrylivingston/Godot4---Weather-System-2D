@@ -44,7 +44,7 @@ Originally built over a few days to make a short anime-style scene, it's now bei
 ## Quick start
 
 1. Clone the repo and open the folder as a Godot project (`project.godot`).
-2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains), a **weather** mood, drag the **rain** slider, and toggle props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
+2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains) and a **weather** mood (Clear Noon, Golden Hour, Overcast Dusk, Foggy, Storm, Snowy Dusk, Night), drag **rain / fog / wind**, and toggle **snow** / props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
 
 > Prefer the original hand-authored anime demo? Open [`Weather2D/demo-rose-garden.tscn`](Weather2D/demo-rose-garden.tscn), drag to pan and scroll to zoom (`MapCamera2D`), then select the **`SkySetting`** node and try the inspector sliders: **rainAmount** (`0` dry → `1` heavy), **rainDelta** (rain change per frame), **cloudAmount** / **cloudDelta**, and **sunsetRate**.
 
@@ -103,7 +103,7 @@ add_child(Scenarios.build("River", {"seed": 7, "weather": WeatherPreset.overcast
 
 Scenarios: **Beach, Small Island, River, Lake, Mountains** — the same ones the launcher exposes.
 
-The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatters vector props (trees, palms, bushes, rocks, flowers, driftwood, birds — the SVGs in [`assets/svg/`](assets/svg/)) with even **stratified** placement, **depth-scaling**, **atmospheric haze**, ground **shadows**, and **animation** (trees sway, birds flap — via `foliage_wind` / `bird_fly` shaders); and **`PainterlyLayer`** adds a soft-focus + grain + vignette post-process so the whole frame reads like a soft painting. `.birds()` adds a flock overhead and `.rain(amount)` drops a rain overlay.
+The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatters vector props (trees, palms, bushes, rocks, flowers, driftwood, birds — the SVGs in [`assets/svg/`](assets/svg/)) with even **stratified** placement, ground **shadows**, and **animation** (trees sway in the wind, birds fly across the sky — via `foliage_wind` / `bird_fly` shaders). The builder plants props **per terrain layer**, so back layers get small, hazy trees and near layers get big, crisp ones. **`PainterlyLayer`** adds a soft-focus + grain + vignette post-process. Weather adds `.rain()` / `.snow()` (`rain.gdshader`), `.fog()` (`fog.gdshader`), `.clouds()` (`clouds.gdshader`), and `.wind()` (sway + slant) — all reachable from the launcher.
 
 ### Tests
 

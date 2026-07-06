@@ -7,6 +7,9 @@ uniform float amount : hint_range(0.0, 1.0) = 0.5;
 uniform float speed = 1.0;
 uniform float slant = -0.05;
 uniform vec4 rain_color : source_color = vec4(0.80, 0.85, 0.95, 0.5);
+// Snow: rounder, slower, drifting flakes instead of streaks.
+uniform bool snow = false;
+uniform vec4 snow_color : source_color = vec4(0.97, 0.98, 1.0, 0.9);
 
 float hash(float x) { return fract(sin(x * 18.34) * 51.78); }
 float hash2(float x) { return fract(sin(x * 25.42) * 21.24); }
@@ -22,7 +25,9 @@ void fragment() {
 	uv.x += uv.y * slant;
 	float o = 0.0;
 	vec2 s = vec2(0.0009, 0.03);
-	float t = TIME * speed + 500.0;
+	// Snow falls slower; streaks become round flakes that drift sideways.
+	float fall = snow ? 0.28 : 1.0;
+	float t = TIME * speed * fall + 500.0;
 	for (int i = 1; i <= 300; i++) {
 		if (i > count) { break; }
 		float h1 = hash(float(i));
@@ -30,8 +35,15 @@ void fragment() {
 		float px = h1 * 1.2;
 		float py = max(h2 * 60.0, px * 60.0);
 		vec2 pos = vec2(px, -mod(-py * t * 0.1, -1.0));
-		float d = line_sdf(uv - pos, s);
+		float d;
+		if (snow) {
+			pos.x += 0.04 * sin(t * 0.6 + h1 * 40.0); // gentle wobble
+			d = length((uv - pos) * vec2(1.0, 0.9)) - 0.004;
+		} else {
+			d = line_sdf(uv - pos, s);
+		}
 		o += clamp(-d / 0.0015, 0.0, 1.0);
 	}
-	COLOR = vec4(rain_color.rgb, rain_color.a * clamp(o, 0.0, 1.0));
+	vec4 col = snow ? snow_color : rain_color;
+	COLOR = vec4(col.rgb, col.a * clamp(o, 0.0, 1.0));
 }

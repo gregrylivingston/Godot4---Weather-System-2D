@@ -101,9 +101,20 @@ const _FLY_SHADER := "res://addons/weather2d/shaders/bird_fly.gdshader"
 	set(v):
 		cast_shadows = v
 		_queue_rebuild()
+## Sway amplitude (in pixels) for SWAY animation — raise with stronger wind.
+@export var sway_strength := 4.0:
+	set(v):
+		sway_strength = v
+		_queue_rebuild()
+@export var sway_speed := 1.1:
+	set(v):
+		sway_speed = v
+		_queue_rebuild()
 
 var _rebuild_queued := false
 var _shadows: Array = [] # [{pos: Vector2, r: float}]
+var _fly: Array = []     # birds animated by _process
+var _time := 0.0
 
 
 func _ready() -> void:
@@ -154,20 +165,27 @@ func _rebuild() -> void:
 			"flip": flip_random and rng.randf() < 0.5,
 			"tint": 1.0 - rng.randf_range(0.0, tint_variation),
 			"rot": deg_to_rad(rng.randf_range(-rotation_jitter, rotation_jitter)),
+			# Per-bird flight params (only used when animation == FLY).
+			"fphase": rng.randf() * TAU,
+			"fspeed": rng.randf_range(6.0, 10.0),
+			"vx": rng.randf_range(22.0, 55.0) * (1.0 if rng.randf() < 0.5 else -1.0),
+			"bob": rng.randf_range(4.0, 12.0),
+			"bobsp": rng.randf_range(0.4, 0.9),
 		})
 	# Draw far (higher) props first so nearer ones overlap them.
 	items.sort_custom(func(a, b): return a["y"] < b["y"])
 
-	# One shared animation material for the whole scatter (per-sprite variation comes from
-	# world position inside the shader).
-	var anim_mat: ShaderMaterial = null
+	# Foliage shares one sway material (per-tree phase comes from world position in the
+	# shader). Birds each get their OWN material + a random flap phase so they beat out of
+	# sync, and are animated across the sky by _process.
+	var sway_mat: ShaderMaterial = null
 	if animation == ANIM_SWAY:
-		anim_mat = ShaderMaterial.new()
-		anim_mat.shader = load(_SWAY_SHADER)
-	elif animation == ANIM_FLY:
-		anim_mat = ShaderMaterial.new()
-		anim_mat.shader = load(_FLY_SHADER)
+		sway_mat = ShaderMaterial.new()
+		sway_mat.shader = load(_SWAY_SHADER)
+		sway_mat.set_shader_parameter("wind_strength", sway_strength)
+		sway_mat.set_shader_parameter("wind_speed", sway_speed)
 
+	_fly.clear()
 	_shadows.clear()
 	for it in items:
 		var tex: Texture2D = it["tex"]
@@ -180,19 +198,47 @@ func _rebuild() -> void:
 		sp.offset = Vector2(0.0, -tex.get_height() * 0.5)
 		sp.position = Vector2(it["x"], it["y"])
 		sp.scale = Vector2.ONE * it["s"]
-		if animation != ANIM_FLY:
-			sp.rotation = it["rot"]
-		if anim_mat != null:
-			sp.material = anim_mat
 		var t: float = it["tint"]
 		var col := Color(t, t, t, 1.0)
-		# Far props fade toward the haze color.
-		col = col.lerp(haze_color, haze_amount * (1.0 - it["depth"]))
+		col = col.lerp(haze_color, haze_amount * (1.0 - it["depth"])) # far props fade to haze
 		sp.modulate = col
+		if animation == ANIM_SWAY:
+			sp.rotation = it["rot"]
+			sp.material = sway_mat
+		elif animation == ANIM_FLY:
+			var mat := ShaderMaterial.new()
+			mat.shader = load(_FLY_SHADER)
+			mat.set_shader_parameter("phase", it["fphase"])
+			mat.set_shader_parameter("flap_speed", it["fspeed"])
+			sp.material = mat
+			_fly.append({"sprite": sp, "vx": it["vx"], "base_y": it["y"],
+				"bob_amp": it["bob"], "bob_sp": it["bobsp"], "bob_ph": it["fphase"]})
+		else:
+			sp.rotation = it["rot"]
 		add_child(sp)
 		if cast_shadows and animation != ANIM_FLY:
 			_shadows.append({"pos": sp.position, "r": tex.get_width() * it["s"] * 0.42})
+	set_process(animation == ANIM_FLY and not _fly.is_empty())
 	queue_redraw()
+
+
+func _process(delta: float) -> void:
+	if _fly.is_empty():
+		return
+	_time += delta
+	var half := width * 0.6
+	for b in _fly:
+		var sp: Sprite2D = b["sprite"]
+		var p := sp.position
+		p.x += b["vx"] * delta
+		if p.x > half:
+			p.x = -half
+		elif p.x < -half:
+			p.x = half
+		p.y = b["base_y"] + sin(_time * b["bob_sp"] + b["bob_ph"]) * b["bob_amp"]
+		# Face the direction of travel.
+		sp.flip_h = b["vx"] < 0.0
+		sp.position = p
 
 
 func _draw() -> void:

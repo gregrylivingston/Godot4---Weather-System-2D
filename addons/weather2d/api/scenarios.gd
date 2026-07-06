@@ -110,6 +110,11 @@ static func _base(opts: Dictionary) -> WeatherScene:
 	ws.weather(opts.get("weather", WeatherPreset.clear_noon()))
 	ws.painterly(bool(opts.get("painterly", true)))
 	ws.rain(float(opts.get("rain", -1.0)))
+	ws.fog(float(opts.get("fog", -1.0)))
+	ws.wind(float(opts.get("wind", -1.0)))
+	ws.clouds(float(opts.get("clouds", -1.0)))
+	if opts.has("snow"):
+		ws.snow(bool(opts["snow"]))
 	return ws
 
 

@@ -307,7 +307,11 @@ func _test_builder_props_and_painterly() -> void:
 	builder.painterly(true)
 	var scene := builder.build()
 	await _add_ready(scene)
-	_check(scene.get_node_or_null("Props") is PropScatter2D, "props() adds a PropScatter2D")
+	var prop_rows := 0
+	for c in scene.get_children():
+		if c is PropScatter2D and c.name.begins_with("Props"):
+			prop_rows += 1
+	_check(prop_rows >= 1, "props() adds per-layer PropScatter2D rows")
 	_check(scene.get_node_or_null("Birds") is PropScatter2D, "birds() adds a Birds scatter")
 	var has_painterly := false
 	for c in scene.get_children():
