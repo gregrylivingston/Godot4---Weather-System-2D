@@ -96,12 +96,16 @@ reflective rectangle.
 - [x] Depth shading: shallow→deep color mix by shoreline distance.
 - [x] River flow: directional UV advection with a two-sample noise to hide tiling.
 - [x] Beach run-up: time-animated waterline (`swell_height` / `swell_speed`).
-- [x] `terrain_mask` uniform stubbed in, ready for the Phase 2 hookup.
+- [x] Rolling sine-wave surface action (`wave_height` / `wave_frequency`), applied to the
+      still/ocean waterline and as streaming ripples on rivers.
+- [x] Hook water tint/brightness to `SkySetting` (rain darkens/roughens water) via
+      `react_to_weather` / `weather_influence`.
+- [x] Shared analytic **coastline** with the sand ground (`coast_level` + `wave_*`) so land
+      and water align — a simpler, exact alternative to a runtime `terrain_mask` texture.
+- [x] `terrain_mask` uniform stubbed in for advanced (non-horizontal) coastlines.
 - [ ] Extract shared water helpers (noise, reflection) into a reusable `.gdshaderinc`.
-- [ ] Wet-sand blend: darken/saturate land within N px of the current waterline
-      (needs the Phase 2 terrain mask).
+- [ ] Wet-sand blend driven by the water's *live* edge (currently a static gradient on sand).
 - [ ] Caustics/sparkle pass (optional, cheap) for sunlit water.
-- [ ] Hook water tint/brightness to `SkySetting` (rain darkens/roughens water).
 
 **Definition of done:** a river demo where water flows behind hills, and a beach demo
 where waves lap onto sand with foam — both tweakable live in the inspector.
@@ -125,13 +129,17 @@ calm stylized look. Generated from **shaders + hybrid SVG vector assets**.
   authored as **SVG** and imported as crisp, scalable textures, then scattered.
 
 **Sub-tasks**
-- [ ] Sand/ground shader: grain, color gradient, wetness input near waterline.
-- [ ] Noise-driven hill/mountain silhouette generator (`Line2D`/`Polygon2D` or shader).
+- [x] Sand/ground shader (`terrain_ground.gdshader`): grain, dry→wet color gradient, wavy
+      beach line.
+- [x] Noise-driven hill/mountain/treeline silhouette shader (`terrain_silhouette.gdshader`),
+      seeded and self-contained (analytic value noise, no texture needed).
+- [x] Atmospheric perspective: `far_color` haze at the ridge → `near_color` at the base.
+- [x] `TerrainLayer` resource (+ factory presets) and a `@tool` `TerrainBand2D` node that
+      renders from it.
+- [x] Align ground ↔ water via a shared analytic coastline (`beach_demo.tscn` shows the
+      ocean washing over the sand). Closes the loop with Phase 1.
 - [ ] SVG prop library in `assets/svg/` (a few trees, rocks, grass, flowers).
 - [ ] Scatter system: seeded placement of props along a band with density/jitter.
-- [ ] Atmospheric perspective: distance-based desaturation/fog per parallax band.
-- [ ] `TerrainLayer` resource + `@tool` band node that renders from it.
-- [ ] Wire ground mask → water shoreline (closes the loop with Phase 1).
 
 **Definition of done:** a landscape assembled from `TerrainLayer` bands (procedural hills +
 scattered SVG trees) with a river/ocean layer correctly interacting with the ground.
@@ -160,15 +168,18 @@ add_child(scene.build())
 ```
 
 **Sub-tasks**
-- [ ] `WeatherScene` builder returning a ready-to-add node tree.
-- [ ] `WeatherPreset` resource (rain/cloud/sunset + palette) with a starter library.
-- [ ] `ScenePreset` capturing a whole composition (terrain bands + water + sky).
-- [ ] Deterministic seeding threaded through terrain scatter and water phase.
-- [ ] Keep `@tool` inspector parity — nodes can serialize back to presets.
-- [ ] Small API examples for each entry point.
+- [x] `WeatherScene` builder returning a ready-to-add node tree (sky + terrain + water).
+- [x] `WeatherPreset` resource (rain/cloud/sunset + palette) with `clear_noon` /
+      `overcast_dusk` / `storm` factories.
+- [x] `ScenePreset` capturing a whole composition; `WeatherScene.from_preset()` rebuilds it.
+- [x] Deterministic seeding threaded through the terrain bands (verified by tests).
+- [x] `demos/generated_demo.tscn` — a scene generated entirely from code in `_ready()`.
+- [ ] Keep `@tool` inspector parity — nodes can serialize *back* to a `ScenePreset`.
+- [ ] SkySetting/weather wiring into generated scenes (rain particles, clouds).
+- [ ] Longer-form API docs under `docs/api/`.
 
 **Definition of done:** a demo scene generated entirely in `_ready()` from a preset + seed,
-reproducible across runs, documented in `docs/api/`.
+reproducible across runs. ✅ (Deeper `docs/api/` reference still pending.)
 
 ---
 

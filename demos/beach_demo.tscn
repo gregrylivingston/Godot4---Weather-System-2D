@@ -1,0 +1,96 @@
+[gd_scene format=3 uid="uid://dbclqglswepfy"]
+
+[ext_resource type="Script" path="res://addons/weather2d/nodes/water_body_2d.gd" id="1_water"]
+[ext_resource type="Script" path="res://addons/weather2d/nodes/terrain_band_2d.gd" id="2_band"]
+[ext_resource type="Script" path="res://addons/weather2d/resources/terrain_layer.gd" id="3_layer"]
+
+[sub_resource type="Resource" id="Layer_mountains"]
+script = ExtResource("3_layer")
+role = 2
+near_color = Color(0.42, 0.48, 0.58, 1)
+far_color = Color(0.7, 0.76, 0.85, 1)
+height = 0.6
+roughness = 0.8
+seed = 3
+
+[sub_resource type="Resource" id="Layer_hills"]
+script = ExtResource("3_layer")
+role = 1
+near_color = Color(0.34, 0.5, 0.36, 1)
+far_color = Color(0.55, 0.68, 0.6, 1)
+height = 0.4
+roughness = 0.35
+seed = 7
+
+[sub_resource type="Resource" id="Layer_sand"]
+script = ExtResource("3_layer")
+role = 0
+near_color = Color(0.68, 0.6, 0.44, 1)
+far_color = Color(0.86, 0.78, 0.6, 1)
+coast_level = 0.4
+wave_height = 0.03
+wave_frequency = 8.0
+seed = 1
+
+[node name="BeachDemo" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Backdrop" type="ColorRect" parent="."]
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.66, 0.81, 0.92, 1)
+
+[node name="Mountains" type="ColorRect" parent="."]
+offset_left = -960.0
+offset_top = -350.0
+offset_right = 960.0
+offset_bottom = 150.0
+mouse_filter = 2
+script = ExtResource("2_band")
+layer = SubResource("Layer_mountains")
+
+[node name="Hills" type="ColorRect" parent="."]
+offset_left = -960.0
+offset_top = -50.0
+offset_right = 960.0
+offset_bottom = 260.0
+mouse_filter = 2
+script = ExtResource("2_band")
+layer = SubResource("Layer_hills")
+
+[node name="Sand" type="ColorRect" parent="."]
+offset_left = -960.0
+offset_top = -80.0
+offset_right = 960.0
+offset_bottom = 540.0
+mouse_filter = 2
+script = ExtResource("2_band")
+layer = SubResource("Layer_sand")
+
+[node name="Water" type="ColorRect" parent="."]
+offset_left = -960.0
+offset_top = -80.0
+offset_right = 960.0
+offset_bottom = 540.0
+mouse_filter = 2
+script = ExtResource("1_water")
+mode = 2
+water_opacity = 0.9
+level = 0.66
+foam_amount = 0.65
+foam_width = 0.06
+swell_height = 0.07
+swell_speed = 0.4
+wave_height = 0.03
+wave_frequency = 8.0
+reflection_strength = 0.18
+
+[node name="Instructions" type="Label" parent="."]
+offset_left = -940.0
+offset_top = -520.0
+offset_right = -260.0
+offset_bottom = -470.0
+text = "Beach demo — ocean-beach water washing over generated sand, hills & mountains. Tweak Water.level / swell / wave params and the Sand layer's coast_level to taste."

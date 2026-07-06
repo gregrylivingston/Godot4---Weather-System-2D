@@ -33,12 +33,12 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 
 @export_group("Palette")
 ## Water color far from the shore.
-@export var deep_color := Color(0.09, 0.22, 0.42):
+@export var deep_color := Color(0.06, 0.26, 0.44):
 	set(v):
 		deep_color = v
 		_set_param("deep_color", v)
 ## Water color in the shallows near the shoreline.
-@export var shallow_color := Color(0.20, 0.45, 0.62):
+@export var shallow_color := Color(0.26, 0.56, 0.66):
 	set(v):
 		shallow_color = v
 		_set_param("shallow_color", v)
@@ -67,6 +67,16 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 	set(v):
 		wave_distortion = v
 		_set_param("wave_distortion", v)
+## Amplitude (in UV) of the rolling sine waves that undulate the surface/shoreline.
+@export_range(0.0, 0.2) var wave_height := 0.03:
+	set(v):
+		wave_height = v
+		_set_param("wave_height", v)
+## Spatial frequency of the sine waves across the surface. Match the sand ground to align coasts.
+@export var wave_frequency := 8.0:
+	set(v):
+		wave_frequency = v
+		_set_param("wave_frequency", v)
 
 @export_group("Waterline")
 ## Water fills below this UV.y (0 = top, 1 = bottom). Used by STILL and OCEAN_BEACH.
@@ -114,7 +124,7 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 	set(v):
 		reflection_enabled = v
 		_set_param("reflection_enabled", v)
-@export_range(0.0, 1.0) var reflection_strength := 0.35:
+@export_range(0.0, 1.0) var reflection_strength := 0.22:
 	set(v):
 		reflection_strength = v
 		_set_param("reflection_strength", v)
@@ -123,6 +133,13 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 	set(v):
 		reflection_offset = v
 		_set_param("reflection_offset", v)
+
+@export_group("Weather response")
+## When true (at runtime), connect to a SkySetting in the "SkySetting" group so rain darkens
+## and roughens the water. Editor preview is unaffected.
+@export var react_to_weather := true
+## How strongly rain affects the water (0 = ignore, 1 = full storm at max rain).
+@export_range(0.0, 1.0) var weather_influence := 0.6
 
 @export_group("Terrain (Phase 2)")
 ## When true, sample [member terrain_mask] so water only appears where there is no land.
@@ -137,9 +154,41 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 		_set_param("terrain_mask", v)
 
 
+## Storm target the palette darkens toward at full rain.
+const _STORM_COLOR := Color(0.06, 0.10, 0.16)
+
+# Base values captured at runtime so weather modulation is always computed from the
+# authored look rather than drifting each frame.
+var _base_deep: Color
+var _base_shallow: Color
+var _base_foam: float
+var _base_wave_height: float
+
+
 func _enter_tree() -> void:
 	_ensure_material()
 	_apply_all()
+
+
+func _ready() -> void:
+	if Engine.is_editor_hint() or not react_to_weather:
+		return
+	_base_deep = deep_color
+	_base_shallow = shallow_color
+	_base_foam = foam_amount
+	_base_wave_height = wave_height
+	var sky := get_tree().get_first_node_in_group("SkySetting")
+	if sky != null and sky.has_signal("updateRainAmount"):
+		sky.updateRainAmount.connect(_on_rain_amount)
+
+
+## Rain darkens/desaturates the palette and raises foam + wave height.
+func _on_rain_amount(rain_amount: float) -> void:
+	var r := clampf(rain_amount, 0.0, 1.0) * weather_influence
+	deep_color = _base_deep.lerp(_STORM_COLOR, 0.5 * r)
+	shallow_color = _base_shallow.lerp(_STORM_COLOR, 0.4 * r)
+	foam_amount = clampf(_base_foam + 0.4 * r, 0.0, 1.0)
+	wave_height = _base_wave_height + 0.03 * r
 
 
 func _ensure_material() -> void:
@@ -182,6 +231,8 @@ func _apply_all() -> void:
 	_set_param("wave_scale", wave_scale)
 	_set_param("wave_speed", wave_speed)
 	_set_param("wave_distortion", wave_distortion)
+	_set_param("wave_height", wave_height)
+	_set_param("wave_frequency", wave_frequency)
 	_set_param("level", level)
 	_set_param("flow_direction", flow_direction)
 	_set_param("flow_speed", flow_speed)

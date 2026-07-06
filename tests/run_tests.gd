@@ -1,0 +1,241 @@
+extends SceneTree
+## Headless test runner for the Weather System 2D kit.
+##
+## Run from the project root:
+##   godot --headless --path . --script res://tests/run_tests.gd
+##
+## Exits with code 0 if all checks pass, 1 otherwise (CI-friendly). No external addon
+## required. See tests/README.md. As the kit grows, a GUT/GdUnit4 suite can replace this.
+##
+## Note: node _enter_tree/_ready callbacks are not guaranteed to have run the instant
+## add_child() returns inside _initialize(), so helpers await one process_frame first.
+
+var _passed := 0
+var _failed := 0
+
+
+func _initialize() -> void:
+	_run()
+
+
+func _run() -> void:
+	await process_frame
+	print("== Weather System 2D — tests ==")
+	await _test_water_defaults_and_material()
+	await _test_water_param_push()
+	_test_water_mode_enum()
+	await _test_water_mode_push()
+	await _test_water_weather_response()
+	_test_terrain_layer_factories()
+	await _test_terrain_band_shader_selection()
+	await _test_beach_demo_controls()
+	await _test_weather_scene_builder()
+	_test_weather_scene_determinism()
+	_test_scene_preset_roundtrip()
+
+	print("== %d passed, %d failed ==" % [_passed, _failed])
+	quit(1 if _failed > 0 else 0)
+
+
+# --- helpers ---------------------------------------------------------------
+
+func _check(cond: bool, msg: String) -> void:
+	if cond:
+		_passed += 1
+		print("  [PASS] " + msg)
+	else:
+		_failed += 1
+		print("  [FAIL] " + msg)
+		push_error("Test failed: " + msg)
+
+
+func _approx(a: float, b: float) -> bool:
+	return absf(a - b) < 0.0001
+
+
+# Add a node and let its _enter_tree/_ready run before returning.
+func _add_ready(node: Node) -> void:
+	root.add_child(node)
+	await process_frame
+
+
+# --- tests -----------------------------------------------------------------
+
+func _test_water_defaults_and_material() -> void:
+	print("WaterBody2D — material & noise setup")
+	var w := WaterBody2D.new()
+	await _add_ready(w)
+	var mat := w.material as ShaderMaterial
+	_check(mat != null, "creates a ShaderMaterial")
+	_check(mat != null and mat.shader != null, "loads the water shader")
+	_check(mat != null and mat.get_shader_parameter("noise_tex") != null, "assigns a noise texture")
+	w.free()
+
+
+func _test_water_param_push() -> void:
+	print("WaterBody2D — property setters push shader params")
+	var w := WaterBody2D.new()
+	await _add_ready(w)
+	var mat := w.material as ShaderMaterial
+	w.level = 0.3
+	w.foam_amount = 0.9
+	w.wave_height = 0.05
+	w.flow_direction = Vector2(0.0, 1.0)
+	_check(_approx(mat.get_shader_parameter("level"), 0.3), "level -> shader")
+	_check(_approx(mat.get_shader_parameter("foam_amount"), 0.9), "foam_amount -> shader")
+	_check(_approx(mat.get_shader_parameter("wave_height"), 0.05), "wave_height -> shader")
+	_check(mat.get_shader_parameter("flow_direction") == Vector2(0.0, 1.0), "flow_direction -> shader")
+	w.free()
+
+
+func _test_water_mode_enum() -> void:
+	print("WaterBody2D — mode enum values")
+	_check(WaterBody2D.Mode.STILL == 0, "STILL == 0")
+	_check(WaterBody2D.Mode.RIVER == 1, "RIVER == 1")
+	_check(WaterBody2D.Mode.OCEAN_BEACH == 2, "OCEAN_BEACH == 2")
+
+
+func _test_water_mode_push() -> void:
+	print("WaterBody2D — mode pushes to shader")
+	var w := WaterBody2D.new()
+	await _add_ready(w)
+	w.mode = WaterBody2D.Mode.RIVER
+	_check(int((w.material as ShaderMaterial).get_shader_parameter("mode")) == 1, "mode -> shader as int")
+	w.free()
+
+
+func _test_water_weather_response() -> void:
+	print("WaterBody2D — rain darkens & roughens the water")
+	var w := WaterBody2D.new()
+	await _add_ready(w)
+	w.weather_influence = 1.0
+	var dry_deep := w.deep_color
+	var dry_foam := w.foam_amount
+	var dry_wave := w.wave_height
+	w._on_rain_amount(1.0)
+	_check(w.deep_color.v < dry_deep.v, "deep water gets darker in rain")
+	_check(w.foam_amount > dry_foam, "foam increases in rain")
+	_check(w.wave_height > dry_wave, "waves grow in rain")
+	w._on_rain_amount(0.0)
+	_check(_approx(w.foam_amount, dry_foam), "foam restores when rain clears")
+	w.free()
+
+
+func _test_terrain_layer_factories() -> void:
+	print("TerrainLayer — factory presets")
+	var m := TerrainLayer.mountains()
+	var h := TerrainLayer.hills()
+	var g := TerrainLayer.ground()
+	_check(m.role == TerrainLayer.Role.MOUNTAIN, "mountains() -> MOUNTAIN role")
+	_check(h.role == TerrainLayer.Role.HILL, "hills() -> HILL role")
+	_check(g.role == TerrainLayer.Role.GROUND, "ground() -> GROUND role")
+	_check(m.height > h.height, "mountains taller than hills")
+	_check(m.scroll_scale.x < h.scroll_scale.x, "distant mountains scroll slower than hills")
+
+
+func _test_terrain_band_shader_selection() -> void:
+	print("TerrainBand2D — picks the shader for the layer role")
+	var ground := TerrainBand2D.new()
+	ground.layer = TerrainLayer.ground()
+	await _add_ready(ground)
+	var gpath: String = (ground.material as ShaderMaterial).shader.resource_path
+	_check(gpath.ends_with("terrain_ground.gdshader"), "GROUND role -> terrain_ground shader")
+	ground.free()
+
+	var hill := TerrainBand2D.new()
+	hill.layer = TerrainLayer.hills()
+	await _add_ready(hill)
+	var hpath: String = (hill.material as ShaderMaterial).shader.resource_path
+	_check(hpath.ends_with("terrain_silhouette.gdshader"), "HILL role -> terrain_silhouette shader")
+	hill.free()
+
+
+# Loads the REAL demo scene and verifies inspector-style edits reach the live material —
+# i.e. the "controls actually do something" path.
+func _test_beach_demo_controls() -> void:
+	print("beach_demo.tscn — controls reach the live material")
+	var packed := load("res://demos/beach_demo.tscn") as PackedScene
+	_check(packed != null, "beach_demo.tscn loads")
+	if packed == null:
+		return
+	var inst := packed.instantiate()
+	await _add_ready(inst)
+	var water := inst.get_node("Water") as WaterBody2D
+	_check(water != null, "Water node present")
+	_check(water != null and water.material is ShaderMaterial, "Water has a live material after scene load")
+	if water != null and water.material is ShaderMaterial:
+		water.level = 0.25
+		var pushed = (water.material as ShaderMaterial).get_shader_parameter("level")
+		_check(_approx(pushed, 0.25), "editing Water.level updates the live material")
+	inst.free()
+
+
+func _test_weather_scene_builder() -> void:
+	print("WeatherScene — builds a full node tree from code")
+	var builder := WeatherScene.new()
+	builder.set_seed(42)
+	builder.weather(WeatherPreset.clear_noon())
+	builder.terrain([TerrainLayer.mountains(), TerrainLayer.hills(), TerrainLayer.ground()])
+	builder.water(WaterBody2D.Mode.OCEAN_BEACH)
+	var scene := builder.build()
+	await _add_ready(scene)
+	_check(scene is Node2D, "build() returns a Node2D")
+	_check(scene.get_node_or_null("Camera2D") != null, "has a Camera2D")
+	_check(scene.get_node_or_null("Sky") != null, "has a Sky")
+	var water := scene.get_node_or_null("Water") as WaterBody2D
+	_check(water != null, "has a Water body")
+	# 3 terrain bands present.
+	var bands := 0
+	for c in scene.get_children():
+		if c is TerrainBand2D:
+			bands += 1
+	_check(bands == 3, "built 3 terrain bands")
+	# Water aligns below the ground coast (coast 0.4 + 0.26 = 0.66).
+	_check(water != null and _approx(water.level, 0.66), "water level aligned to ground coast")
+	# Weather preset drove the water palette.
+	_check(water != null and water.deep_color == WeatherPreset.clear_noon().water_deep, "weather preset set water color")
+	scene.free()
+
+
+func _test_weather_scene_determinism() -> void:
+	print("WeatherScene — deterministic seeding")
+	var layers := [TerrainLayer.mountains(), TerrainLayer.hills(), TerrainLayer.ground()]
+	var a := WeatherScene.new().set_seed(7).terrain(layers).build()
+	var b := WeatherScene.new().set_seed(7).terrain(layers).build()
+	var c := WeatherScene.new().set_seed(99).terrain(layers).build()
+	var sa := _band_seeds(a)
+	var sb := _band_seeds(b)
+	var sc := _band_seeds(c)
+	_check(sa == sb, "same seed → identical band seeds")
+	_check(sa != sc, "different seed → different band seeds")
+	_check(sa.size() == 3 and sa[0] == 7 and sa[2] == 9, "band seeds are base_seed + index")
+	a.free()
+	b.free()
+	c.free()
+
+
+func _band_seeds(scene: Node) -> Array:
+	var out := []
+	for c in scene.get_children():
+		if c is TerrainBand2D and c.layer != null:
+			out.append(c.layer.seed)
+	return out
+
+
+func _test_scene_preset_roundtrip() -> void:
+	print("ScenePreset — WeatherScene.from_preset applies it")
+	var preset := ScenePreset.new()
+	preset.scene_seed = 123
+	preset.size = Vector2(800, 600)
+	preset.weather = WeatherPreset.storm()
+	preset.terrain = [TerrainLayer.hills(), TerrainLayer.ground()]
+	preset.water_level = 0.5
+	var scene := WeatherScene.new().from_preset(preset).build()
+	var bands := 0
+	for c in scene.get_children():
+		if c is TerrainBand2D:
+			bands += 1
+	_check(bands == 2, "preset's 2 terrain layers built")
+	var water := scene.get_node_or_null("Water") as WaterBody2D
+	_check(water != null and water.deep_color == WeatherPreset.storm().water_deep, "preset weather applied to water")
+	scene.free()

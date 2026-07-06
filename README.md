@@ -67,7 +67,47 @@ water.foam_amount = 0.6
 add_child(water)
 ```
 
-Modes: **Still** (pond, ripples + reflections), **River** (surface streams along `flow_direction`, sits behind scenery), **Ocean-Beach** (an animated waterline laps up the shore with a foam band). Palette, waves, flow, foam, run-up and reflection are all inspector- and code-tweakable. To enable the addon in your own project, copy the `addons/weather2d/` folder in and tick it on under **Project → Project Settings → Plugins**.
+Modes: **Still** (pond, ripples + reflections), **River** (surface streams along `flow_direction`, sits behind scenery), **Ocean-Beach** (an animated waterline laps up the shore with a foam band). Rolling **sine waves** (`wave_height` / `wave_frequency`) undulate the surface, and — when `react_to_weather` is on — rain from a `SkySetting` darkens the water and kicks up more foam and bigger waves. Palette, waves, flow, foam, run-up and reflection are all inspector- and code-tweakable. To enable the addon in your own project, copy the `addons/weather2d/` folder in and tick it on under **Project → Project Settings → Plugins**.
+
+### New: terrain bands *(Phase 2)*
+
+`TerrainBand2D` renders one parallax band from a [`TerrainLayer`](addons/weather2d/resources/terrain_layer.gd) resource — **mountains / hills / treeline** as seeded noise silhouettes with atmospheric haze, or a **sand ground** the water can wash over. Sand and water share an analytic **coastline** (`coast_level` + `wave_*`), so the ocean lines up with the land. See [`demos/beach_demo.tscn`](demos/beach_demo.tscn) for mountains → hills → sand → ocean-beach water washing in.
+
+```gdscript
+var hills := TerrainBand2D.new()
+hills.layer = TerrainLayer.hills()   # or .mountains() / .treeline() / .ground()
+hills.size = Vector2(1920, 300)
+add_child(hills)
+```
+
+### New: build scenes from code *(Phase 3)*
+
+The [`WeatherScene`](addons/weather2d/api/weather_scene.gd) builder assembles a whole scene — sky gradient, parallax terrain bands, and water — into a ready node tree, deterministically from a seed. See [`demos/generated_demo.tscn`](demos/generated_demo.tscn) (nothing is authored in that scene except one script).
+
+```gdscript
+var builder := WeatherScene.new()
+builder.set_seed(20260705)
+builder.weather(WeatherPreset.clear_noon())      # or .overcast_dusk() / .storm()
+builder.terrain([
+    TerrainLayer.mountains(),
+    TerrainLayer.hills(),
+    TerrainLayer.ground(),
+])
+builder.water(WaterBody2D.Mode.OCEAN_BEACH)
+add_child(builder.build())
+```
+
+Save a whole composition as a [`ScenePreset`](addons/weather2d/resources/scene_preset.gd) `.tres` and rebuild it anywhere with `WeatherScene.new().from_preset(preset).build()`.
+
+### Tests
+
+A zero-dependency headless suite lives in [`tests/`](tests/) (**38 checks, all passing** on Godot 4.7). Run it from the project root:
+
+```bash
+godot --headless --path . --script res://tests/run_tests.gd
+```
+
+It checks the node logic (property → shader wiring, mode enum, weather response, terrain factories/shader selection) and exits non-zero on failure. Visual/shader correctness is verified in the demo scenes — see [`tests/README.md`](tests/README.md).
 
 ## How it works
 
@@ -132,18 +172,20 @@ The next phases turn this from a personal effects grab-bag into a polished, reus
 - [x] **Phase 0 — Foundation & docs** *(in progress)*
   - Accurate README, architecture reference, and this roadmap.
   - Repackage as an installable `addons/` plugin; tidy repo layout.
-- [ ] **Phase 1 — Water overhaul** 🌊
-  - Shoreline **foam** and wet-sand blending where water meets land.
-  - **Flowing river** mode (directional flow map, advected noise) that runs behind scenery.
-  - **Beach-lapping** waves — animated run-up on sand.
-  - Refactor water into a configurable `WaterBody2D` node with `still / river / ocean-beach` modes.
-- [ ] **Phase 2 — Terrain built in** ⛰️
-  - Procedural **sand / ground** shader with wetness gradient near the waterline.
-  - Generated **parallax hills, mountains, and tree lines** (noise + hybrid SVG vector props) in a calm, pleasing style.
-  - A `TerrainLayer` resource per parallax band, with the terrain mask driving where water washes in.
-- [ ] **Phase 3 — Scene generation from code** 🧩
-  - A GDScript **builder API** (e.g. `WeatherScene.new().add_water(...).add_terrain(...).build()`) *and* polished `@tool` nodes.
-  - Reusable `WeatherPreset` / `ScenePreset` resources and **deterministic seeds** for reproducible scenes.
+- [x] **Phase 1 — Water overhaul** 🌊 *(core done)*
+  - `WaterBody2D` node with `still / river / ocean-beach` modes.
+  - Shoreline **foam**, depth shading, **flowing river**, **beach-lapping** run-up.
+  - Rolling **sine-wave** surface action; **weather-reactive** tint (rain darkens water).
+  - *Remaining:* shared shader includes, live wet-sand edge, caustics.
+- [x] **Phase 2 — Terrain built in** ⛰️ *(core done)*
+  - Procedural **sand / ground** shader (grain + dry→wet gradient).
+  - Generated **hills, mountains, and tree lines** as seeded noise silhouettes with haze.
+  - `TerrainLayer` resource + `TerrainBand2D` node; sand ↔ water share a coastline so the ocean washes in.
+  - *Remaining:* SVG vector props + a seeded scatter system.
+- [x] **Phase 3 — Scene generation from code** 🧩 *(core done)*
+  - A GDScript **`WeatherScene` builder** that assembles sky + terrain + water into a node tree.
+  - Reusable `WeatherPreset` / `ScenePreset` resources and **deterministic seeds**.
+  - *Remaining:* serialize nodes back to presets; wire generated scenes to `SkySetting` weather; deeper API docs.
 - [ ] **Phase 4 — Presentation & release** ✨
   - Several themed demos (rose garden, beach, river valley, mountains), GIFs/video, API docs.
   - Godot **Asset Library** submission.

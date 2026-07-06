@@ -23,6 +23,10 @@ uniform float water_opacity : hint_range(0.0, 1.0) = 0.85;
 uniform float wave_scale = 6.0;
 uniform float wave_speed : hint_range(0.0, 1.0) = 0.15;
 uniform float wave_distortion : hint_range(0.0, 1.0) = 0.15;
+// Rolling sum-of-sines that undulates the waterline (and, for OCEAN_BEACH, the shore edge).
+// Keep `wave_height` / `wave_frequency` equal on the sand ground shader to align the coast.
+uniform float wave_height : hint_range(0.0, 0.2) = 0.02;
+uniform float wave_frequency = 8.0;
 
 // --- waterline (STILL & OCEAN_BEACH) ---
 uniform float level : hint_range(0.0, 1.0) = 0.5;
@@ -61,6 +65,15 @@ float noise_fbm(vec2 p) {
 	return mix(a, b, 0.5);
 }
 
+// Sum-of-sines surface displacement in UV, animated by `t`. Returns roughly -1..1.
+// Shared analytic form with terrain_ground.gdshader so water and sand share one coastline.
+float surface_wave(float x, float t) {
+	float w = sin(x * wave_frequency + t * 1.3);
+	w += 0.5 * sin(x * wave_frequency * 2.17 - t * 1.9);
+	w += 0.25 * sin(x * wave_frequency * 0.53 + t * 0.7);
+	return w / 1.75;
+}
+
 void fragment() {
 	vec2 uv = UV;
 
@@ -75,11 +88,15 @@ void fragment() {
 	float surface = (n1 + n2) * 0.5;
 	float distort = (surface - 0.5) * wave_distortion;
 
-	// Waterline (animated run-up for ocean-beach).
-	float waterline = level;
+	// Rolling sine waves along the surface.
+	float wt = TIME * wave_speed * 6.0;
+	float wave = surface_wave(uv.x, wt) * wave_height;
+
+	// Waterline: sine waves undulate it; ocean-beach adds a slow run-up swell on top.
+	float waterline = level - wave;
 	if (mode == 2) {
 		float swell = 0.5 + 0.5 * sin(TIME * swell_speed + surface * 3.0);
-		waterline = level - swell_height * swell;
+		waterline -= swell_height * swell;
 	}
 
 	// Is this fragment water? And how far is it from the shoreline (0..~0.5).
@@ -109,8 +126,18 @@ void fragment() {
 		float depth_t = clamp(shore_dist / 0.5, 0.0, 1.0);
 		vec3 col = mix(shallow_color.rgb, deep_color.rgb, depth_t);
 
-		// Subtle wave highlight.
+		// Subtle wave highlight from the noise surface.
 		col += (surface - 0.5) * 0.10;
+
+		// Rolling sine ripples: crests catch a little light.
+		if (mode == 1) {
+			// River: ripples travel with the flow (vary along y, drift with x).
+			float ripple = surface_wave(uv.y * 2.0, wt + uv.x * 6.28);
+			col += ripple * wave_height * 2.0;
+		} else {
+			// Still / ocean: crest highlight near the waterline.
+			col += max(wave, 0.0) * 1.5;
+		}
 
 		// Screen-space reflection (skip for river, which sits behind scenery).
 		if (reflection_enabled && mode != 1) {
