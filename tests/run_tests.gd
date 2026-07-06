@@ -45,6 +45,8 @@ func _run() -> void:
 	await _test_clouds_sun_wind()
 	await _test_live_scene()
 	_test_sky_controller_step()
+	_test_time_of_day_day()
+	await _test_water_day_cycle()
 	await _test_scenarios()
 	await _test_launcher_loads()
 
@@ -486,6 +488,36 @@ func _test_sky_controller_step() -> void:
 	c.step(5.0)
 	_check(absf(c.current_weather().rain - WeatherPreset.stormy().rain) < 0.01, "transition reaches the target")
 	c.free()
+
+
+func _test_time_of_day_day() -> void:
+	print("TimeOfDay — canonical day positions")
+	_check(TimeOfDay.noon().day > TimeOfDay.dawn().day, "noon is later in the day than dawn")
+	_check(TimeOfDay.night().day == 0.0, "night sits at midnight")
+	_check(_approx(TimeOfDay.cycle(0.7).day, 0.7), "cycle() carries the day position")
+
+
+func _test_water_day_cycle() -> void:
+	print("Water — day-night cycle re-bases the palette")
+	# Direct: with no rain, set_day_palette sets the color straight to the new base.
+	var w := WaterBody2D.new()
+	await _add_ready(w)
+	w.set_day_palette(Color(0.8, 0.1, 0.1), Color(0.1, 0.7, 0.2))
+	_check(w.deep_color == Color(0.8, 0.1, 0.1), "set_day_palette re-bases the deep color")
+	w.free()
+
+	# Via the controller: a live scene starts at the chosen time and darkens toward night.
+	var scene := WeatherScene.new().time_of_day(TimeOfDay.noon()) \
+		.terrain([TerrainLayer.ground()]).live(true, 0.02).build()
+	await _add_ready(scene)
+	var water := scene.get_node_or_null("Water") as WaterBody2D
+	var ctrl := scene.get_node_or_null("SkyController") as SkyController
+	_check(absf(ctrl.day01 - 0.46) < 0.02, "cycle starts at the chosen time of day (noon)")
+	var noon_v := water.deep_color.v
+	ctrl.day01 = 0.0   # advance the clock to midnight
+	ctrl.step(0.0)
+	_check(water.deep_color.v < noon_v, "water is darker at night than at noon")
+	scene.free()
 
 
 func _test_scenarios() -> void:

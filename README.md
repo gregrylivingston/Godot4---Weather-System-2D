@@ -6,7 +6,9 @@ It began as a few-day project for a short anime-style scene and has grown into a
 
 ![Weather System 2D — rain, clouds, and reflective water](https://github.com/user-attachments/assets/930c2468-c58b-4c69-9b0b-86449aad2a6b)
 
-> **Status:** functional and usable today. Distributed as an installable `addons/weather2d/` plugin — see the [Roadmap](#roadmap) and [`docs/ROADMAP.md`](docs/ROADMAP.md) for what remains before a tagged release.
+> **Status:** functional and usable today (v0.1.0). Distributed as an installable `addons/weather2d/` plugin — see the [Roadmap](#roadmap) for what's next.
+>
+> **Docs:** [Getting started](docs/api/getting-started.md) · [API reference](docs/api/reference.md) · [Architecture](docs/ARCHITECTURE.md) · [Roadmap](docs/ROADMAP.md)
 
 ---
 
@@ -131,7 +133,7 @@ The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatt
 
 ### Tests
 
-A zero-dependency headless suite lives in [`tests/`](tests/) (**89 checks, all passing** on Godot 4.7 — the node logic, the builder, determinism, presets, and the Phase 5 sun model / `SkyController`). Run it from the project root:
+A zero-dependency headless suite lives in [`tests/`](tests/) (**95 checks, all passing** on Godot 4.7 — the node logic, the builder, determinism, presets, and the Phase 5 sun model / day-night cycle / `SkyController`). Run it from the project root:
 
 ```bash
 godot --headless --path . --script res://tests/run_tests.gd
@@ -208,10 +210,10 @@ The next phases turn this from a personal effects grab-bag into a polished, reus
   - A GDScript **`WeatherScene` builder** that assembles sky + terrain + water into a node tree.
   - Reusable `WeatherPreset` / `ScenePreset` resources and **deterministic seeds**.
   - Live weather wiring landed in Phase 5 (`.live()` + `SkyController`).
-  - *Remaining:* serialize nodes back to presets; deeper API docs.
-- [ ] **Phase 4 — Presentation & release** ✨
-  - GIFs/video of the launcher + scenarios, a "make your first scene" tutorial, and API docs.
-  - A performance pass and a Godot **Asset Library** submission.
+  - *Remaining:* serialize a built scene back to a `ScenePreset`.
+- [ ] **Phase 4 — Presentation & release** ✨ *(started)*
+  - ✅ [Getting-started tutorial](docs/api/getting-started.md) + [API reference](docs/api/reference.md), `CONTRIBUTING.md`, icon, and v0.1.0 tagged.
+  - *Remaining:* GIFs/video of the launcher + scenarios, a performance pass, and a Godot **Asset Library** submission.
 - [x] **Phase 5 — Living simulation & atmosphere depth** 🌦️ *(core done)*
   - Makes the atmosphere feel *simulated* rather than *composited*. Enabled per-scene with
     [`.live()`](#new-living-scenes-phase-5); full detail in
@@ -234,7 +236,6 @@ The next phases turn this from a personal effects grab-bag into a polished, reus
 Called out honestly so contributors know where the sharp edges are (see [`docs/ROADMAP.md`](docs/ROADMAP.md#known-issues--tech-debt) for fixes):
 
 - **Generated scenes are static unless you opt in** — a plain `WeatherScene.build()` composites a fixed weather look (each material is set once). Call [`.live()`](#new-living-scenes-phase-5) to add a `SkyController` that animates the sky/weather/water and drives `WaterBody2D.react_to_weather`.
-- **Water palette doesn't day-cycle yet** — under `.live()` the sky, clouds, fog and ambient interpolate through the day, but the water's base deep/shallow colors are set once at build (ambient still tints it). Threading the day-night palette into the water is a follow-up.
 - **Clouds are a single layer** — no parallax between high and low cloud decks yet (Phase 5 follow-up), and there are no god rays.
 - **No caustics or live wet-sand edge** — the sand's dry→wet blend is a static gradient rather than following the water's animated run-up (Phase 1 carry-overs).
 

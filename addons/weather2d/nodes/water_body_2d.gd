@@ -186,6 +186,7 @@ var _base_deep: Color
 var _base_shallow: Color
 var _base_foam: float
 var _base_wave_height: float
+var _last_rain := 0.0  # most recent rain amount, so a day-palette change re-modulates correctly
 
 
 func _enter_tree() -> void:
@@ -207,13 +208,23 @@ func _ready() -> void:
 
 ## Rain darkens/desaturates the palette, raises foam + wave height, and rings the surface.
 func _on_rain_amount(rain_amount: float) -> void:
-	var raw := clampf(rain_amount, 0.0, 1.0)
-	var r := raw * weather_influence
+	_last_rain = clampf(rain_amount, 0.0, 1.0)
+	var r := _last_rain * weather_influence
 	deep_color = _base_deep.lerp(_STORM_COLOR, 0.5 * r)
 	shallow_color = _base_shallow.lerp(_STORM_COLOR, 0.4 * r)
 	foam_amount = clampf(_base_foam + 0.4 * r, 0.0, 1.0)
 	wave_height = _base_wave_height + 0.03 * r
-	rain_ripple = raw   # ripple density tracks how hard it's raining
+	rain_ripple = _last_rain   # ripple density tracks how hard it's raining
+
+
+## Re-base the authored water palette (used by the day-night cycle) and immediately re-apply
+## the current rain modulation, so the water color tracks the time of day. See [SkyController].
+func set_day_palette(new_deep: Color, new_shallow: Color) -> void:
+	_base_deep = new_deep
+	_base_shallow = new_shallow
+	var r := _last_rain * weather_influence
+	deep_color = _base_deep.lerp(_STORM_COLOR, 0.5 * r)
+	shallow_color = _base_shallow.lerp(_STORM_COLOR, 0.4 * r)
 
 
 func _ensure_material() -> void:

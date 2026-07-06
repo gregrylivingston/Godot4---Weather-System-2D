@@ -175,6 +175,9 @@ func _apply() -> void:
 		water.sun_color = tod.sun_color
 		# The sun only glints on the water by day; the moon barely does.
 		water.glint_strength = clampf(0.35 * (1.0 - tod.star_intensity), 0.0, 1.0)
+		# When the clock runs, the water palette follows the time of day too.
+		if time_cycle_enabled:
+			water.set_day_palette(_pal(tod.water_deep, darken, desat), _pal(tod.water_shallow, darken, desat))
 
 	if ambient != null:
 		var amb := tod.ambient.lerp(_GLOOM.lightened(0.25), darken * 0.6)

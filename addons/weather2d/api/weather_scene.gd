@@ -463,6 +463,7 @@ func build() -> Node2D:
 		ctrl.cloud_style = style
 		ctrl.day_night_speed = _day_night_speed
 		ctrl.time_cycle_enabled = _day_night_speed != 0.0
+		ctrl.day01 = tod.day  # start the cycle at the chosen time of day
 		ctrl.lightning_enabled = _lightning
 		ctrl.sky_material = sky_mat
 		ctrl.cloud_material = cloud_mat

@@ -175,12 +175,12 @@ add_child(scene.build())
 - [x] `ScenePreset` capturing a whole composition; `WeatherScene.from_preset()` rebuilds it.
 - [x] Deterministic seeding threaded through the terrain bands (verified by tests).
 - [x] `demos/generated_demo.tscn` — a scene generated entirely from code in `_ready()`.
+- [x] Live weather wiring into generated scenes (`.live()` + `SkyController`, Phase 5).
+- [x] Longer-form API docs under [`docs/api/`](api/reference.md).
 - [ ] Keep `@tool` inspector parity — nodes can serialize *back* to a `ScenePreset`.
-- [ ] SkySetting/weather wiring into generated scenes (rain particles, clouds).
-- [ ] Longer-form API docs under `docs/api/`.
 
 **Definition of done:** a demo scene generated entirely in `_ready()` from a preset + seed,
-reproducible across runs. ✅ (Deeper `docs/api/` reference still pending.)
+reproducible across runs. ✅
 
 ---
 
@@ -193,10 +193,11 @@ reproducible across runs. ✅ (Deeper `docs/api/` reference still pending.)
       weather, rain, and toggles live. The easiest way to explore the kit.
 - [x] Themed scenarios: Beach, Small Island, River, Lake, Mountains (via `Scenarios`).
 - [x] `CHANGELOG.md`.
+- [x] API reference + "make your first scene" tutorial in [`docs/api/`](api/getting-started.md).
+- [x] `CONTRIBUTING.md` and a project icon; **v0.1.0** tagged (`plugin.cfg` + changelog).
 - [ ] Capture GIFs/short video of the launcher + scenarios; embed in README + docs.
-- [ ] API reference in `docs/api/` and a short "make your first scene" tutorial.
 - [ ] Performance pass (rain loop cost, shader cost, mobile/web notes).
-- [ ] Versioned release + **Godot Asset Library** submission and contribution guide.
+- [ ] **Godot Asset Library** submission.
 
 **Definition of done:** a fresh user can install the addon, generate a scene in a few lines,
 and see polished demos — and the GitHub page looks great.
@@ -262,9 +263,12 @@ glint. That shared light is what turns "nice layers" into "one lit world."
       frame-rate independence, weather transition, and signal emission.
 
 ### Follow-ups
-- [ ] **Day-cycle the water palette** — the water's deep/shallow base colors are still set once
-      at build (ambient tints it, but they don't interpolate through the day).
-- [ ] Thread the chosen start time into `day01` so a day-night scene begins at the picked hour.
+- [x] **Day-cycle the water palette** — under `.live()` the water's deep/shallow colors now
+      interpolate through the day (`WaterBody2D.set_day_palette`, driven by the controller).
+- [x] Thread the chosen start time into `day01` (`TimeOfDay.day`) so a day-night scene begins at
+      the picked hour.
+- [ ] **Parallax cloud layers**, **caustics**, **live wet-sand edge**, **god rays**, **thunder
+      audio** — visual polish best tuned with the editor open.
 
 **Definition of done:** ✅ a generated scene where the sun tracks across the sky, clouds cast
 moving shadows and drift with the wind, a storm front rolls in with lightning and rain that

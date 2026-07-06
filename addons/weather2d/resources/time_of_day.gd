@@ -24,6 +24,10 @@ extends Resource
 ## Scene-wide ambient tint (applied as a CanvasModulate). White = full daylight.
 @export var ambient := Color(1.0, 1.0, 1.0)
 
+## Canonical position of this time on the normalized day clock (0 = midnight, ~0.46 = noon).
+## Lets a day-night cycle *start* at the picked hour (see [SkyController.day01]).
+@export_range(0.0, 1.0) var day := 0.46
+
 @export_group("Sun / moon")
 ## Where the sun (or moon) sits in the sky, in screen UV (0,0 top-left … 1,1 bottom-right).
 @export var sun_uv := Vector2(0.5, 0.18)
@@ -45,6 +49,7 @@ static func dawn() -> TimeOfDay:
 	t.sun_uv = Vector2(0.16, 0.44)
 	t.sun_color = Color(1.0, 0.86, 0.78)
 	t.star_intensity = 0.15
+	t.day = 0.20
 	return t
 
 
@@ -59,6 +64,7 @@ static func noon() -> TimeOfDay:
 	t.sun_uv = Vector2(0.5, 0.14)
 	t.sun_color = Color(1.0, 0.99, 0.94)
 	t.star_intensity = 0.0
+	t.day = 0.46
 	return t
 
 
@@ -74,6 +80,7 @@ static func golden_hour() -> TimeOfDay:
 	t.sun_uv = Vector2(0.80, 0.34)
 	t.sun_color = Color(1.0, 0.78, 0.52)
 	t.star_intensity = 0.0
+	t.day = 0.70
 	return t
 
 
@@ -89,6 +96,7 @@ static func dusk() -> TimeOfDay:
 	t.sun_uv = Vector2(0.88, 0.50)
 	t.sun_color = Color(0.98, 0.60, 0.50)
 	t.star_intensity = 0.30
+	t.day = 0.82
 	return t
 
 
@@ -104,6 +112,7 @@ static func night() -> TimeOfDay:
 	t.sun_uv = Vector2(0.30, 0.20)          # the moon, upper-left
 	t.sun_color = Color(0.78, 0.84, 0.98)   # cool moonlight
 	t.star_intensity = 1.0
+	t.day = 0.0
 	return t
 
 
@@ -121,6 +130,7 @@ func lerp_to(other: TimeOfDay, t: float) -> TimeOfDay:
 	r.sun_uv = sun_uv.lerp(other.sun_uv, t)
 	r.sun_color = sun_color.lerp(other.sun_color, t)
 	r.star_intensity = lerpf(star_intensity, other.star_intensity, t)
+	r.day = day
 	return r
 
 
@@ -157,5 +167,7 @@ static func cycle(day01: float) -> TimeOfDay:
 		if d >= float(a[0]) and d <= float(b[0]):
 			var span: float = maxf(float(b[0]) - float(a[0]), 0.00001)
 			var t: float = (d - float(a[0])) / span
-			return _keyframe(a[1]).lerp_to(_keyframe(b[1]), t)
+			var out := _keyframe(a[1]).lerp_to(_keyframe(b[1]), t)
+			out.day = d
+			return out
 	return noon()

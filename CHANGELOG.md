@@ -5,8 +5,23 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.1.0] — 2026-07-06
+
+First tagged release: the `addons/weather2d/` kit (builder, living scenes, water, terrain,
+props, painterly) with docs and a 95-check test suite. The legacy rose-garden system has been
+removed. Highlights:
+
 ### Added
-- **Phase 5 — Living simulation & atmosphere depth** 🌦️ *(core done)*. Generated scenes can now
+- **Day-night water palette (Phase 5 polish).** Under `.live()` with a running clock, the
+  water's deep/shallow colors now interpolate through the day too (via
+  `WaterBody2D.set_day_palette`), closing the "water doesn't day-cycle" gap. `TimeOfDay` gained
+  a canonical `day` position so a living scene **starts at the chosen time of day**.
+- **API docs** — `docs/api/getting-started.md` (a five-minute "make your first scene" tutorial)
+  and `docs/api/reference.md` (the full builder / node / resource reference).
+- **`CONTRIBUTING.md`**, a project **icon** (`icon.svg`), and a filled-in `plugin.cfg`.
+- **Phase 5 — Living simulation & atmosphere depth** 🌦️. Generated scenes can now
   be *alive* rather than a static snapshot:
   - **Unified sun/moon model.** [TimeOfDay] now carries a `sun_uv` (screen position), `sun_color`
     (light tint), and `star_intensity`. The same model drives the sky glow & disc, the lit side
@@ -95,7 +110,7 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 - **Demos:** `demos/water_demo.tscn` (water modes), `demos/beach_demo.tscn`
   (mountains → hills → sand → ocean washing in), and `demos/generated_demo.tscn` (a scene
   built entirely from code in `_ready`).
-- **Tests:** dependency-free headless runner `tests/run_tests.gd` — **89 checks, all passing** covering the
+- **Tests:** dependency-free headless runner `tests/run_tests.gd` — **95 checks, all passing** covering the
   water/terrain nodes, weather response, the builder, determinism, preset round-trip, cloud
   styles, the time-of-day × weather axes, prop scatter/animation, the painterly layer, the
   rain overlay, every `Scenarios` recipe, that the real `beach_demo`/`launcher` scenes load and
