@@ -6,6 +6,17 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Launcher / playground (`demos/launcher.tscn`, now the main scene):** pick a **scenario**
+  (Beach / Small Island / River / Lake / Mountains), a **weather** mood, drag **rain**, and
+  toggle props / birds / painterly — the scene rebuilds live. Plus a seed field + Randomize.
+- **`Scenarios`** helper — five ready-made scene recipes (`Scenarios.build(name, opts)`),
+  each a configured `WeatherScene`.
+- **Animated props:** `foliage_wind.gdshader` (trees/bushes sway, each out of phase) and
+  `bird_fly.gdshader` (birds drift, bob, and flap). `PropScatter2D` gains an `animation`
+  mode, **rotation jitter**, and soft **ground shadows** so props read as planted.
+- **Rain overlay** (`rain.gdshader`) added by `WeatherScene.rain(amount)` / the weather
+  preset; **river** water mode + a `TerrainLayer.foreground()` bank that draws in front of
+  the water.
 - **Addon packaging (Phase 0):** `addons/weather2d/` plugin (`plugin.cfg` + `plugin.gd`)
   so the kit can be enabled as a unit and grow editor tooling.
 - **`WaterBody2D` node (Phase 1):** a configurable, self-contained 2D water surface
@@ -39,6 +50,17 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   (+ `tests/README.md`).
 - **Docs:** rewritten `README.md`, new `docs/ARCHITECTURE.md` and `docs/ROADMAP.md`.
 
+- **SVG props + seeded scatter (Phase 2):** a vector-art set under `assets/svg/` (round
+  tree, pine, **palm, bush, flower, driftwood, bird**, rock, grass tuft — now with soft
+  gradient shading) and a `PropScatter2D` node that scatters them **stratified** (even, no
+  clumps/gaps), with **depth-scaling** and **atmospheric haze** so far props recede.
+  Scattered sprites are internal (not serialized). `WeatherScene.props()` / `.birds()`.
+- **Layered background:** the builder staggers multiple same-role bands, so a far + near
+  mountain range reads with real depth; hills raised to sit visibly behind the shore props.
+- **Painterly post-process (Phase 4 start):** `painterly.gdshader` + `PainterlyLayer`
+  (CanvasLayer) — a soft-focus blur, warmth, paper grain, and vignette that make the whole
+  frame read like a soft painting. `WeatherScene.painterly()` / `.props()` add them.
+
 ### Fixed
 - Terrain shaders degenerated to near-flat noise for large `seed` values (precision loss
   feeding big numbers into `sin()`); the seed is now bounded with `mod()`. Generated scenes
@@ -47,6 +69,13 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 - Nicer water defaults (more saturated teal palette, lower reflection strength, slightly
   bigger waves) and a beach demo re-composed so the sand beach is clearly visible.
+- **Painterly terrain art pass:** both terrain shaders rewritten to use smooth quintic
+  value-noise fBm with domain warping — organic, non-repetitive mountain ridges, soft tonal
+  mottling, and fine (no longer blocky) sand grain. Removed the vertical "curtain" shading
+  on silhouettes by gradient-ing on absolute height.
+- **Generated-scene composition retuned:** lower, less dominant mountains and a higher
+  waterline so the sea reads properly (horizon a little below centre). Layout is now
+  expressed in screen fractions for easier tuning.
 
 ### Notes
 - Legacy assets under `Weather2D/` are intentionally left in place for now; migrating them

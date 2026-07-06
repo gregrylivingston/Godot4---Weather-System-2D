@@ -44,13 +44,9 @@ Originally built over a few days to make a short anime-style scene, it's now bei
 ## Quick start
 
 1. Clone the repo and open the folder as a Godot project (`project.godot`).
-2. Press **Play** — the main scene is [`Weather2D/demo-rose-garden.tscn`](Weather2D/demo-rose-garden.tscn).
-3. Drag around with the mouse, scroll to zoom (`MapCamera2D`).
-4. Select the **`SkySetting`** node in the scene tree and try the inspector sliders:
-   - **Rain → rainAmount** (`0` = dry, `1` = heavy)
-   - **Rain → rainDelta** (rain change per frame — make it rain harder or clear up)
-   - **Sky → cloudAmount** / **cloudDelta**
-   - **sunsetRate** (how fast the sky slides toward sunset colors)
+2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains), a **weather** mood, drag the **rain** slider, and toggle props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
+
+> Prefer the original hand-authored anime demo? Open [`Weather2D/demo-rose-garden.tscn`](Weather2D/demo-rose-garden.tscn), drag to pan and scroll to zoom (`MapCamera2D`), then select the **`SkySetting`** node and try the inspector sliders: **rainAmount** (`0` dry → `1` heavy), **rainDelta** (rain change per frame), **cloudAmount** / **cloudDelta**, and **sunsetRate**.
 
 To use it in your own scene, instance [`Weather2D/sky_setting.tscn`](Weather2D/sky_setting.tscn) (it carries the sky, camera, and rain layers) and add your own art under parallax layers. A cleaner, addon-style packaging and a code API are on the [roadmap](#roadmap).
 
@@ -94,14 +90,24 @@ builder.terrain([
     TerrainLayer.ground(),
 ])
 builder.water(WaterBody2D.Mode.OCEAN_BEACH)
+builder.props(true, 16)   # scatter SVG trees/rocks along the shore (seeded)
+builder.painterly(true)   # soft-focus painterly post-process
 add_child(builder.build())
 ```
 
-Save a whole composition as a [`ScenePreset`](addons/weather2d/resources/scene_preset.gd) `.tres` and rebuild it anywhere with `WeatherScene.new().from_preset(preset).build()`.
+Save a whole composition as a [`ScenePreset`](addons/weather2d/resources/scene_preset.gd) `.tres` and rebuild it anywhere with `WeatherScene.new().from_preset(preset).build()`. Or grab a ready-made recipe from [`Scenarios`](addons/weather2d/api/scenarios.gd):
+
+```gdscript
+add_child(Scenarios.build("River", {"seed": 7, "weather": WeatherPreset.overcast_dusk(), "rain": 0.6}).build())
+```
+
+Scenarios: **Beach, Small Island, River, Lake, Mountains** — the same ones the launcher exposes.
+
+The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatters vector props (trees, palms, bushes, rocks, flowers, driftwood, birds — the SVGs in [`assets/svg/`](assets/svg/)) with even **stratified** placement, **depth-scaling**, **atmospheric haze**, ground **shadows**, and **animation** (trees sway, birds flap — via `foliage_wind` / `bird_fly` shaders); and **`PainterlyLayer`** adds a soft-focus + grain + vignette post-process so the whole frame reads like a soft painting. `.birds()` adds a flock overhead and `.rain(amount)` drops a rain overlay.
 
 ### Tests
 
-A zero-dependency headless suite lives in [`tests/`](tests/) (**38 checks, all passing** on Godot 4.7). Run it from the project root:
+A zero-dependency headless suite lives in [`tests/`](tests/) (**56 checks, all passing** on Godot 4.7). Run it from the project root:
 
 ```bash
 godot --headless --path . --script res://tests/run_tests.gd
@@ -181,7 +187,7 @@ The next phases turn this from a personal effects grab-bag into a polished, reus
   - Procedural **sand / ground** shader (grain + dry→wet gradient).
   - Generated **hills, mountains, and tree lines** as seeded noise silhouettes with haze.
   - `TerrainLayer` resource + `TerrainBand2D` node; sand ↔ water share a coastline so the ocean washes in.
-  - *Remaining:* SVG vector props + a seeded scatter system.
+  - Painterly noise, SVG vector props (`assets/svg/`) + seeded `PropScatter2D`, and a `PainterlyLayer` post-process.
 - [x] **Phase 3 — Scene generation from code** 🧩 *(core done)*
   - A GDScript **`WeatherScene` builder** that assembles sky + terrain + water into a node tree.
   - Reusable `WeatherPreset` / `ScenePreset` resources and **deterministic seeds**.

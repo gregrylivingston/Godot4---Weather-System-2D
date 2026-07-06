@@ -138,8 +138,13 @@ calm stylized look. Generated from **shaders + hybrid SVG vector assets**.
       renders from it.
 - [x] Align ground ↔ water via a shared analytic coastline (`beach_demo.tscn` shows the
       ocean washing over the sand). Closes the loop with Phase 1.
-- [ ] SVG prop library in `assets/svg/` (a few trees, rocks, grass, flowers).
-- [ ] Scatter system: seeded placement of props along a band with density/jitter.
+- [x] SVG prop library in `assets/svg/` (round/pine/palm trees, bush, rock, grass, flower,
+      driftwood, bird — with soft gradient shading).
+- [x] Scatter system: `PropScatter2D` — stratified placement with depth-scaling and
+      atmospheric haze; layered same-role terrain bands for background depth.
+- [x] Painterly art pass: smooth quintic/domain-warped noise + `PainterlyLayer` post-process.
+- [x] Animated props: foliage sway + bird flap/drift shaders; prop ground shadows.
+- [ ] Density-map placement (paint where props go) instead of uniform stratification.
 
 **Definition of done:** a landscape assembled from `TerrainLayer` bands (procedural hills +
 scattered SVG trees) with a river/ocean layer correctly interacting with the ground.
@@ -188,12 +193,14 @@ reproducible across runs. ✅ (Deeper `docs/api/` reference still pending.)
 **Goal:** make it genuinely impressive on the public profile and easy for others to adopt.
 
 **Sub-tasks**
-- [ ] Themed demos: `rose_garden`, `beach`, `river_valley`, `mountains`.
-- [ ] Capture GIFs/short video per demo; embed in README + docs.
+- [x] Interactive **launcher** (`demos/launcher.tscn`) — the main scene: switch scenarios,
+      weather, rain, and toggles live. The easiest way to explore the kit.
+- [x] Themed scenarios: Beach, Small Island, River, Lake, Mountains (via `Scenarios`).
+- [x] `CHANGELOG.md`.
+- [ ] Capture GIFs/short video of the launcher + scenarios; embed in README + docs.
 - [ ] API reference in `docs/api/` and a short "make your first scene" tutorial.
-- [ ] Performance pass (particle counts, shader cost, mobile/web notes).
-- [ ] Versioned release + **Godot Asset Library** submission.
-- [ ] `CHANGELOG.md` and contribution guide.
+- [ ] Performance pass (rain loop cost, shader cost, mobile/web notes).
+- [ ] Versioned release + **Godot Asset Library** submission and contribution guide.
 
 **Definition of done:** a fresh user can install the addon, generate a scene in a few lines,
 and see polished demos — and the GitHub page looks great.

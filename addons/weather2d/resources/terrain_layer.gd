@@ -38,8 +38,8 @@ static func mountains(tint := Color(0.42, 0.48, 0.58)) -> TerrainLayer:
 	var l := TerrainLayer.new()
 	l.role = Role.MOUNTAIN
 	l.near_color = tint
-	l.far_color = tint.lerp(Color(0.78, 0.83, 0.90), 0.6)
-	l.height = 0.6
+	l.far_color = tint.lerp(Color(0.78, 0.83, 0.90), 0.55)
+	l.height = 0.5
 	l.roughness = 0.8
 	l.scroll_scale = Vector2(0.3, 0.4)
 	return l
@@ -50,7 +50,7 @@ static func hills(tint := Color(0.34, 0.5, 0.36)) -> TerrainLayer:
 	l.role = Role.HILL
 	l.near_color = tint
 	l.far_color = tint.lerp(Color(0.6, 0.72, 0.6), 0.5)
-	l.height = 0.4
+	l.height = 0.6
 	l.roughness = 0.35
 	l.scroll_scale = Vector2(0.6, 0.75)
 	return l
@@ -67,12 +67,23 @@ static func treeline(tint := Color(0.2, 0.34, 0.24)) -> TerrainLayer:
 	return l
 
 
+static func foreground(tint := Color(0.28, 0.46, 0.30)) -> TerrainLayer:
+	var l := TerrainLayer.new()
+	l.role = Role.FOREGROUND
+	l.near_color = tint.darkened(0.15)
+	l.far_color = tint
+	l.height = 0.7
+	l.roughness = 0.3
+	l.scroll_scale = Vector2(1.2, 1.1)
+	return l
+
+
 static func ground(sand := Color(0.86, 0.78, 0.6)) -> TerrainLayer:
 	var l := TerrainLayer.new()
 	l.role = Role.GROUND
 	l.near_color = sand.darkened(0.2)
 	l.far_color = sand
 	l.scroll_scale = Vector2(1.0, 1.0)
-	l.coast_level = 0.4
+	l.coast_level = 0.32
 	l.wave_height = 0.03
 	return l

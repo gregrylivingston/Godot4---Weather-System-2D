@@ -32,6 +32,13 @@ func _run() -> void:
 	await _test_weather_scene_builder()
 	_test_weather_scene_determinism()
 	_test_scene_preset_roundtrip()
+	await _test_prop_scatter()
+	await _test_prop_animation()
+	await _test_painterly_layer()
+	await _test_builder_props_and_painterly()
+	await _test_rain_overlay()
+	await _test_scenarios()
+	await _test_launcher_loads()
 
 	print("== %d passed, %d failed ==" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -129,7 +136,7 @@ func _test_terrain_layer_factories() -> void:
 	_check(m.role == TerrainLayer.Role.MOUNTAIN, "mountains() -> MOUNTAIN role")
 	_check(h.role == TerrainLayer.Role.HILL, "hills() -> HILL role")
 	_check(g.role == TerrainLayer.Role.GROUND, "ground() -> GROUND role")
-	_check(m.height > h.height, "mountains taller than hills")
+	_check(m.roughness > h.roughness, "mountains are jaggeder than hills")
 	_check(m.scroll_scale.x < h.scroll_scale.x, "distant mountains scroll slower than hills")
 
 
@@ -190,8 +197,8 @@ func _test_weather_scene_builder() -> void:
 		if c is TerrainBand2D:
 			bands += 1
 	_check(bands == 3, "built 3 terrain bands")
-	# Water aligns below the ground coast (coast 0.4 + 0.26 = 0.66).
-	_check(water != null and _approx(water.level, 0.66), "water level aligned to ground coast")
+	# Water aligns just below the ground coast (coast 0.32 + 0.14 = 0.46).
+	_check(water != null and _approx(water.level, 0.46), "water level aligned to ground coast")
 	# Weather preset drove the water palette.
 	_check(water != null and water.deep_color == WeatherPreset.clear_noon().water_deep, "weather preset set water color")
 	scene.free()
@@ -239,3 +246,112 @@ func _test_scene_preset_roundtrip() -> void:
 	var water := scene.get_node_or_null("Water") as WaterBody2D
 	_check(water != null and water.deep_color == WeatherPreset.storm().water_deep, "preset weather applied to water")
 	scene.free()
+
+
+func _test_prop_scatter() -> void:
+	print("PropScatter2D — seeded, deterministic scatter")
+	var tex := load("res://assets/svg/tree_round.svg") as Texture2D
+	_check(tex != null, "tree SVG imports as a texture")
+	var a := PropScatter2D.new()
+	a.textures = [tex]
+	a.count = 10
+	a.seed = 3
+	await _add_ready(a)
+	var n := 0
+	for c in a.get_children():
+		if c is Sprite2D:
+			n += 1
+	_check(n == 10, "creates one sprite per count")
+	var first_pos: Vector2 = (a.get_child(0) as Sprite2D).position
+
+	var b := PropScatter2D.new()
+	b.textures = [tex]
+	b.count = 10
+	b.seed = 3
+	await _add_ready(b)
+	_check((b.get_child(0) as Sprite2D).position == first_pos, "same seed → identical layout")
+	a.free()
+	b.free()
+
+
+func _test_prop_animation() -> void:
+	print("PropScatter2D — SWAY assigns an animation material")
+	var tex := load("res://assets/svg/tree_round.svg") as Texture2D
+	var s := PropScatter2D.new()
+	s.textures = [tex]
+	s.count = 3
+	s.animation = PropScatter2D.ANIM_SWAY
+	await _add_ready(s)
+	var first := s.get_child(0) as Sprite2D
+	_check(first != null and first.material is ShaderMaterial, "sway sprites get a shader material")
+	s.free()
+
+
+func _test_painterly_layer() -> void:
+	print("PainterlyLayer — full-screen overlay with shader")
+	var p := PainterlyLayer.new()
+	await _add_ready(p)
+	var overlay := p.get_node_or_null("Overlay") as ColorRect
+	_check(overlay != null, "creates a full-rect Overlay")
+	_check(overlay != null and overlay.material is ShaderMaterial, "overlay has a shader material")
+	_check(p.layer == 10, "draws on a high canvas layer")
+	p.free()
+
+
+func _test_builder_props_and_painterly() -> void:
+	print("WeatherScene — props() and painterly() attach nodes")
+	var builder := WeatherScene.new()
+	builder.terrain([TerrainLayer.hills(), TerrainLayer.ground()])
+	builder.props(true, 8)
+	builder.birds(true, 4)
+	builder.painterly(true)
+	var scene := builder.build()
+	await _add_ready(scene)
+	_check(scene.get_node_or_null("Props") is PropScatter2D, "props() adds a PropScatter2D")
+	_check(scene.get_node_or_null("Birds") is PropScatter2D, "birds() adds a Birds scatter")
+	var has_painterly := false
+	for c in scene.get_children():
+		if c is PainterlyLayer:
+			has_painterly = true
+	_check(has_painterly, "painterly() adds a PainterlyLayer")
+	scene.free()
+
+
+func _test_rain_overlay() -> void:
+	print("WeatherScene — rain() adds a rain overlay")
+	var ws := WeatherScene.new()
+	ws.terrain([TerrainLayer.ground()])
+	ws.rain(0.6)
+	var scene := ws.build()
+	await _add_ready(scene)
+	_check(scene.get_node_or_null("Rain") is CanvasLayer, "rain() adds a Rain CanvasLayer")
+	scene.free()
+
+
+func _test_scenarios() -> void:
+	print("Scenarios — every recipe builds a valid scene")
+	for name in Scenarios.LIST:
+		var scene := Scenarios.build(name, {"seed": 3}).build()
+		await _add_ready(scene)
+		var ok: bool = scene is Node2D \
+			and scene.get_node_or_null("Camera2D") != null \
+			and scene.get_node_or_null("Sky") != null
+		_check(ok, "%s builds" % name)
+		scene.free()
+
+
+func _test_launcher_loads() -> void:
+	print("launcher.tscn — instantiates and builds a scene")
+	var packed := load("res://demos/launcher.tscn") as PackedScene
+	_check(packed != null, "launcher.tscn loads")
+	if packed == null:
+		return
+	var inst := packed.instantiate()
+	await _add_ready(inst)
+	await process_frame
+	var has_scene := false
+	for c in inst.get_children():
+		if c is Node2D:
+			has_scene = true
+	_check(has_scene, "launcher builds a scene on ready")
+	inst.free()

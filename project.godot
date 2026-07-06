@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Weather System 2D"
-run/main_scene="res://Weather2D/demo-rose-garden.tscn"
+run/main_scene="res://demos/launcher.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

@@ -8,9 +8,13 @@ func _ready() -> void:
 	builder.set_size(Vector2(1920, 1080))
 	builder.weather(WeatherPreset.clear_noon())
 	builder.terrain([
-		TerrainLayer.mountains(),
+		TerrainLayer.mountains(Color(0.56, 0.60, 0.70)), # far, hazier range
+		TerrainLayer.mountains(),                        # nearer range
 		TerrainLayer.hills(),
 		TerrainLayer.ground(),
 	])
 	builder.water(WaterBody2D.Mode.OCEAN_BEACH)
+	builder.props(true, 20)   # scatter trees/rocks along the shore (stratified, depth-faded)
+	builder.birds(true, 5)    # a few birds in the sky
+	builder.painterly(true)   # soft-focus painterly post-process
 	add_child(builder.build())

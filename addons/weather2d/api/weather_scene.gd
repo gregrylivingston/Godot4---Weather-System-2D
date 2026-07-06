@@ -30,6 +30,26 @@ var _weather: WeatherPreset = null
 var _include_water := true
 var _water_mode := WaterBody2D.Mode.OCEAN_BEACH
 var _water_level := 0.66
+var _scatter_props := false
+var _prop_count := 16
+var _prop_textures: Array[Texture2D] = []
+var _scatter_birds := false
+var _bird_count := 5
+var _painterly := false
+var _rain_amount := -1.0 # <0 = follow the weather preset
+
+const _DEFAULT_FOLIAGE_PATHS := [
+	"res://assets/svg/tree_round.svg",
+	"res://assets/svg/tree_pine.svg",
+	"res://assets/svg/tree_palm.svg",
+	"res://assets/svg/bush.svg",
+]
+const _DEFAULT_ACCENT_PATHS := [
+	"res://assets/svg/rock.svg",
+	"res://assets/svg/driftwood.svg",
+]
+const _BIRD_PATH := "res://assets/svg/bird.svg"
+const _RAIN_SHADER := "res://addons/weather2d/shaders/rain.gdshader"
 
 
 func set_seed(s: int) -> WeatherScene:
@@ -85,6 +105,37 @@ func no_water() -> WeatherScene:
 	return self
 
 
+## Scatter vector props (trees/rocks) along the shoreline. Pass your own textures, or leave
+## empty to use the kit's default SVG set.
+func props(enable := true, count := 16, textures: Array = []) -> WeatherScene:
+	_scatter_props = enable
+	_prop_count = count
+	_prop_textures.clear()
+	for t in textures:
+		if t is Texture2D:
+			_prop_textures.append(t)
+	return self
+
+
+## Scatter a few birds across the upper sky.
+func birds(enable := true, count := 5) -> WeatherScene:
+	_scatter_birds = enable
+	_bird_count = count
+	return self
+
+
+## Force a rain overlay amount (0 = none, 1 = downpour). Negative follows the weather preset.
+func rain(amount: float) -> WeatherScene:
+	_rain_amount = amount
+	return self
+
+
+## Add the painterly post-process (soft focus + grain + vignette) on top of the scene.
+func painterly(enable := true) -> WeatherScene:
+	_painterly = enable
+	return self
+
+
 ## Load an entire composition from a saved [ScenePreset].
 func from_preset(preset: ScenePreset) -> WeatherScene:
 	if preset == null:
@@ -127,62 +178,184 @@ func build() -> Node2D:
 			ground = l
 			break
 
-	var idx := 0
-	for src in _layers:
-		if src == null:
+	# Background terrain (everything except FOREGROUND, which is placed in front of water).
+	var role_seen := {}
+	for i in _layers.size():
+		var src: TerrainLayer = _layers[i]
+		if src == null or src.role == TerrainLayer.Role.FOREGROUND:
 			continue
-		var layer := src.duplicate() as TerrainLayer
-		layer.seed = _seed + idx # deterministic per-band variation
-		var band := TerrainBand2D.new()
-		band.name = "Band%d_%s" % [idx, _role_name(layer.role)]
-		band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var r := _band_rect(layer.role, w, h)
-		band.position = r.position
-		band.size = r.size
-		band.layer = layer
-		root.add_child(band)
-		idx += 1
+		var occ: int = role_seen.get(src.role, 0)
+		role_seen[src.role] = occ + 1
+		_add_band(root, src, i, occ, w, h)
+
+	# Props sit on the beach/shore by default; for a river they sit on the green back bank.
+	var prop_line := 0.60
+	if _include_water and _water_mode == WaterBody2D.Mode.RIVER:
+		prop_line = 0.55
 
 	if _include_water:
 		var body := WaterBody2D.new()
 		body.name = "Water"
 		body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		body.mode = _water_mode
+		# A river is a horizontal band with land above and below; others fill to the bottom.
 		var wr := _band_rect(TerrainLayer.Role.GROUND, w, h)
+		if _water_mode == WaterBody2D.Mode.RIVER:
+			wr = _rect_f(0.62, 0.82, w, h)
 		body.position = wr.position
 		body.size = wr.size
 		if ground != null:
-			# Waterline sits below the sand top so a beach shows; share the wave shape.
-			body.level = clampf(ground.coast_level + 0.26, 0.0, 1.0)
+			# Waterline sits just below the sand top so a beach shows; share the wave shape.
+			body.level = clampf(ground.coast_level + 0.14, 0.0, 1.0)
 			body.wave_height = ground.wave_height
 			body.wave_frequency = ground.wave_frequency
+			body.foam_width = 0.045
 		else:
 			body.level = _water_level
 		if _weather != null:
 			body.deep_color = _weather.water_deep
 			body.shallow_color = _weather.water_shallow
-			body.foam_amount = clampf(0.55 + _weather.rain * 0.35, 0.0, 1.0)
+			body.foam_amount = clampf(0.45 + _weather.rain * 0.35, 0.0, 1.0)
 			body.wave_height += _weather.rain * 0.02
 		root.add_child(body)
+
+	# Foreground terrain draws in front of the water (e.g. a near river bank).
+	for i in _layers.size():
+		var src: TerrainLayer = _layers[i]
+		if src == null or src.role != TerrainLayer.Role.FOREGROUND:
+			continue
+		var occ: int = role_seen.get(src.role, 0)
+		role_seen[src.role] = occ + 1
+		_add_band(root, src, i, occ, w, h)
+
+	var haze := _weather.sky_bottom if _weather != null else Color(0.72, 0.80, 0.88)
+
+	if _scatter_props:
+		# Foliage (trees/palms/bushes) sways; rocks/driftwood are static accents.
+		var foliage: Array[Texture2D] = _prop_textures.duplicate()
+		if foliage.is_empty():
+			foliage = _load_textures(_DEFAULT_FOLIAGE_PATHS)
+			var accents := _load_textures(_DEFAULT_ACCENT_PATHS)
+			var accent_scatter := _make_scatter("Accents", _seed + 150, maxi(2, _prop_count / 4),
+				w, h, accents, haze, PropScatter2D.ANIM_NONE, prop_line)
+			root.add_child(accent_scatter)
+		var scatter := _make_scatter("Props", _seed + 100, _prop_count,
+			w, h, foliage, haze, PropScatter2D.ANIM_SWAY, prop_line)
+		root.add_child(scatter)
+
+	if _scatter_birds:
+		var flock := PropScatter2D.new()
+		flock.name = "Birds"
+		flock.seed = _seed + 200
+		flock.count = _bird_count
+		flock.width = w * 0.8
+		flock.band_height = h * 0.16
+		flock.position = Vector2(-w * 0.05, (0.28 - 0.5) * h)
+		flock.scale_min = 0.25
+		flock.scale_max = 0.55
+		flock.depth_scale = false
+		flock.flip_random = false
+		flock.tint_variation = 0.25
+		flock.haze_amount = 0.5
+		flock.haze_color = _weather.sky_top if _weather != null else Color(0.55, 0.68, 0.85)
+		flock.animation = PropScatter2D.ANIM_FLY
+		var bird := load(_BIRD_PATH)
+		if bird is Texture2D:
+			flock.textures = [bird]
+		root.add_child(flock)
+
+	# Rain overlay (from the weather preset, or an explicit .rain() override).
+	var rain_amt := _rain_amount if _rain_amount >= 0.0 else (_weather.rain if _weather != null else 0.0)
+	if rain_amt > 0.02:
+		var rain_layer := CanvasLayer.new()
+		rain_layer.name = "Rain"
+		rain_layer.layer = 8
+		var rain_rect := ColorRect.new()
+		rain_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		rain_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var rain_mat := ShaderMaterial.new()
+		rain_mat.shader = load(_RAIN_SHADER)
+		rain_mat.set_shader_parameter("amount", rain_amt)
+		rain_rect.material = rain_mat
+		rain_layer.add_child(rain_rect)
+		root.add_child(rain_layer)
+
+	if _painterly:
+		root.add_child(PainterlyLayer.new())
 
 	return root
 
 
+# --- build helpers ---------------------------------------------------------
+
+func _add_band(root: Node2D, src: TerrainLayer, i: int, occ: int, w: float, h: float) -> void:
+	var layer := src.duplicate() as TerrainLayer
+	layer.seed = _seed + i # deterministic per-band variation
+	var band := TerrainBand2D.new()
+	band.name = "Band%d_%s" % [i, _role_name(layer.role)]
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var r := _band_rect(layer.role, w, h)
+	# Later bands of the same role sit a little lower (nearer) for layered depth.
+	r.position.y += float(occ) * h * 0.055
+	band.position = r.position
+	band.size = r.size
+	band.layer = layer
+	root.add_child(band)
+
+
+func _load_textures(paths: Array) -> Array[Texture2D]:
+	var out: Array[Texture2D] = []
+	for p in paths:
+		var t := load(p)
+		if t is Texture2D:
+			out.append(t)
+	return out
+
+
+func _make_scatter(node_name: String, s: int, count: int, w: float, h: float,
+		textures: Array[Texture2D], haze: Color, anim: int, line: float) -> PropScatter2D:
+	var scatter := PropScatter2D.new()
+	scatter.name = node_name
+	scatter.seed = s
+	scatter.count = count
+	scatter.width = w * 0.94
+	scatter.band_height = h * 0.09 # depth: back props higher, front props lower
+	scatter.position = Vector2(0.0, (line - 0.5) * h)
+	scatter.scale_min = 0.38
+	scatter.scale_max = 0.9
+	scatter.haze_amount = 0.4
+	scatter.haze_color = haze
+	scatter.cast_shadows = true
+	scatter.animation = anim
+	scatter.textures = textures
+	return scatter
+
+
 # --- internals -------------------------------------------------------------
 
-## Vertical placement per role, in the centered coordinate space the Camera2D sits in.
+## Vertical placement per role. Bands are expressed as screen fractions (0 top … 1 bottom)
+## and converted to the centered coordinate space the Camera2D sits in. Tuned so the horizon
+## sits a little below centre: mountains behind, then hills, a sandy beach, and the sea.
 func _band_rect(role: int, w: float, h: float) -> Rect2:
+	# Band bottoms run deep so each layer's flat base hides behind the layer in front of it
+	# (no hard horizontal seam against the sky). The visible ridge is set by the top edge.
 	match role:
 		TerrainLayer.Role.MOUNTAIN:
-			return Rect2(-w * 0.5, -h * 0.35, w, h * 0.47)
+			return _rect_f(0.28, 0.85, w, h)
 		TerrainLayer.Role.HILL:
-			return Rect2(-w * 0.5, -h * 0.08, w, h * 0.32)
+			return _rect_f(0.44, 0.85, w, h)
 		TerrainLayer.Role.TREELINE:
-			return Rect2(-w * 0.5, -h * 0.02, w, h * 0.30)
+			return _rect_f(0.50, 0.85, w, h)
 		TerrainLayer.Role.FOREGROUND:
-			return Rect2(-w * 0.5, h * 0.05, w, h * 0.45)
-		_: # GROUND and default
-			return Rect2(-w * 0.5, -h * 0.05, w, h * 0.55)
+			return _rect_f(0.74, 1.0, w, h)
+		_: # GROUND and default (also used by the water body)
+			return _rect_f(0.46, 1.0, w, h)
+
+
+func _rect_f(top_f: float, bottom_f: float, w: float, h: float) -> Rect2:
+	var y0 := (top_f - 0.5) * h
+	var y1 := (bottom_f - 0.5) * h
+	return Rect2(-w * 0.5, y0, w, y1 - y0)
 
 
 func _role_name(role: int) -> String:
