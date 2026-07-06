@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://dbcmdc5u7epfy"]
+
+[ext_resource type="Shader" uid="uid://bug4dx8f443o7" path="res://addons/weather2d/shaders/water_body.gdshader" id="1_2k6vt"]
+[ext_resource type="Script" uid="uid://bbpnrm04cjkq6" path="res://addons/weather2d/nodes/water_body_2d.gd" id="1_water"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_3e2aw"]
+frequency = 0.015
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_oxbcg"]
+width = 256
+height = 256
+noise = SubResource("FastNoiseLite_3e2aw")
+seamless = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ikcgm"]
+shader = ExtResource("1_2k6vt")
+shader_parameter/mode = 2
+shader_parameter/deep_color = Color(0.09, 0.22, 0.42, 1)
+shader_parameter/shallow_color = Color(0.2, 0.45, 0.62, 1)
+shader_parameter/foam_color = Color(0.95, 0.98, 1, 1)
+shader_parameter/water_opacity = 0.85
+shader_parameter/wave_scale = 6.0
+shader_parameter/wave_speed = 0.15
+shader_parameter/wave_distortion = 0.15
+shader_parameter/level = 0.5
+shader_parameter/flow_direction = Vector2(1, 0)
+shader_parameter/flow_speed = 0.066
+shader_parameter/foam_amount = 0.6
+shader_parameter/foam_width = 0.063
+shader_parameter/swell_height = 0.097
+shader_parameter/swell_speed = 0.54
+shader_parameter/reflection_enabled = true
+shader_parameter/reflection_strength = 0.35
+shader_parameter/reflection_offset = Vector2(0, 0)
+shader_parameter/use_terrain_mask = false
+shader_parameter/noise_tex = SubResource("NoiseTexture2D_oxbcg")
+
+[node name="WaterDemo" type="Node2D" unique_id=1263170525]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2052211791]
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=1101244759]
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.61, 0.78, 0.92, 1)
+
+[node name="Sun" type="ColorRect" parent="." unique_id=2070172858]
+offset_left = 420.0
+offset_top = -430.0
+offset_right = 560.0
+offset_bottom = -290.0
+color = Color(1, 0.95, 0.75, 1)
+
+[node name="Hills" type="ColorRect" parent="." unique_id=1486992136]
+offset_left = -960.0
+offset_top = -120.0
+offset_right = 960.0
+offset_bottom = 40.0
+color = Color(0.38, 0.55, 0.36, 1)
+
+[node name="Water" type="ColorRect" parent="." unique_id=416775054]
+material = SubResource("ShaderMaterial_ikcgm")
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+mouse_filter = 2
+script = ExtResource("1_water")
+mode = 2
+flow_speed = 0.066
+foam_amount = 0.6
+foam_width = 0.063
+swell_height = 0.097
+swell_speed = 0.54
+
+[node name="Instructions" type="Label" parent="." unique_id=17189156]
+offset_left = -940.0
+offset_top = -520.0
+offset_right = -300.0
+offset_bottom = -460.0
+text = "Water demo — select the Water node and change Mode (Still / River / Ocean-Beach) in the inspector."
