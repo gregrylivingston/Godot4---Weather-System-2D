@@ -134,6 +134,29 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 		reflection_offset = v
 		_set_param("reflection_offset", v)
 
+@export_group("Sun glint (Phase 5)")
+## Sun/moon position in screen UV — the glint streak sits under this x. Set from the
+## TimeOfDay; [SkyController] re-pushes it as the sun moves.
+@export var sun_uv := Vector2(0.5, 0.2):
+	set(v):
+		sun_uv = v
+		_set_param("sun_uv", v)
+## Tint of the glint (the sun/moon light color).
+@export var sun_color := Color(1.0, 0.97, 0.9):
+	set(v):
+		sun_color = v
+		_set_param("sun_color", v)
+## Strength of the shimmering specular streak under the sun (0 = none). Lowered at night.
+@export_range(0.0, 1.0) var glint_strength := 0.3:
+	set(v):
+		glint_strength = v
+		_set_param("glint_strength", v)
+## Intensity of rain-ripple rings on the surface. Usually driven by rain (see below).
+@export_range(0.0, 1.0) var rain_ripple := 0.0:
+	set(v):
+		rain_ripple = v
+		_set_param("rain_ripple", v)
+
 @export_group("Weather response")
 ## When true (at runtime), connect to a SkySetting in the "SkySetting" group so rain darkens
 ## and roughens the water. Editor preview is unaffected.
@@ -182,13 +205,15 @@ func _ready() -> void:
 		sky.updateRainAmount.connect(_on_rain_amount)
 
 
-## Rain darkens/desaturates the palette and raises foam + wave height.
+## Rain darkens/desaturates the palette, raises foam + wave height, and rings the surface.
 func _on_rain_amount(rain_amount: float) -> void:
-	var r := clampf(rain_amount, 0.0, 1.0) * weather_influence
+	var raw := clampf(rain_amount, 0.0, 1.0)
+	var r := raw * weather_influence
 	deep_color = _base_deep.lerp(_STORM_COLOR, 0.5 * r)
 	shallow_color = _base_shallow.lerp(_STORM_COLOR, 0.4 * r)
 	foam_amount = clampf(_base_foam + 0.4 * r, 0.0, 1.0)
 	wave_height = _base_wave_height + 0.03 * r
+	rain_ripple = raw   # ripple density tracks how hard it's raining
 
 
 func _ensure_material() -> void:
@@ -243,6 +268,10 @@ func _apply_all() -> void:
 	_set_param("reflection_enabled", reflection_enabled)
 	_set_param("reflection_strength", reflection_strength)
 	_set_param("reflection_offset", reflection_offset)
+	_set_param("sun_uv", sun_uv)
+	_set_param("sun_color", sun_color)
+	_set_param("glint_strength", glint_strength)
+	_set_param("rain_ripple", rain_ripple)
 	_set_param("use_terrain_mask", use_terrain_mask)
 	if terrain_mask != null:
 		_set_param("terrain_mask", terrain_mask)

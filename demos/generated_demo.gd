@@ -18,4 +18,6 @@ func _ready() -> void:
 	builder.props(true, 20)   # scatter trees/rocks along the shore (stratified, depth-faded)
 	builder.birds(true, 5)    # a few birds in the sky
 	builder.painterly(true)   # soft-focus painterly post-process
+	builder.live(true, 0.01)  # Phase 5: a slow day-night cycle — sun tracks, stars come out
+	builder.lightning(true)   # flashes if a storm rolls in
 	add_child(builder.build())

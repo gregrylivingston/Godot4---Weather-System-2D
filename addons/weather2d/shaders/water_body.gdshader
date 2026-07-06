@@ -48,6 +48,18 @@ uniform bool reflection_enabled = true;
 uniform float reflection_strength : hint_range(0.0, 1.0) = 0.35;
 uniform vec2 reflection_offset = vec2(0.0, 0.0);
 
+// --- sun glint (Phase 5) ---
+// A shimmering specular streak under the sun. `sun_uv.x` places it horizontally (the water
+// spans the full screen width, so screen-x maps to UV.x); the node/controller lowers
+// `glint_strength` at night. `sun_color` tints it.
+uniform vec2 sun_uv = vec2(0.5, 0.2);
+uniform vec4 sun_color : source_color = vec4(1.0, 0.97, 0.9, 1.0);
+uniform float glint_strength : hint_range(0.0, 1.0) = 0.3;
+
+// --- rain ripples (Phase 5) ---
+// Concentric expanding rings where drops land; driven by the rain amount (0 = none).
+uniform float rain_ripple : hint_range(0.0, 1.0) = 0.0;
+
 // --- terrain hookup (Phase 2, optional) ---
 // A mask where the red channel > 0.5 marks land; lets water align with real terrain.
 uniform bool use_terrain_mask = false;
@@ -74,6 +86,25 @@ float surface_wave(float x, float t) {
 	return w / 1.75;
 }
 
+float rip_hash(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+
+// Rain ripples: split the surface into cells, each spawning a ring that expands then resets
+// on its own random phase. Returns a bright ring intensity (~0..1) plus is used to distort.
+float ripple_field(vec2 uv, float t) {
+	vec2 g = uv * vec2(wave_scale * 2.5, wave_scale * 2.5);
+	vec2 cell = floor(g);
+	vec2 f = fract(g) - 0.5;
+	float ph = rip_hash(cell);
+	float life = fract(t * 0.9 + ph);        // 0..1 age of this cell's ring
+	float radius = life * 0.5;               // grows outward
+	float ring = smoothstep(0.03, 0.0, abs(length(f) - radius));
+	return ring * (1.0 - life);              // fade as it expands
+}
+
 void fragment() {
 	vec2 uv = UV;
 
@@ -87,6 +118,10 @@ void fragment() {
 	float n2 = noise_fbm(nuv * 1.7 - flow * 0.6 + vec2(0.0, TIME * wave_speed * 0.8));
 	float surface = (n1 + n2) * 0.5;
 	float distort = (surface - 0.5) * wave_distortion;
+
+	// Rain ripples nudge the reflection and add bright rings (added to color below).
+	float rip = rain_ripple > 0.001 ? ripple_field(uv, TIME) * rain_ripple : 0.0;
+	distort += rip * 0.05;
 
 	// Rolling sine waves along the surface.
 	float wt = TIME * wave_speed * 6.0;
@@ -163,6 +198,18 @@ void fragment() {
 		}
 
 		col = mix(col, foam_color.rgb, clamp(foam * foam_amount + foam * 0.2, 0.0, 1.0));
+
+		// Sun glint — a shimmering streak under the sun, catching wave crests near the top.
+		if (glint_strength > 0.001) {
+			float band = smoothstep(0.28, 0.0, abs(uv.x - sun_uv.x));
+			float sparkle = smoothstep(0.62, 0.98, surface);
+			float near_top = 1.0 - depth_t; // strongest in the shallows / near the waterline
+			col += sun_color.rgb * band * sparkle * (0.4 + 0.6 * near_top) * glint_strength;
+		}
+
+		// Rain-ripple ring highlights.
+		col += rip * 0.35;
+
 		COLOR = vec4(col, water_opacity);
 	}
 }

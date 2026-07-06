@@ -16,6 +16,11 @@ uniform float softness : hint_range(0.0, 1.0) = 0.5;    // wispy (1) … crisp c
 uniform float detail : hint_range(0.0, 1.0) = 0.5;      // ridged detail strength
 uniform float horizon : hint_range(0.3, 1.0) = 0.62;    // sky/ground line in UV.y
 uniform vec4 cloud_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+// Phase 5 — the shared sun model + wind. `sun_uv` lights the cloud edge that faces the sun;
+// `wind_dir` sets the drift direction (was a fixed rightward push).
+uniform vec2 sun_uv = vec2(0.5, 0.18);
+uniform vec4 sun_tint : source_color = vec4(1.0, 0.95, 0.85, 1.0);
+uniform vec2 wind_dir = vec2(1.0, 0.0);
 
 const mat2 m = mat2(vec2(1.6, 1.2), vec2(-1.2, 1.6));
 
@@ -61,10 +66,17 @@ void fragment() {
 		vec2 uv = UV * vec2(2.2, 1.4) * cloud_scale;
 		uv.y /= mix(0.6, 1.0, depth);
 		float t = TIME * speed;
-		uv += vec2(t * 0.3, 0.0); // gentle slow drift; the rest is evolution, not translation
+		// Drift along the wind (falls back to a gentle rightward push for a zero vector).
+		vec2 wdir = length(wind_dir) > 0.0001 ? normalize(wind_dir) : vec2(1.0, 0.0);
+		uv += wdir * t * 0.9; // slow translation; the rest is evolution in place
 
 		// Base shape (0..1) plus billowy ridged detail — both evolve slowly over time.
 		float base = fbm(uv * 3.2, t) * 0.5 + 0.5;
+		// Density a short step toward the sun: where the cloud thins toward the sun, this
+		// pixel's edge faces the light and reads brighter (a cheap directional shading term).
+		vec2 sdir = normalize((sun_uv - UV) + vec2(0.0001, 0.0001));
+		float toward_sun = fbm((uv - sdir * 0.10) * 3.2, t) * 0.5 + 0.5;
+		float sun_rim = clamp((base - toward_sun) * 2.2, 0.0, 1.0);
 		float r = 0.0;
 		vec2 ruv = uv * 2.0 + base;
 		float w = 0.6;
@@ -81,6 +93,9 @@ void fragment() {
 
 		// Lit tops, shadowed base; tinted by the time-of-day cloud color.
 		float shade = clamp(cloud_dark + cloud_light * (base * 0.6 + 0.4 + r * 0.35), 0.0, 1.0);
-		COLOR = vec4(cloud_color.rgb * shade, clamp(a, 0.0, 1.0));
+		vec3 rgb = cloud_color.rgb * shade;
+		// The sun-facing edge picks up the sun's tint.
+		rgb += sun_tint.rgb * sun_rim * 0.5;
+		COLOR = vec4(rgb, clamp(a, 0.0, 1.0));
 	}
 }

@@ -23,6 +23,9 @@ var _rain := 0.0
 var _fog := 0.0
 var _wind := 0.2
 var _seed := 7
+var _live := false        # Phase 5: add a SkyController so the scene animates
+var _day_speed := 0.0     # days per second for the day-night cycle
+var _lightning := false
 
 var _seed_spin: SpinBox
 var _rain_slider: HSlider
@@ -89,6 +92,9 @@ func _rebuild() -> void:
 		"fog": _fog,
 		"wind": _wind,
 		"snow": _snow,
+		"live": _live,
+		"day_night_speed": _day_speed,
+		"lightning": _lightning,
 	}
 	_scene = Scenarios.build(Scenarios.LIST[_scenario], opts).build()
 	add_child(_scene)
@@ -175,6 +181,19 @@ func _build_ui() -> void:
 	vb.add_child(_toggle("Props (trees, rocks)", _props, func(on): _props = on; _rebuild()))
 	vb.add_child(_toggle("Birds", _birds, func(on): _birds = on; _rebuild()))
 	vb.add_child(_toggle("Painterly look", _painterly, func(on): _painterly = on; _rebuild()))
+
+	vb.add_child(_section_label("Simulation (Phase 5)"))
+	vb.add_child(_toggle("Animate (live sun + weather)", _live, func(on): _live = on; _rebuild()))
+	vb.add_child(_toggle("Lightning (storms)", _lightning, func(on): _lightning = on; _rebuild()))
+	vb.add_child(_section_label("Day–night speed"))
+	var day_slider := HSlider.new()
+	day_slider.min_value = 0.0
+	day_slider.max_value = 0.05
+	day_slider.step = 0.002
+	day_slider.value = _day_speed
+	day_slider.custom_minimum_size = Vector2(0, 18)
+	day_slider.value_changed.connect(func(v): _day_speed = v; _rebuild())
+	vb.add_child(day_slider)
 
 	vb.add_child(_section_label("Seed"))
 	var seed_row := HBoxContainer.new()

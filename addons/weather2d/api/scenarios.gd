@@ -9,8 +9,10 @@ extends RefCounted
 ## add_child(ws.build())
 ## [/codeblock]
 ##
-## `opts` keys (all optional): seed:int, weather:WeatherPreset, props:bool, birds:bool,
-## painterly:bool, rain:float (0..1, or negative to follow the weather preset).
+## `opts` keys (all optional): seed:int, time_of_day:TimeOfDay, weather:WeatherPreset,
+## cloud_style:CloudPreset, props:bool, birds:bool, painterly:bool, snow:bool, rain/fog/
+## wind/clouds:float (0..1, negative follows the weather preset), and — for a living scene
+## (Phase 5) — live:bool, day_night_speed:float (days/sec), lightning:bool.
 
 const LIST := ["Beach", "Small Island", "River", "Lake", "Mountains"]
 
@@ -118,6 +120,10 @@ static func _base(opts: Dictionary) -> WeatherScene:
 		ws.cloud_style(opts["cloud_style"])
 	if opts.has("snow"):
 		ws.snow(bool(opts["snow"]))
+	if bool(opts.get("live", false)):
+		ws.live(true, float(opts.get("day_night_speed", 0.0)))
+	if bool(opts.get("lightning", false)):
+		ws.lightning(true)
 	return ws
 
 

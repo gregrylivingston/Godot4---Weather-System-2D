@@ -6,6 +6,33 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Phase 5 — Living simulation & atmosphere depth** 🌦️ *(core done)*. Generated scenes can now
+  be *alive* rather than a static snapshot:
+  - **Unified sun/moon model.** [TimeOfDay] now carries a `sun_uv` (screen position), `sun_color`
+    (light tint), and `star_intensity`. The same model drives the sky glow & disc, the lit side
+    of the clouds, and the water glint, so a scene reads as lit by one light.
+  - **Sky shader (`sky.gdshader`)** replaces the flat 2-stop gradient — a gradient with a
+    **sun/moon disc + glow** positioned from `sun_uv`, and **twinkling stars** that fade in with
+    `star_intensity`. `WeatherScene` now builds the Sky as a `ColorRect` + shader.
+  - **Day-night cycle.** `TimeOfDay.cycle(day01)` interpolates the five keyframe times
+    (dawn→noon→golden→dusk→night) over a normalized clock; the new [SkyController] advances it.
+  - **`SkyController` runtime node** (joins the `"SkySetting"` group, emits `updateRainAmount` /
+    `updateCloudAmount`): runs the day-night cycle, **cross-fades between `WeatherPreset`s**
+    (`transition_to`), flashes **lightning** during storms, and drives every material each frame —
+    all scaled by frame `delta`, so it's **frame-rate independent**. Added by
+    `WeatherScene.live()` / `.lightning()`.
+  - **Water: sun glint + rain-ripple impacts.** `water_body.gdshader` gains a shimmering specular
+    streak under the sun (`sun_uv` / `glint_strength`, faded at night) and concentric **ripple
+    rings** driven by the rain amount (`rain_ripple`).
+  - **Clouds: sun lighting + wind drift + cast shadows.** `clouds.gdshader` now lights the
+    sun-facing edge (`sun_uv` / `sun_tint`) and drifts along `wind_dir`; a new
+    `cloud_shadow.gdshader` dapples the land & water with soft moving shadows tied to coverage.
+  - **Live plumbing.** With `.live()`, the builder always instantiates the cloud/fog/rain/shadow
+    overlays so a weather transition can bring them in, and wires the `SkyController` to them —
+    closing the Phase 3 gap where generated scenes had no live `SkySetting` for
+    `WaterBody2D.react_to_weather` to hook into.
+  - **Launcher** gains an *Animate (live sun + weather)* toggle, a *Lightning* toggle, and a
+    *Day–night speed* slider; `demos/generated_demo` now runs a slow day-night cycle.
 - **Volumetric clouds with their own controls & presets.** Rewrote `clouds.gdshader` into a
   layered fBm + ridged-detail cloud system (ported from the "Cloudy skies" technique) with
   lit tops / shadowed bases and a horizon perspective. New **`CloudPreset`** resource with
@@ -68,9 +95,13 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 - **Demos:** `demos/water_demo.tscn` (water modes), `demos/beach_demo.tscn`
   (mountains → hills → sand → ocean washing in), and `demos/generated_demo.tscn` (a scene
   built entirely from code in `_ready`).
-- **Tests:** dependency-free headless runner `tests/run_tests.gd` — 38 checks covering the
-  water/terrain nodes, weather response, the builder, determinism, and preset round-trip
-  (+ `tests/README.md`).
+- **Tests:** dependency-free headless runner `tests/run_tests.gd` — **89 checks, all passing** covering the
+  water/terrain nodes, weather response, the builder, determinism, preset round-trip, cloud
+  styles, the time-of-day × weather axes, prop scatter/animation, the painterly layer, the
+  rain overlay, every `Scenarios` recipe, that the real `beach_demo`/`launcher` scenes load and
+  drive their live materials, and the Phase 5 additions (sun model & day-night cycle, sky/water/
+  cloud sun uniforms, the live overlays, and the `SkyController`'s day advance, frame-rate
+  independence, weather transition and signal emission) (+ `tests/README.md`).
 - **Docs:** rewritten `README.md`, new `docs/ARCHITECTURE.md` and `docs/ROADMAP.md`.
 
 - **SVG props + seeded scatter (Phase 2):** a vector-art set under `assets/svg/` (round
@@ -90,6 +121,11 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   with realistic seeds now show proper jagged mountains and sand grain.
 
 ### Changed
+- **Docs refresh:** README documents the full **addon shader set** (not just the four legacy
+  shaders) — now including `sky`, `cloud_shadow` and the Phase 5 uniforms — and `docs/ROADMAP.md`
+  gained a **Phase 5 — Living simulation** section (now largely implemented).
+- The generated Sky is now a `ColorRect` + `sky.gdshader` instead of a `TextureRect` + gradient
+  texture; `WeatherScene._make_sky_gradient()` was removed.
 - Nicer water defaults (more saturated teal palette, lower reflection strength, slightly
   bigger waves) and a beach demo re-composed so the sand beach is clearly visible.
 - **Painterly terrain art pass:** both terrain shaders rewritten to use smooth quintic
@@ -100,11 +136,17 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   waterline so the sea reads properly (horizon a little below centre). Layout is now
   expressed in screen fractions for easier tuning.
 
-### Notes
-- Legacy assets under `Weather2D/` are intentionally left in place for now; migrating them
-  into `addons/weather2d/` should be done via the Godot editor (drag-move updates the
-  `uid`/path references in the large demo scene safely).
+### Removed
+- **The legacy `Weather2D/` rose-garden demo and its whole subsystem** — the hand-authored
+  `demo-rose-garden.tscn`, the `SkySetting` hub + `sky.gd` / rain panels, the four legacy
+  shaders (`shader_clouds`, `shader_rain_snow`, `shader_raindrops_on_screen`, `shader_water`),
+  the rose/scenery textures and rosebush scenes, and `Gradient2D_Sky.tres` (47 files). It was
+  fully superseded by the `addons/weather2d/` kit and nothing else referenced it. The reusable
+  `MapCamera2D` (its only external dependency) is kept as a standalone node at the repo root.
+  The `"SkySetting"` global group name is retained — it's the signal channel the new
+  `SkyController` and `WaterBody2D` use. Docs (README, ARCHITECTURE, ROADMAP) were rewritten
+  to describe the addon instead of the removed hub.
 
 ## [0.0.0] — original
 - Initial personal release: `SkySetting` weather hub, cloud/rain/raindrop/water shaders,
-  `MapCamera2D`, and the hand-authored rose-garden demo.
+  `MapCamera2D`, and the hand-authored rose-garden demo. *(Removed in Unreleased; see above.)*

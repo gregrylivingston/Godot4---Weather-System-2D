@@ -23,53 +23,46 @@ dependency but can overlap. Each phase lists **goals**, **deliverables**, and
 
 ---
 
-## Target repository layout
+## Repository layout
 
-The current flat layout will migrate toward an addon-friendly structure (Phase 0):
+The kit lives in an addon; demos, assets, docs and tests sit alongside it:
 
 ```
 addons/weather2d/
   plugin.cfg
   plugin.gd
-  nodes/            # SkySetting, WaterBody2D, TerrainLayer, WeatherScene, MapCamera2D
-  shaders/          # clouds, rain_snow, raindrops, water_*, sand, terrain
-  resources/        # WeatherPreset, ScenePreset, TerrainLayer resources, gradients
-  api/              # builder API (WeatherScene, presets), helper singletons
+  nodes/            # SkyController, WaterBody2D, TerrainBand2D, PropScatter2D, PainterlyLayer
+  shaders/          # sky, clouds, cloud_shadow, water_body, rain, fog, terrain_*, foliage_wind, bird_fly, painterly
+  resources/        # TimeOfDay, WeatherPreset, CloudPreset, TerrainLayer, ScenePreset
+  api/              # builder (WeatherScene) + Scenarios recipes
 assets/
-  svg/              # vector props (trees, rocks, grass tufts) authored as .svg
-  textures/         # imported/raster art
+  svg/              # vector props (trees, rocks, grass, flowers, driftwood, birds)
 demos/
-  rose_garden.tscn
-  beach.tscn
-  river_valley.tscn
-  mountains.tscn
+  launcher.tscn · generated_demo.tscn · beach_demo.tscn · water_demo.tscn
 docs/
-  ARCHITECTURE.md
-  ROADMAP.md
-  api/              # generated/handwritten API reference
+  ARCHITECTURE.md · ROADMAP.md
+tests/
+  run_tests.gd · README.md
+MapCamera2D.gd      # reusable standalone camera (root)
 ```
-
-Migration is incremental — existing scenes keep working via path/uid updates.
 
 ---
 
-## Phase 0 — Foundation & docs  ✅ *in progress*
+## Phase 0 — Foundation & docs  ✅ *done*
 
 **Goal:** an honest, clear baseline that new contributors (and future-us) can build on.
 
 **Deliverables**
 - [x] Rewritten `README.md` explaining what the project is and how it works.
-- [x] `docs/ARCHITECTURE.md` — node-by-node breakdown and data flow.
+- [x] `docs/ARCHITECTURE.md` — resource/node/builder breakdown and data flow.
 - [x] `docs/ROADMAP.md` — this document.
 - [x] Convert to an installable plugin (`addons/weather2d/plugin.cfg` + `plugin.gd`).
       Node types register via `class_name` (no `add_custom_type` needed).
-- [ ] Move the *legacy* `Weather2D/` scripts/shaders/resources into the addon layout and
-      fix `uid`/paths — **do this inside the Godot editor** so it rewrites the references
-      in `demo-rose-garden.tscn` safely.
+- [x] Remove the legacy `Weather2D/` rose-garden code (superseded by the addon); tidy the repo.
 - [ ] Add screenshots/GIFs to `docs/` and the README.
 
 **Definition of done:** repo opens cleanly, docs match reality, and the effects are
-usable as an addon from a fresh project.
+usable as an addon from a fresh project. *(Only media capture remains.)*
 
 ---
 
@@ -210,19 +203,88 @@ and see polished demos — and the GitHub page looks great.
 
 ---
 
+## Phase 5 — Living simulation & atmosphere depth  🌦️ ✅ *core done*
+
+**Goal:** make the atmosphere feel *simulated* rather than *composited*. A plain generated
+scene is still a static snapshot; opting in with [code]WeatherScene.live()[/code] adds a
+[SkyController] that brings the four domains the kit is really about — **sky, clouds, weather,
+water** — to life.
+
+**Design pillar — one sun/moon model.** ✅ [TimeOfDay] now carries `sun_uv` + `sun_color` +
+`star_intensity`, derived from the time of day (and animated by the day-night cycle), and
+*every* subsystem reads it: the sky glow & disc, the lit side of the clouds, and the water
+glint. That shared light is what turns "nice layers" into "one lit world."
+
+### Sky
+- [x] Replaced the flat `GradientTexture2D` with a **sky shader** (`sky.gdshader`).
+- [x] **Sun / moon disc** with a soft glow, positioned from `sun_uv`.
+- [x] **Stars** at night — a cell-hash field that fades in with `star_intensity` and twinkles.
+- [x] **Day-night cycle** — `TimeOfDay.cycle(day01)` interpolates the five keyframe factories;
+      [SkyController] advances it and re-pushes the palette each frame.
+
+### Clouds
+- [x] **Cast cloud shadows** — `cloud_shadow.gdshader` dapples the land & water with soft
+      moving shadows tied to coverage, drifting with the wind.
+- [x] **Sun-direction lighting** — the sun-facing cloud edge picks up `sun_tint`.
+- [x] **Wind drives cloud drift** — `wind_dir` sets the drift direction; wind also speeds the
+      cloud evolution via the controller.
+- [ ] **Parallax cloud layers** — high thin cirrus + low cumulus at different speeds (still one
+      layer).
+- [ ] Optional **god rays / crepuscular rays** through gaps at golden hour and dusk.
+
+### Weather
+- [x] A runtime **[SkyController]** that **cross-fades between `WeatherPreset`s over time**
+      (`transition_to`) — a front rolling in from clear → storm → clearing — without a rebuild.
+- [x] **Lightning** for storms: occasional full-screen flash whose cadence scales with the
+      storm. *(Thunder audio hook still TODO.)*
+- [x] **Frame-rate independence** — the controller scales all motion by frame `delta`.
+- [ ] **Cloud cover → precipitation coupling** so rain feels *caused* by the sky (coverage and
+      rain are still independent preset fields).
+- [ ] **Wet-surface response**: terrain/props darken while it rains and dry out afterward;
+      puddle accumulation on flat ground.
+
+### Water
+- [x] **Rain-ripple impacts** — concentric expanding rings where drops land, density tied to
+      the rain amount (`rain_ripple`).
+- [x] **Sun glint / specular streak** aligned with `sun_uv`, shimmering on wave crests and
+      faded out at night.
+- [ ] **Caustics / sparkle** pass for sunlit shallows (Phase 1 carry-over).
+- [ ] **Live wet-sand edge** — drive the sand's dry→wet blend from the water's *actual*
+      animated run-up edge, not a static gradient (Phase 1 carry-over).
+- [ ] Extract shared water/noise helpers into a `.gdshaderinc` (Phase 1 carry-over).
+
+### Plumbing
+- [x] `WeatherScene.live()` adds a **[SkyController]** in the `"SkySetting"` group so
+      `WaterBody2D.react_to_weather` animates in generated scenes — closing the Phase 3 gap.
+      With `.live()` the cloud/fog/rain/shadow overlays are always instantiated so a weather
+      transition can bring them in.
+- [x] **Motion tests** — the headless suite exercises the controller's day advance,
+      frame-rate independence, weather transition, and signal emission.
+
+### Follow-ups
+- [ ] **Day-cycle the water palette** — the water's deep/shallow base colors are still set once
+      at build (ambient tints it, but they don't interpolate through the day).
+- [ ] Thread the chosen start time into `day01` so a day-night scene begins at the picked hour.
+
+**Definition of done:** ✅ a generated scene where the sun tracks across the sky, clouds cast
+moving shadows and drift with the wind, a storm front rolls in with lightning and rain that
+ripples the water, and everything reads as lit by the *same* sun — reproducible from a seed
+and tweakable live. (Parallax clouds, caustics, god rays and thunder remain as polish.)
+
+---
+
 ## Known issues & tech debt
 
 Tracked here so they get fixed inside the phases above rather than forgotten:
 
 | Issue | Where | Fix in |
 |---|---|---|
-| Weather deltas are frame-rate dependent (`+= delta/100` not scaled by frame `delta`) | `sky_setting.gd` `_process` | Phase 1/3 refactor |
-| `sunsetRate` mutates the shared `Gradient2D_Sky.tres` in memory; end state leaks between runs | `sky_setting.gd` | Phase 1 (own the gradient per-instance) |
-| Water is screen-space reflection only; no shoreline/flow | `shader_water.gdshader` | Phase 1 |
-| Terrain is hand-placed PNGs; no procedural generation | demo scene | Phase 2 |
-| No code API; scenes authored by hand | — | Phase 3 |
-| Large demo `.tscn` with embedded data | `demo-rose-garden.tscn` | Phase 0/4 cleanup |
-| Effects look up the controller via a global group (`"SkySetting"`); brittle if absent | subscriber scripts | Phase 3 (optional export ref + null-guard) |
+| ~~Generated scenes are a static snapshot — no live `SkySetting`~~ — done: `WeatherScene.live()` adds a frame-rate-independent `SkyController` | `weather_scene.gd`, `sky_controller.gd` | Phase 5 ✅ |
+| ~~Water is screen-space reflection only; no shoreline/flow~~ — done (`water_body.gdshader`); caustics remain | `water_body.gdshader` | Phase 5 |
+| ~~Terrain is hand-placed PNGs; no procedural generation~~ — done (`TerrainBand2D`) | — | Phase 2 ✅ |
+| ~~No code API; scenes authored by hand~~ — done (`WeatherScene`) | — | Phase 3 ✅ |
+| ~~Legacy rose-garden code / large hand-authored `.tscn`~~ — removed | — | Phase 0 ✅ |
+| Effects look up the controller via a global group (`"SkySetting"`); brittle if absent (guarded, but a null path means no live weather) | subscriber scripts | optional export ref + null-guard |
 
 ---
 
@@ -235,5 +297,6 @@ Tracked here so they get fixed inside the phases above rather than forgotten:
 | **M2 — Generated terrain** | sand/hills/mountains, SVG props, `TerrainLayer` | 2 |
 | **M3 — Scene-from-code** | `WeatherScene` builder, presets, seeds | 3 |
 | **M4 — Showcase & release** | demos, media, Asset Library | 4 |
+| **M5 — Living simulation** ✅ | unified sun model, day-night cycle, weather transitions, cloud shadows, water glint/ripples | 5 |
 
 *This roadmap is a living document — update checkboxes and notes as work lands.*

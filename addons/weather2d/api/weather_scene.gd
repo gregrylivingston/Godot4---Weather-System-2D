@@ -43,6 +43,9 @@ var _cloud_amount := -1.0
 var _snow_force := -1     # -1 follow preset, 0 off, 1 on
 var _cloud_style: CloudPreset = null
 var _wind_effective := 0.3
+var _live := false          # add a SkyController so the scene animates at runtime
+var _day_night_speed := 0.0
+var _lightning := false
 var _haze_color := Color(0.72, 0.80, 0.88) # depth-fade color for props (from the ToD sky)
 var _fog_color := Color(0.82, 0.85, 0.88)
 
@@ -60,6 +63,8 @@ const _BIRD_PATH := "res://assets/svg/bird.svg"
 const _RAIN_SHADER := "res://addons/weather2d/shaders/rain.gdshader"
 const _FOG_SHADER := "res://addons/weather2d/shaders/fog.gdshader"
 const _CLOUD_SHADER := "res://addons/weather2d/shaders/clouds.gdshader"
+const _SKY_SHADER := "res://addons/weather2d/shaders/sky.gdshader"
+const _CLOUD_SHADOW_SHADER := "res://addons/weather2d/shaders/cloud_shadow.gdshader"
 
 
 func set_seed(s: int) -> WeatherScene:
@@ -172,6 +177,22 @@ func painterly(enable := true) -> WeatherScene:
 	return self
 
 
+## Make the scene [b]live[/b] (Phase 5): add a [SkyController] that animates the sky, weather
+## and water at runtime. [param day_night_speed] is whole days per second (0 = a fixed hour,
+## the sun still glints and clouds/rain still move). Enabling this also always builds the
+## cloud / fog / rain overlays so a weather transition can bring them in.
+func live(enable := true, day_night_speed := 0.0) -> WeatherScene:
+	_live = enable
+	_day_night_speed = day_night_speed
+	return self
+
+
+## Emit occasional lightning flashes while it storms (only meaningful with [method live]).
+func lightning(enable := true) -> WeatherScene:
+	_lightning = enable
+	return self
+
+
 ## Load an entire composition from a saved [ScenePreset].
 func from_preset(preset: ScenePreset) -> WeatherScene:
 	if preset == null:
@@ -209,20 +230,41 @@ func build() -> Node2D:
 	_haze_color = _pal(tod.sky_bottom, darken, desat)
 	_fog_color = tod.fog_color
 
+	# Material/node refs the SkyController drives when the scene is live (Phase 5).
+	var sky_mat: ShaderMaterial = null
+	var cloud_mat: ShaderMaterial = null
+	var cloud_shadow_mat: ShaderMaterial = null
+	var fog_mat: ShaderMaterial = null
+	var rain_mat: ShaderMaterial = null
+	var ambient_node: CanvasModulate = null
+	var lightning_rect: ColorRect = null
+	var water_body: WaterBody2D = null
+
 	# Scene-wide ambient tint (night dims everything; storms darken it further).
 	var ambient := tod.ambient.lerp(Color(0.35, 0.37, 0.44), darken * 0.6)
-	if ambient != Color.WHITE:
-		var cmod := CanvasModulate.new()
-		cmod.name = "Ambient"
-		cmod.color = ambient
-		root.add_child(cmod)
+	if _live or ambient != Color.WHITE:
+		ambient_node = CanvasModulate.new()
+		ambient_node.name = "Ambient"
+		ambient_node.color = ambient
+		root.add_child(ambient_node)
 
-	var sky := TextureRect.new()
+	# Sky: a shader (not a flat gradient) with a sun/moon disc, glow, and night stars, all
+	# from the unified sun model on the TimeOfDay.
+	var sky := ColorRect.new()
 	sky.name = "Sky"
-	sky.texture = _make_sky_gradient(_pal(tod.sky_top, darken, desat), _pal(tod.sky_bottom, darken, desat))
 	sky.position = Vector2(-w * 0.5, -h * 0.5)
 	sky.size = _size
 	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sky_mat = ShaderMaterial.new()
+	sky_mat.shader = load(_SKY_SHADER)
+	sky_mat.set_shader_parameter("sky_top", _pal(tod.sky_top, darken, desat))
+	sky_mat.set_shader_parameter("sky_bottom", _pal(tod.sky_bottom, darken, desat))
+	sky_mat.set_shader_parameter("sun_uv", tod.sun_uv)
+	sky_mat.set_shader_parameter("sun_color", tod.sun_color)
+	sky_mat.set_shader_parameter("star_intensity", tod.star_intensity)
+	sky_mat.set_shader_parameter("aspect", w / maxf(h, 1.0))
+	sky_mat.set_shader_parameter("horizon", 0.62)
+	sky.material = sky_mat
 	root.add_child(sky)
 
 	# Effective weather values (explicit override, else the preset, else a default).
@@ -239,25 +281,30 @@ func build() -> Node2D:
 		cloud_cov = lerpf(-0.3, 0.7, _cloud_amount)
 	elif _cloud_style == null and _weather != null:
 		cloud_cov = lerpf(-0.3, 0.7, _weather.clouds)
-	if cloud_cov > -0.3:
+	# Normalized 0..1 coverage (inverse of the lerp above) for the cloud-shadow pass.
+	var cloud01 := clampf(cloud_cov + 0.3, 0.0, 1.0)
+	if _live or cloud_cov > -0.3:
 		var cloud_rect := ColorRect.new()
 		cloud_rect.name = "Clouds"
 		cloud_rect.position = Vector2(-w * 0.5, -h * 0.5)
 		cloud_rect.size = _size
 		cloud_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var cmat := ShaderMaterial.new()
-		cmat.shader = load(_CLOUD_SHADER)
-		cmat.set_shader_parameter("coverage", cloud_cov)
-		cmat.set_shader_parameter("cloud_scale", style.scale)
-		cmat.set_shader_parameter("speed", style.speed)
-		cmat.set_shader_parameter("cloud_dark", style.dark * (1.0 - darken * 0.3))
-		cmat.set_shader_parameter("cloud_light", style.light * (1.0 - darken * 0.45))
-		cmat.set_shader_parameter("density", style.density)
-		cmat.set_shader_parameter("softness", style.softness)
-		cmat.set_shader_parameter("detail", style.detail)
-		cmat.set_shader_parameter("horizon", 0.62)
-		cmat.set_shader_parameter("cloud_color", _pal(tod.cloud_color, darken, desat))
-		cloud_rect.material = cmat
+		cloud_mat = ShaderMaterial.new()
+		cloud_mat.shader = load(_CLOUD_SHADER)
+		cloud_mat.set_shader_parameter("coverage", cloud_cov)
+		cloud_mat.set_shader_parameter("cloud_scale", style.scale)
+		cloud_mat.set_shader_parameter("speed", style.speed)
+		cloud_mat.set_shader_parameter("cloud_dark", style.dark * (1.0 - darken * 0.3))
+		cloud_mat.set_shader_parameter("cloud_light", style.light * (1.0 - darken * 0.45))
+		cloud_mat.set_shader_parameter("density", style.density)
+		cloud_mat.set_shader_parameter("softness", style.softness)
+		cloud_mat.set_shader_parameter("detail", style.detail)
+		cloud_mat.set_shader_parameter("horizon", 0.62)
+		cloud_mat.set_shader_parameter("cloud_color", _pal(tod.cloud_color, darken, desat))
+		cloud_mat.set_shader_parameter("sun_uv", tod.sun_uv)
+		cloud_mat.set_shader_parameter("sun_tint", tod.sun_color)
+		cloud_mat.set_shader_parameter("wind_dir", Vector2(1.0, 0.12))
+		cloud_rect.material = cloud_mat
 		root.add_child(cloud_rect)
 
 	# Find a ground layer so the water can share its coastline.
@@ -298,10 +345,16 @@ func build() -> Node2D:
 			body.level = _water_level
 		body.deep_color = _pal(tod.water_deep, darken, desat)
 		body.shallow_color = _pal(tod.water_shallow, darken, desat)
+		# Sun glint tracks the sun; the moon barely glints, so fade it out at night.
+		body.sun_uv = tod.sun_uv
+		body.sun_color = tod.sun_color
+		body.glint_strength = clampf(0.35 * (1.0 - tod.star_intensity), 0.0, 1.0)
 		if _weather != null:
 			body.foam_amount = clampf(0.45 + _weather.rain * 0.35, 0.0, 1.0)
 			body.wave_height += _weather.rain * 0.02
+			body.rain_ripple = _weather.rain
 		root.add_child(body)
+		water_body = body
 
 	# Foreground terrain draws in front of the water (e.g. a near river bank).
 	for i in _layers.size():
@@ -336,15 +389,30 @@ func build() -> Node2D:
 			flock.textures = [bird]
 		root.add_child(flock)
 
+	# Moving cloud shadows dapple the land & water (drift with the wind, below the horizon).
+	if _live or cloud01 > 0.25:
+		var shadow_rect := ColorRect.new()
+		shadow_rect.name = "CloudShadow"
+		shadow_rect.position = Vector2(-w * 0.5, -h * 0.5)
+		shadow_rect.size = _size
+		shadow_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cloud_shadow_mat = ShaderMaterial.new()
+		cloud_shadow_mat.shader = load(_CLOUD_SHADOW_SHADER)
+		cloud_shadow_mat.set_shader_parameter("coverage", cloud01)
+		cloud_shadow_mat.set_shader_parameter("wind_dir", Vector2(1.0, 0.12))
+		cloud_shadow_mat.set_shader_parameter("horizon", 0.5)
+		shadow_rect.material = cloud_shadow_mat
+		root.add_child(shadow_rect)
+
 	# Fog / distance haze over the scene (under rain and painterly).
-	if eff_fog > 0.02:
+	if _live or eff_fog > 0.02:
 		var fog_layer := CanvasLayer.new()
 		fog_layer.name = "Fog"
 		fog_layer.layer = 7
 		var fog_rect := ColorRect.new()
 		fog_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 		fog_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var fog_mat := ShaderMaterial.new()
+		fog_mat = ShaderMaterial.new()
 		fog_mat.shader = load(_FOG_SHADER)
 		fog_mat.set_shader_parameter("density", eff_fog)
 		fog_mat.set_shader_parameter("fog_color", _fog_color)
@@ -354,14 +422,14 @@ func build() -> Node2D:
 
 	# Rain / snow overlay (from the weather preset, or an explicit .rain() override).
 	var rain_amt := _rain_amount if _rain_amount >= 0.0 else (_weather.rain if _weather != null else 0.0)
-	if rain_amt > 0.02:
+	if _live or rain_amt > 0.02:
 		var rain_layer := CanvasLayer.new()
 		rain_layer.name = "Rain"
 		rain_layer.layer = 8
 		var rain_rect := ColorRect.new()
 		rain_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 		rain_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var rain_mat := ShaderMaterial.new()
+		rain_mat = ShaderMaterial.new()
 		rain_mat.shader = load(_RAIN_SHADER)
 		rain_mat.set_shader_parameter("amount", rain_amt)
 		rain_mat.set_shader_parameter("snow", eff_snow)
@@ -370,8 +438,42 @@ func build() -> Node2D:
 		rain_layer.add_child(rain_rect)
 		root.add_child(rain_layer)
 
+	# Lightning flash layer (driven by the SkyController while it storms).
+	if _live and _lightning:
+		var l_layer := CanvasLayer.new()
+		l_layer.name = "Lightning"
+		l_layer.layer = 9
+		lightning_rect = ColorRect.new()
+		lightning_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		lightning_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lightning_rect.color = Color(0.9, 0.94, 1.0, 0.0)
+		l_layer.add_child(lightning_rect)
+		root.add_child(l_layer)
+
 	if _painterly:
 		root.add_child(PainterlyLayer.new())
+
+	# The runtime brain: animates sky/weather/water and (via the "SkySetting" group) drives
+	# the water's weather reaction. See SkyController.
+	if _live:
+		var ctrl := SkyController.new()
+		ctrl.name = "SkyController"
+		ctrl.size = _size
+		ctrl.base_time = tod
+		ctrl.cloud_style = style
+		ctrl.day_night_speed = _day_night_speed
+		ctrl.time_cycle_enabled = _day_night_speed != 0.0
+		ctrl.lightning_enabled = _lightning
+		ctrl.sky_material = sky_mat
+		ctrl.cloud_material = cloud_mat
+		ctrl.cloud_shadow_material = cloud_shadow_mat
+		ctrl.fog_material = fog_mat
+		ctrl.rain_material = rain_mat
+		ctrl.water = water_body
+		ctrl.ambient = ambient_node
+		ctrl.lightning_rect = lightning_rect
+		ctrl.set_weather(_weather if _weather != null else WeatherPreset.clear())
+		root.add_child(ctrl)
 
 	return root
 
@@ -491,19 +593,6 @@ func _role_name(role: int) -> String:
 		TerrainLayer.Role.TREELINE: return "treeline"
 		TerrainLayer.Role.FOREGROUND: return "foreground"
 	return "band"
-
-
-func _make_sky_gradient(top: Color, bottom: Color) -> GradientTexture2D:
-	var grad := Gradient.new()
-	grad.set_color(0, top)
-	grad.set_color(1, bottom)
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.width = 8
-	tex.height = 256
-	tex.fill_from = Vector2(0.0, 0.0)
-	tex.fill_to = Vector2(0.0, 1.0)
-	return tex
 
 
 ## Apply weather modulation to a base (time-of-day) color: darken toward gloom, then grey out.

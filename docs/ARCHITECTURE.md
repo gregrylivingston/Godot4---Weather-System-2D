@@ -1,154 +1,181 @@
 # Architecture — Weather System 2D
 
-How the pieces actually fit together, node by node. For the *plan* to change all of this,
-see [`ROADMAP.md`](ROADMAP.md). This document describes the system **as it is today**.
+How the pieces actually fit together. For the *plan* to extend all of this, see
+[`ROADMAP.md`](ROADMAP.md). This document describes the system **as it is today**: the
+`addons/weather2d/` plugin. (The original hand-authored rose-garden demo and its legacy
+`SkySetting` hub have been removed; everything below is the current, addon-based kit.)
 
 ---
 
 ## Overview
 
-The system is a **hub-and-spoke** design connected by Godot **signals**:
+The kit is organized around a **code-first builder** plus a **runtime hub**:
 
-- One controller node, **`SkySetting`**, holds the weather state.
-- Effect nodes **subscribe** to `SkySetting`'s signals and translate the incoming
-  `0..1` weather values into **shader uniforms**.
-- All visuals live in **canvas-item shaders**; the GDScript is just glue.
+- **`WeatherScene`** (a builder) assembles a scene declaratively — time of day, weather,
+  cloud style, terrain stack, water, props — and `build()`s a ready `Node2D` tree,
+  deterministic for a given seed.
+- For a **living** scene (`.live()`), the builder also adds a **`SkyController`**: the
+  runtime hub that advances a day-night cycle and weather transitions and pushes the results
+  into every material each frame.
+- Effect nodes (`WaterBody2D`, …) read weather from the controller via the **`"SkySetting"`
+  group** and Godot **signals**, so weather stays decoupled from the effects.
+- All visuals live in **canvas-item shaders**; the GDScript is glue that maps values →
+  shader uniforms.
 
 ```
-SkySetting (Node2D, @tool, group "SkySetting")
-│  state: rainAmount, rainDelta, cloudAmount, cloudDelta, sunsetRate
-│  emits: updateRainAmount, updateCloudAmount
-│  _process(): applies deltas at runtime, advances the sunset gradient
-│
-├─ signal updateRainAmount ───► panel_rain_falling_in_sky.gd → rain shader `count`
-│                          └──► panel_raindrops_on_screen.gd → drops shader `frequency`
-│
-└─ signal updateCloudAmount ──► sky.gd (TextureRect) → cloud shader `cloudcover`
+WeatherScene.build()  ─►  Node2D tree
+                          Camera2D · Sky · Clouds · Terrain bands · Water ·
+                          CloudShadow · Fog · Rain · (Painterly) · SkyController*
+                                                          (*only when .live())
 
-Independent:
-  MapCamera2D  — pan/zoom/drag camera
-  shader_water — reflective water on a ColorRect (reads the weather indirectly via scene)
+SkyController  (Node2D, group "SkySetting")
+│  state:   TimeOfDay (sun_uv/color, palette, stars) + WeatherPreset (rain/fog/cloud/wind)
+│  step():  day-night cycle · weather cross-fade · lightning   (all scaled by frame delta)
+│  emits:   updateRainAmount, updateCloudAmount
+│
+├─ pushes uniforms ─► sky / clouds / cloud_shadow / fog / rain materials + water glint
+└─ updateRainAmount ─► WaterBody2D  → darkens water, raises foam/waves, rain ripples
 ```
 
 ---
 
-## Nodes & scripts
+## Resources (the "what") — `addons/weather2d/resources/`
 
-### `SkySetting` — the controller
-**File:** [`../Weather2D/sky_setting.gd`](../Weather2D/sky_setting.gd) · `@tool class_name SkySetting extends Node2D`
-**Group:** `"SkySetting"` (global group; effects find it with
-`get_tree().get_first_node_in_group("SkySetting")`).
+These are plain `Resource`s with static factories; they carry *data*, no nodes.
 
-Exported state and the signals emitted when it changes:
+### `TimeOfDay`
+The time-of-day half of the atmosphere and the **unified sun model**: `sky_top`/`sky_bottom`,
+`water_deep`/`water_shallow`, `cloud_color`, `fog_color`, `ambient`, plus `sun_uv`
+(screen position), `sun_color` (light tint) and `star_intensity`. Factories: `dawn()`,
+`noon()`, `golden_hour()`, `dusk()`, `night()`. `cycle(day01)` interpolates the five
+keyframes over a normalized clock; `lerp_to(other, t)` blends two.
 
-| Property | Range | Setter emits | Notes |
-|---|---|---|---|
-| `rainAmount` | `-1 … 2` | `updateRainAmount` | `0` none → `1` max. Out-of-range values create a "delay" before an opposite delta shows. |
-| `rainDelta` | `-1 … 1` | — | Runtime: `rainAmount += rainDelta / 100` each frame. |
-| `cloudAmount` | `-1 … 2` | `updateCloudAmount` | Cloud cover. |
-| `cloudDelta` | `-0.1 … 0.1` | — | Runtime: `cloudAmount += cloudDelta / 100` each frame. |
-| `sunsetRate` | `0 … 0.25` | — | Slides the sky gradient's `fill_to` toward sunset. |
+### `WeatherPreset`
+The weather half — `rain`, `snow`, `fog`, `clouds`, `wind`, and how much it `darken`s /
+`desaturate`s the palette. Factories: `clear/cloudy/foggy/rainy/stormy/snowy()`. Orthogonal
+to `TimeOfDay`, so any hour combines with any weather.
 
-`_process(delta)`:
-- Guarded by `if not Engine.is_editor_hint()` so the editor shows a static authored look.
-- At runtime, applies both deltas and nudges `SkyGradient2D.fill_to` (x and y) by
-  `sunsetRate / 1000` to descend into sunset.
-- ⚠️ `SkyGradient2D` is a **loaded shared resource** (`Gradient2D_Sky.tres`); mutating it
-  changes the in-memory instance for the whole run. See [known issues](ROADMAP.md#known-issues--tech-debt).
+### `CloudPreset`
+Cloud style — `coverage`, `scale`, `speed`, `density`, `softness`, `detail`,
+`dark`/`light`. Factories: `clear/wispy/scattered/cumulus/overcast/stormy()`.
 
-### `sky.gd` — cloud + sky background
-**File:** [`../Weather2D/scene/sky.gd`](../Weather2D/scene/sky.gd) · `@tool extends TextureRect`
+### `TerrainLayer`
+Describes one parallax band: `role` (`GROUND`/`HILL`/`MOUNTAIN`/`TREELINE`/`FOREGROUND`),
+palette, `roughness`, `scroll_scale`, `coast_level`, `wave_*`, `seed`. Factories:
+`ground/hills/mountains/treeline/foreground()`.
 
-- On `_ready`, connects `SkySetting.updateCloudAmount` → `setCloudAmount`.
-- Maps cloud amount to the cloud shader: `cloudcover = -15.0 + cloudAmount * 25.0`
-  (the cloud shader treats ~`-20` as clear and ~`5` as fully overcast).
-- The `TextureRect`'s texture is the **sky gradient**; the cloud shader composites clouds
-  over it and applies a perspective skew (see [Shaders](#shaders)).
+### `ScenePreset`
+A whole composition (seed, size, `TimeOfDay`, `WeatherPreset`, terrain list, water) so a
+scene can be saved to a `.tres` and rebuilt with `WeatherScene.new().from_preset(p).build()`.
 
-### `panel_rain_falling_in_sky.gd` — falling rain
-**File:** [`../Weather2D/scene/panel_rain_falling_in_sky.gd`](../Weather2D/scene/panel_rain_falling_in_sky.gd) · `@tool extends Panel`
+---
 
-- Connects `updateRainAmount` → `setRainAmount`.
-- Maps rain to the rain/snow shader's line count:
-  `count = clampi(rainAmount * 300, 0, 10000)`.
+## Nodes (the "how") — `addons/weather2d/nodes/`
 
-### `panel_raindrops_on_screen.gd` — raindrops on the lens
-**File:** [`../Weather2D/scene/panel_raindrops_on_screen.gd`](../Weather2D/scene/panel_raindrops_on_screen.gd) · `@tool extends Panel`
+### `SkyController` — the runtime hub *(Phase 5)*
+`class_name SkyController extends Node2D`, group `"SkySetting"`.
 
-- Connects `updateRainAmount` → `setRainAmount`.
-- Maps rain to the drops shader `frequency = clamp(4.0 - rainAmount * 7.0, -3.0, 7.0)`
-  (lower `frequency` = more drops, so more rain → more drops).
+Holds the active `TimeOfDay` + `WeatherPreset` and references to the scene's materials/water.
+`step(delta)` (called from `_process`, and directly from tests):
 
-Both rain panels live under a `CanvasLayer` (`RainController`) parented to the camera, so
-they cover the screen regardless of camera movement.
+- advances `day01` by `day_night_speed * delta` when `time_cycle_enabled` (→ `TimeOfDay.cycle`);
+- advances any `transition_to(target, duration)` weather cross-fade;
+- runs lightning (flash cadence scales with storm intensity);
+- pushes palette + `sun_uv`/`sun_color`/`star_intensity` to the sky, cloud, cloud-shadow, fog
+  and rain materials and the water's glint;
+- **emits `updateRainAmount` / `updateCloudAmount`** when they change.
+
+All motion is scaled by frame `delta`, so it is **frame-rate independent**.
+
+### `WaterBody2D` — water surface *(Phase 1)*
+`class_name WaterBody2D extends ColorRect`. Owns its `ShaderMaterial` + a seamless
+`NoiseTexture2D`, so it works with no setup. `Mode`: `STILL` / `RIVER` / `OCEAN_BEACH`.
+Every exported property (palette, waves, flow, foam, run-up, reflection, `sun_uv`/
+`glint_strength`, `rain_ripple`) pushes to the shader via a setter. When `react_to_weather`
+is on, `_ready` connects to the `"SkySetting"` group's `updateRainAmount`; `_on_rain_amount`
+darkens/roughens the water and rings it with ripples (modulating from captured base values,
+so it never drifts).
+
+### `TerrainBand2D` — one terrain band *(Phase 2)*
+`class_name TerrainBand2D extends ColorRect`. Renders a `TerrainLayer`: picks
+`terrain_ground.gdshader` for the `GROUND` role and `terrain_silhouette.gdshader` for the
+silhouette roles, and pushes the layer's params.
+
+### `PropScatter2D` — vector prop scatter *(Phase 2)*
+`class_name PropScatter2D extends Node2D`. Seeded, **stratified** placement of the SVG props
+(one `Sprite2D` per prop) with depth-scaling, atmospheric haze, ground shadows, and an
+`animation` mode (`SWAY` → `foliage_wind`, `FLY` → `bird_fly`). Deterministic for a seed.
+
+### `PainterlyLayer` — post-process *(Phase 2/4)*
+`class_name PainterlyLayer extends CanvasLayer`. A high-layer full-rect `ColorRect` with
+`painterly.gdshader` (soft-focus blur + warmth + grain + vignette).
 
 ### `MapCamera2D` — camera
-**File:** [`../MapCamera2D.gd`](../MapCamera2D.gd) · `class_name MapCamera2D extends Camera2D`
-
-Self-contained pan/zoom/drag camera: mouse-wheel + keyboard zoom (relative to cursor),
-edge-of-screen and arrow-key panning, left-drag with inertia, and pinch/pan gesture
-support. Independent of the weather system — reusable anywhere.
-
----
-
-## Shaders
-
-All in [`../Weather2D/shader/`](../Weather2D/shader/), `shader_type canvas_item`.
-
-### `shader_clouds.gdshader`
-Drifting clouds via fBm (fractal Brownian motion) 2D noise, composited over the sky
-gradient texture. Includes a **perspective-transform vertex stage** (`up_left`,
-`up_right`, `down_right`, `down_left`, `plane_size`) so the sky plane can be skewed to
-recede toward a horizon. `cloudcover` is the main weather-driven uniform.
-
-### `shader_rain_snow.gdshader`
-Screen-space falling streaks. Each of `count` lines is placed and animated with hash
-functions; a line **SDF** + `blur` gives soft edges. `slant` tilts the rain and biases its
-travel direction; `speed`, `size`, and `colour` tune the look (raise `size`/lower `speed`
-for snow).
-
-### `shader_raindrops_on_screen.gdshader`
-Samples the **screen texture** and adds refracting raindrops on a grid at multiple scales.
-`frequency` controls how many drop sizes are active (driven inversely by rain amount);
-`size` sets drop scale. A "poor-man's refraction" offsets the screen sample per drop.
-
-### `shader_water.gdshader`
-Reflective 2D water on a `ColorRect`/panel below `level`. Distorts and samples the
-**screen texture** to fake reflections, mixes in `water_albedo` by `water_opacity`, and
-scrolls noise for waves (`water_speed`, `wave_distortion`, `wave_multiplyer`). An optional
-`water_texture_type` adds a stylized surface pattern. Reflection offset uniforms align the
-mirrored image. *This is the shader most changed by the [Phase 1 roadmap](ROADMAP.md#phase-1--water-overhaul).*
+`class_name MapCamera2D extends Camera2D` (repo root). Self-contained pan/zoom/drag camera
+with mouse-wheel + keyboard zoom, edge/arrow panning, left-drag inertia, and pinch/pan
+gestures. Independent of the weather system — reusable anywhere. *(The `WeatherScene` builder
+uses a plain `Camera2D`; `MapCamera2D` is available as a standalone node.)*
 
 ---
 
-## Scene composition (the demo)
+## API — `addons/weather2d/api/`
 
-[`../Weather2D/demo-rose-garden.tscn`](../Weather2D/demo-rose-garden.tscn) is assembled by
-hand and is the canonical example of wiring:
+### `WeatherScene` — the builder
+`class_name WeatherScene extends RefCounted`. Fluent, chainable configuration
+(`set_seed`, `time_of_day`, `weather`, `cloud_style`, `terrain`, `water`, `props`, `birds`,
+`painterly`, `rain`/`fog`/`wind`/`clouds` overrides, `live`, `lightning`), then `build()`
+returns the `Node2D` tree. `build()`:
 
-- **`SkySetting`** instance (from `sky_setting.tscn`) carries the sky `TextureRect`, the
-  `MapCamera2D`, a `CanvasModulate` (global tint), a `WorldEnvironment` (glow/bloom), and
-  the two rain `Panel`s under the camera's `CanvasLayer`.
-- **`Parallax2D`** bands (Godot 4.3+) hold scenery at different `scroll_scale`s: distant
-  townscape/villagescape textures, mid-ground rose-bush instances
-  (`scene_plant_rosebush_full.tscn`), and a foreground level.
-- A **water `ColorRect`** with the water `ShaderMaterial` sits on its own parallax band.
-- **`GPUParticles2D`** emit falling petals.
+1. creates the `Camera2D` and an ambient `CanvasModulate`;
+2. builds the **Sky** (`sky.gdshader`) from the `TimeOfDay` sun model;
+3. builds the **Clouds** (from the `CloudPreset`, tinted by time of day, darkened by weather);
+4. lays out **terrain bands** back-to-front (sharing a coastline with the water);
+5. adds the **`WaterBody2D`**, aligned to the ground's coast;
+6. scatters **props / birds**, then **cloud shadow**, **fog**, **rain**, **lightning**, and
+   **painterly** overlays;
+7. when `.live()`, wires a **`SkyController`** to all of the above.
 
-To reuse the system in another project today: instance `sky_setting.tscn`, add your own
-scenery under `Parallax2D` layers, and give any effect node the water/rain/cloud materials.
-A cleaner addon + code API for this is the subject of
-[Phases 0–3](ROADMAP.md).
+With `.live()` the cloud/fog/rain/shadow overlays are always instantiated (even at ~0
+amount) so a weather transition can bring them in.
+
+### `Scenarios`
+Ready-made recipes returning a configured (not-yet-built) `WeatherScene`:
+`Scenarios.build(name, opts)` for **Beach / Small Island / River / Lake / Mountains**. The
+launcher uses these.
+
+---
+
+## Shaders — `addons/weather2d/shaders/`
+
+All `shader_type canvas_item`. See the [README shader table](../README.md#shaders) for each
+shader's key uniforms. In brief: `sky` (gradient + sun/moon disc + stars), `clouds` (fBm +
+ridged detail, sun-lit, wind drift), `cloud_shadow` (moving dapple on the ground/water),
+`water_body` (three modes, foam, reflections, glint, ripples), `rain` (rain/snow streaks),
+`fog` (distance haze), `terrain_silhouette` and `terrain_ground` (seeded land), `foliage_wind`
+and `bird_fly` (prop animation), and `painterly` (post-process).
+
+The **unified sun model** is what makes these read as one lit world: `sky`, `clouds`,
+`cloud_shadow` and `water_body` all take `sun_uv` (and a sun tint) from the same `TimeOfDay`.
 
 ---
 
 ## Data flow summary
 
-1. A slider (or a runtime `delta`) changes `rainAmount` / `cloudAmount` on `SkySetting`.
-2. The property **setter emits** `updateRainAmount` / `updateCloudAmount`.
-3. Subscribed effect scripts receive the new `0..1` value and **write a shader uniform**.
-4. The shader renders the updated effect that frame.
-5. Independently, `sunsetRate` advances the sky gradient, and `MapCamera2D` handles view.
+1. `WeatherScene.build()` produces the node tree; without `.live()` it is a correct **static**
+   composite (each material set once).
+2. With `.live()`, `SkyController.step(delta)` each frame advances the day-night cycle and any
+   weather transition and **re-pushes** the derived values to every material.
+3. When rain changes, the controller **emits `updateRainAmount`**; `WaterBody2D` (found via the
+   `"SkySetting"` group) maps it onto its own uniforms.
+4. New effects need no controller changes — a node just joins the `"SkySetting"` group's signal
+   and maps the `0..1` value to its own shader.
 
-The decoupling means **new effects need no changes to `SkySetting`** — a node just joins
-the party by connecting to the signal and mapping the value to its own shader.
+---
+
+## Tests
+
+`tests/run_tests.gd` is a zero-dependency headless runner (**89 checks**) covering the node
+logic (property → uniform wiring, mode enum, weather response), the builder (tree shape,
+determinism, preset round-trip), the resources (cloud styles, time × weather axes, the sun
+model & `cycle`), and the `SkyController` (day advance, frame-rate independence, weather
+transition, signal emission). See [`../tests/README.md`](../tests/README.md).

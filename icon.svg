@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f74b5"/>
+      <stop offset="1" stop-color="#a9d6f2"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f8fa8"/>
+      <stop offset="1" stop-color="#1d5f78"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe27a"/>
+      <stop offset="1" stop-color="#ffb43f"/>
+    </radialGradient>
+  </defs>
+  <clipPath id="round"><rect x="4" y="4" width="120" height="120" rx="26"/></clipPath>
+  <g clip-path="url(#round)">
+    <rect x="4" y="4" width="120" height="120" fill="url(#sky)"/>
+    <!-- sun + glow -->
+    <circle cx="46" cy="44" r="30" fill="#ffd766" opacity="0.25"/>
+    <circle cx="46" cy="44" r="17" fill="url(#sun)"/>
+    <!-- cloud -->
+    <g fill="#f4f8fc">
+      <circle cx="78" cy="52" r="16"/>
+      <circle cx="96" cy="56" r="13"/>
+      <circle cx="66" cy="58" r="12"/>
+      <rect x="66" y="54" width="42" height="18" rx="9"/>
+    </g>
+    <!-- rain -->
+    <g stroke="#cfe8ff" stroke-width="4" stroke-linecap="round">
+      <line x1="70" y1="76" x2="65" y2="90"/>
+      <line x1="84" y1="76" x2="79" y2="92"/>
+      <line x1="98" y1="76" x2="93" y2="90"/>
+    </g>
+    <!-- sea -->
+    <path d="M4 96 q30 -8 60 0 t60 0 V124 H4 Z" fill="url(#sea)"/>
+  </g>
+</svg>

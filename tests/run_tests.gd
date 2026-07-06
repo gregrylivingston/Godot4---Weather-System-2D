@@ -39,6 +39,12 @@ func _run() -> void:
 	await _test_rain_overlay()
 	await _test_clouds()
 	await _test_time_and_weather()
+	_test_sun_model()
+	await _test_sky_material()
+	await _test_water_sun_glint()
+	await _test_clouds_sun_wind()
+	await _test_live_scene()
+	_test_sky_controller_step()
 	await _test_scenarios()
 	await _test_launcher_loads()
 
@@ -370,6 +376,116 @@ func _test_time_and_weather() -> void:
 	_check(storm.get_node_or_null("Ambient") is CanvasModulate, "storm dims the scene (ambient)")
 	clear.free()
 	storm.free()
+
+
+# --- Phase 5: living simulation --------------------------------------------
+
+func _test_sun_model() -> void:
+	print("TimeOfDay — unified sun model & day-night cycle")
+	_check(TimeOfDay.noon().star_intensity < TimeOfDay.night().star_intensity, "night is starrier than noon")
+	# cycle() interpolates the keyframes: ~noon is bright, midnight is deep night.
+	_check(TimeOfDay.cycle(0.46).star_intensity < 0.2, "midday cycle has few stars")
+	_check(TimeOfDay.cycle(0.0).star_intensity > 0.6, "midnight cycle is starry")
+	var q := TimeOfDay.cycle(0.33) # between dawn and noon
+	_check(q.sun_uv.x >= 0.0 and q.sun_uv.x <= 1.0, "cycled sun stays on screen")
+	# lerp_to endpoints are exact.
+	_check(TimeOfDay.noon().lerp_to(TimeOfDay.night(), 0.0).star_intensity == TimeOfDay.noon().star_intensity, "lerp_to(0) == self")
+	_check(TimeOfDay.noon().lerp_to(TimeOfDay.night(), 1.0).star_intensity == TimeOfDay.night().star_intensity, "lerp_to(1) == other")
+
+
+func _test_sky_material() -> void:
+	print("WeatherScene — Sky uses the sky shader with the sun model")
+	var scene := WeatherScene.new().time_of_day(TimeOfDay.golden_hour()).terrain([TerrainLayer.ground()]).build()
+	await _add_ready(scene)
+	var sky := scene.get_node_or_null("Sky")
+	_check(sky is ColorRect and (sky as ColorRect).material is ShaderMaterial, "Sky is a ColorRect + ShaderMaterial")
+	var mat := (sky as ColorRect).material as ShaderMaterial
+	_check(mat.shader != null and mat.shader.resource_path.ends_with("sky.gdshader"), "Sky uses sky.gdshader")
+	_check(mat.get_shader_parameter("sun_uv") == TimeOfDay.golden_hour().sun_uv, "sun_uv set from the time of day")
+	scene.free()
+
+
+func _test_water_sun_glint() -> void:
+	print("WaterBody2D — sun glint (day) + rain-ripple wiring")
+	var day := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.rainy()) \
+		.terrain([TerrainLayer.ground()]).water(WaterBody2D.Mode.OCEAN_BEACH).build()
+	await _add_ready(day)
+	var water := day.get_node_or_null("Water") as WaterBody2D
+	var mat := water.material as ShaderMaterial
+	_check(water.glint_strength > 0.0, "daytime water has glint")
+	_check(mat.get_shader_parameter("sun_uv") == TimeOfDay.noon().sun_uv, "water sun_uv from the time of day")
+	_check(water.rain_ripple > 0.0, "rainy weather rings the water")
+	day.free()
+
+	var night := WeatherScene.new().time_of_day(TimeOfDay.night()).terrain([TerrainLayer.ground()]).build()
+	await _add_ready(night)
+	_check((night.get_node_or_null("Water") as WaterBody2D).glint_strength < 0.05, "night water barely glints")
+	night.free()
+
+
+func _test_clouds_sun_wind() -> void:
+	print("clouds — sun tint + wind-drift uniforms")
+	var scene := WeatherScene.new().time_of_day(TimeOfDay.golden_hour()).cloud_style(CloudPreset.cumulus()) \
+		.terrain([TerrainLayer.ground()]).build()
+	await _add_ready(scene)
+	var mat := (scene.get_node_or_null("Clouds") as ColorRect).material as ShaderMaterial
+	_check(mat.get_shader_parameter("sun_uv") == TimeOfDay.golden_hour().sun_uv, "clouds sun_uv from the time of day")
+	_check(mat.get_shader_parameter("wind_dir") != null, "clouds have a wind_dir")
+	scene.free()
+
+
+func _test_live_scene() -> void:
+	print("WeatherScene.live() — adds a SkyController + always-on overlays")
+	var scene := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.clear()) \
+		.terrain([TerrainLayer.ground()]).live(true, 0.02).lightning(true).build()
+	await _add_ready(scene)
+	var ctrl := scene.get_node_or_null("SkyController") as SkyController
+	_check(ctrl != null, "live() adds a SkyController")
+	_check(ctrl != null and ctrl.is_in_group("SkySetting"), "controller joins the SkySetting group")
+	_check(scene.get_node_or_null("Rain") != null, "live scene always has a Rain layer")
+	_check(scene.get_node_or_null("Clouds") != null, "live scene always has a Clouds layer")
+	_check(scene.get_node_or_null("Fog") != null, "live scene always has a Fog layer")
+	_check(scene.get_node_or_null("CloudShadow") != null, "live scene has a CloudShadow pass")
+	_check(scene.get_node_or_null("Lightning") != null, "lightning() adds a Lightning layer")
+	scene.free()
+
+
+func _test_sky_controller_step() -> void:
+	print("SkyController — day advance, frame-rate independence, weather transition, emit")
+	# Day-night advances by speed * delta, and two half-steps == one full step.
+	var a := SkyController.new()
+	a.time_cycle_enabled = true
+	a.day_night_speed = 0.1
+	a.day01 = 0.4
+	a.sky_material = ShaderMaterial.new()
+	a.set_weather(WeatherPreset.clear())
+	var got := {"rain": -1.0}
+	a.updateRainAmount.connect(func(v): got["rain"] = v)
+	a.step(1.0)
+	_check(_approx(a.day01, 0.5), "day advances by speed*delta")
+	_check(got["rain"] >= 0.0, "controller emits updateRainAmount")
+	a.free()
+
+	var b := SkyController.new()
+	b.time_cycle_enabled = true
+	b.day_night_speed = 0.1
+	b.day01 = 0.0
+	b.step(0.5)
+	b.step(0.5)
+	_check(_approx(b.day01, 0.1), "two half-steps advance the day like one full step")
+	b.free()
+
+	# Weather transition lerps rain from clear(0) toward stormy(0.9).
+	var c := SkyController.new()
+	c.rain_material = ShaderMaterial.new()
+	c.set_weather(WeatherPreset.clear())
+	c.transition_to(WeatherPreset.stormy(), 10.0)
+	c.step(5.0)
+	var mid: float = c.current_weather().rain
+	_check(mid > 0.3 and mid < 0.6, "transition is ~halfway to the storm")
+	c.step(5.0)
+	_check(absf(c.current_weather().rain - WeatherPreset.stormy().rain) < 0.01, "transition reaches the target")
+	c.free()
 
 
 func _test_scenarios() -> void:

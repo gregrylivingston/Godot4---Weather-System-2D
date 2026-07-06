@@ -24,10 +24,6 @@ config/icon="res://icon.svg"
 window/size/viewport_width=1900
 window/size/viewport_height=900
 
-[editor]
-
-movie_writer/movie_file="D:/Godot Projects/parallaxdemo/ParallaxDemoYokai/movie.avi"
-
 [global_group]
 
 SkySetting=""
