@@ -7,6 +7,7 @@ shader_type canvas_item;
 
 uniform float coverage : hint_range(-0.4, 1.0) = 0.25; // higher = more of the sky is cloud
 uniform float cloud_scale = 1.4;
+// Overall pace: clouds slowly billow/evolve in place with only a gentle horizontal drift.
 uniform float speed : hint_range(0.0, 0.2) = 0.03;
 uniform float cloud_dark : hint_range(0.0, 1.0) = 0.4;  // base/shadow brightness
 uniform float cloud_light : hint_range(0.0, 1.0) = 0.85; // highlight brightness
@@ -36,12 +37,14 @@ float noise(vec2 p) {
 	return dot(n, vec3(70.0));
 }
 
-float fbm(vec2 n) {
+// Time churns the octaves (each one drifts differently after the m rotation), so the clouds
+// slowly billow and evolve in place rather than sliding across the screen.
+float fbm(vec2 n, float t) {
 	float total = 0.0;
 	float amp = 0.6;
 	for (int i = 0; i < 6; i++) {
-		total += noise(n) * amp;
-		n = m * n;
+		total += noise(n + vec2(t, t * 0.7)) * amp;
+		n = m * n + t * 0.35;
 		amp *= 0.5;
 	}
 	return total;
@@ -58,16 +61,16 @@ void fragment() {
 		vec2 uv = UV * vec2(2.2, 1.4) * cloud_scale;
 		uv.y /= mix(0.6, 1.0, depth);
 		float t = TIME * speed;
-		uv += vec2(t * 4.0, t);
+		uv += vec2(t * 0.3, 0.0); // gentle slow drift; the rest is evolution, not translation
 
-		// Base shape (0..1) plus billowy ridged detail.
-		float base = fbm(uv * 3.2) * 0.5 + 0.5;
+		// Base shape (0..1) plus billowy ridged detail — both evolve slowly over time.
+		float base = fbm(uv * 3.2, t) * 0.5 + 0.5;
 		float r = 0.0;
 		vec2 ruv = uv * 2.0 + base;
 		float w = 0.6;
 		for (int i = 0; i < 4; i++) {
 			r += abs(w * noise(ruv));
-			ruv = m * ruv + t;
+			ruv = m * ruv + t * 0.5;
 			w *= 0.55;
 		}
 
