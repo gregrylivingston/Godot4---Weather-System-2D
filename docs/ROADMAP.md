@@ -145,7 +145,8 @@ calm stylized look. Generated from **shaders + hybrid SVG vector assets**.
 - [x] Painterly art pass: smooth quintic/domain-warped noise + `PainterlyLayer` post-process.
 - [x] Animated props: foliage sway (wind-driven) + birds that fly across the sky; shadows.
 - [x] Layer-anchored prop distribution — props planted per terrain layer, sized by depth.
-- [x] Weather options: fog, snow, drifting clouds, wind + 7 mood presets.
+- [x] Time of day + weather as separate axes; volumetric `CloudPreset` clouds (6 styles),
+      fog, snow, wind.
 - [ ] Density-map placement (paint where props go) instead of uniform stratification.
 
 **Definition of done:** a landscape assembled from `TerrainLayer` bands (procedural hills +

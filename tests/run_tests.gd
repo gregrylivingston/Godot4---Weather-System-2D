@@ -37,6 +37,7 @@ func _run() -> void:
 	await _test_painterly_layer()
 	await _test_builder_props_and_painterly()
 	await _test_rain_overlay()
+	await _test_clouds()
 	await _test_time_and_weather()
 	await _test_scenarios()
 	await _test_launcher_loads()
@@ -334,6 +335,24 @@ func _test_rain_overlay() -> void:
 	await _add_ready(scene)
 	_check(scene.get_node_or_null("Rain") is CanvasLayer, "rain() adds a Rain CanvasLayer")
 	scene.free()
+
+
+func _test_clouds() -> void:
+	print("CloudPreset — cloud styles add / omit the Clouds layer")
+	var overcast := WeatherScene.new().time_of_day(TimeOfDay.noon()).cloud_style(CloudPreset.overcast()) \
+		.terrain([TerrainLayer.ground()]).build()
+	await _add_ready(overcast)
+	_check(overcast.get_node_or_null("Clouds") is ColorRect, "overcast adds a Clouds layer")
+	overcast.free()
+
+	var clear := WeatherScene.new().time_of_day(TimeOfDay.noon()).cloud_style(CloudPreset.clear()) \
+		.terrain([TerrainLayer.ground()]).build()
+	await _add_ready(clear)
+	_check(clear.get_node_or_null("Clouds") == null, "clear cloud style → no Clouds layer")
+	clear.free()
+
+	# Cloud presets are distinct styles.
+	_check(CloudPreset.stormy().coverage > CloudPreset.wispy().coverage, "stormy covers more sky than wispy")
 
 
 func _test_time_and_weather() -> void:

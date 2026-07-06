@@ -6,6 +6,14 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Volumetric clouds with their own controls & presets.** Rewrote `clouds.gdshader` into a
+  layered fBm + ridged-detail cloud system (ported from the "Cloudy skies" technique) with
+  lit tops / shadowed bases and a horizon perspective. New **`CloudPreset`** resource with
+  six styles — **Clear, Wispy, Scattered, Cumulus, Overcast, Stormy** — exposed via
+  `WeatherScene.cloud_style()` and a **Clouds** dropdown in the launcher (with an *Auto*
+  option that matches the weather). Cloud color comes from the [TimeOfDay] and storms darken
+  them, so the same style reads right at any hour (e.g. warm golden-hour thunderheads,
+  purple dusk cumulus).
 - **Time of day and weather are now separate, orthogonal axes** — combine any of Dawn / Noon
   / Golden Hour / Dusk / Night with any of Clear / Cloudy / Foggy / Rainy / Stormy / Snowy
   (e.g. *golden hour + storm*, *night + snow*). New **`TimeOfDay`** resource sets the sky &

@@ -8,11 +8,13 @@ extends Control
 
 const TIME_NAMES := ["Dawn", "Noon", "Golden Hour", "Dusk", "Night"]
 const WEATHER_NAMES := ["Clear", "Cloudy", "Foggy", "Rainy", "Stormy", "Snowy"]
+const CLOUD_NAMES := ["Auto (from weather)", "Clear", "Wispy", "Scattered", "Cumulus", "Overcast", "Stormy"]
 
 var _scene: Node2D
 var _scenario := 0
 var _time := 1      # Noon
 var _weather := 0   # Clear
+var _cloud := 0     # Auto
 var _props := true
 var _birds := true
 var _painterly := true
@@ -53,6 +55,25 @@ func _weather_preset() -> WeatherPreset:
 		_: return WeatherPreset.clear()
 
 
+# "Auto" derives a cloud style that matches the current weather; otherwise use the pick.
+func _cloud_preset() -> CloudPreset:
+	match _cloud:
+		1: return CloudPreset.clear()
+		2: return CloudPreset.wispy()
+		3: return CloudPreset.scattered()
+		4: return CloudPreset.cumulus()
+		5: return CloudPreset.overcast()
+		6: return CloudPreset.stormy()
+		_:
+			match _weather: # Auto
+				1: return CloudPreset.scattered()
+				2: return CloudPreset.overcast()
+				3: return CloudPreset.overcast()
+				4: return CloudPreset.stormy()
+				5: return CloudPreset.overcast()
+				_: return CloudPreset.clear()
+
+
 func _rebuild() -> void:
 	if is_instance_valid(_scene):
 		_scene.queue_free()
@@ -60,6 +81,7 @@ func _rebuild() -> void:
 		"seed": _seed,
 		"time_of_day": _time_preset(),
 		"weather": _weather_preset(),
+		"cloud_style": _cloud_preset(),
 		"props": _props,
 		"birds": _birds,
 		"painterly": _painterly,
@@ -135,6 +157,14 @@ func _build_ui() -> void:
 	weather_ob.selected = _weather
 	weather_ob.item_selected.connect(_on_weather_selected)
 	vb.add_child(weather_ob)
+
+	vb.add_child(_section_label("Clouds"))
+	var cloud_ob := OptionButton.new()
+	for name in CLOUD_NAMES:
+		cloud_ob.add_item(name)
+	cloud_ob.selected = _cloud
+	cloud_ob.item_selected.connect(func(i): _cloud = i; _rebuild())
+	vb.add_child(cloud_ob)
 
 	_rain_slider = _slider(vb, "Rain", _rain, func(v): _rain = v; _rebuild())
 	_fog_slider = _slider(vb, "Fog", _fog, func(v): _fog = v; _rebuild())

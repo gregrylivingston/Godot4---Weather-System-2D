@@ -41,6 +41,7 @@ var _fog_amount := -1.0
 var _wind_amount := -1.0
 var _cloud_amount := -1.0
 var _snow_force := -1     # -1 follow preset, 0 off, 1 on
+var _cloud_style: CloudPreset = null
 var _wind_effective := 0.3
 var _haze_color := Color(0.72, 0.80, 0.88) # depth-fade color for props (from the ToD sky)
 var _fog_color := Color(0.82, 0.85, 0.88)
@@ -147,9 +148,15 @@ func wind(amount: float) -> WeatherScene:
 	return self
 
 
-## Override cloud coverage (0..1). Negative follows the weather preset.
+## Override cloud coverage (0..1). Negative follows the cloud style / weather preset.
 func clouds(amount: float) -> WeatherScene:
 	_cloud_amount = amount
+	return self
+
+
+## Set the cloud style — coverage, scale, shading, softness, detail. See [CloudPreset].
+func cloud_style(preset: CloudPreset) -> WeatherScene:
+	_cloud_style = preset
 	return self
 
 
@@ -220,12 +227,19 @@ func build() -> Node2D:
 
 	# Effective weather values (explicit override, else the preset, else a default).
 	var eff_fog: float = _fog_amount if _fog_amount >= 0.0 else (_weather.fog if _weather != null else 0.0)
-	var eff_cloud: float = _cloud_amount if _cloud_amount >= 0.0 else (_weather.clouds if _weather != null else 0.0)
 	var eff_snow: bool = (_snow_force == 1) if _snow_force >= 0 else (_weather.snow if _weather != null else false)
 	_wind_effective = _wind_amount if _wind_amount >= 0.0 else (_weather.wind if _weather != null else 0.3)
 
-	# Drifting clouds sit over the sky gradient but behind the terrain.
-	if eff_cloud > 0.02:
+	# Clouds: style from the cloud preset (default scattered); coverage from the style, or an
+	# explicit .clouds() override, or the weather's cloud amount. Color from the time of day,
+	# darkened by the weather. Layered fBm shader, drawn over the sky and behind the terrain.
+	var style: CloudPreset = _cloud_style if _cloud_style != null else CloudPreset.scattered()
+	var cloud_cov := style.coverage
+	if _cloud_amount >= 0.0:
+		cloud_cov = lerpf(-0.3, 0.7, _cloud_amount)
+	elif _cloud_style == null and _weather != null:
+		cloud_cov = lerpf(-0.3, 0.7, _weather.clouds)
+	if cloud_cov > -0.3:
 		var cloud_rect := ColorRect.new()
 		cloud_rect.name = "Clouds"
 		cloud_rect.position = Vector2(-w * 0.5, -h * 0.5)
@@ -233,8 +247,16 @@ func build() -> Node2D:
 		cloud_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var cmat := ShaderMaterial.new()
 		cmat.shader = load(_CLOUD_SHADER)
-		cmat.set_shader_parameter("amount", eff_cloud)
-		cmat.set_shader_parameter("cloud_color", tod.cloud_color)
+		cmat.set_shader_parameter("coverage", cloud_cov)
+		cmat.set_shader_parameter("cloud_scale", style.scale)
+		cmat.set_shader_parameter("speed", style.speed)
+		cmat.set_shader_parameter("cloud_dark", style.dark * (1.0 - darken * 0.3))
+		cmat.set_shader_parameter("cloud_light", style.light * (1.0 - darken * 0.45))
+		cmat.set_shader_parameter("density", style.density)
+		cmat.set_shader_parameter("softness", style.softness)
+		cmat.set_shader_parameter("detail", style.detail)
+		cmat.set_shader_parameter("horizon", 0.62)
+		cmat.set_shader_parameter("cloud_color", _pal(tod.cloud_color, darken, desat))
 		cloud_rect.material = cmat
 		root.add_child(cloud_rect)
 

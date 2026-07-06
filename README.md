@@ -44,7 +44,7 @@ Originally built over a few days to make a short anime-style scene, it's now bei
 ## Quick start
 
 1. Clone the repo and open the folder as a Godot project (`project.godot`).
-2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains), then set the **time of day** (Dawn / Noon / Golden Hour / Dusk / Night) and the **weather** (Clear / Cloudy / Foggy / Rainy / Stormy / Snowy) — two independent axes, so you can do *golden hour + storm* or *night + snow*. Drag **rain / fog / wind**, toggle **snow** / props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
+2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains), then set the **time of day** (Dawn / Noon / Golden Hour / Dusk / Night), the **weather** (Clear / Cloudy / Foggy / Rainy / Stormy / Snowy), and the **clouds** (Wispy / Scattered / Cumulus / Overcast / Stormy, or *Auto*) — all independent axes, so you can do *golden hour + storm clouds* or *dusk + cumulus*. Drag **rain / fog / wind**, toggle **snow** / props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
 
 > Prefer the original hand-authored anime demo? Open [`Weather2D/demo-rose-garden.tscn`](Weather2D/demo-rose-garden.tscn), drag to pan and scroll to zoom (`MapCamera2D`), then select the **`SkySetting`** node and try the inspector sliders: **rainAmount** (`0` dry → `1` heavy), **rainDelta** (rain change per frame), **cloudAmount** / **cloudDelta**, and **sunsetRate**.
 
@@ -85,6 +85,7 @@ var builder := WeatherScene.new()
 builder.set_seed(20260705)
 builder.time_of_day(TimeOfDay.golden_hour())     # Dawn / Noon / Golden Hour / Dusk / Night
 builder.weather(WeatherPreset.stormy())          # Clear / Cloudy / Foggy / Rainy / Stormy / Snowy
+builder.cloud_style(CloudPreset.cumulus())       # Wispy / Scattered / Cumulus / Overcast / Stormy
 builder.terrain([
     TerrainLayer.mountains(),
     TerrainLayer.hills(),
@@ -108,7 +109,7 @@ The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatt
 
 ### Tests
 
-A zero-dependency headless suite lives in [`tests/`](tests/) (**59 checks, all passing** on Godot 4.7). Run it from the project root:
+A zero-dependency headless suite lives in [`tests/`](tests/) (**62 checks, all passing** on Godot 4.7). Run it from the project root:
 
 ```bash
 godot --headless --path . --script res://tests/run_tests.gd
