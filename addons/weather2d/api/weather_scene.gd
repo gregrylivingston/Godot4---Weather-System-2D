@@ -10,7 +10,8 @@ extends RefCounted
 ## [codeblock]
 ## var scene := WeatherScene.new() \
 ##     .set_seed(1234) \
-##     .weather(WeatherPreset.overcast_dusk()) \
+##     .time_of_day(TimeOfDay.golden_hour()) \
+##     .weather(WeatherPreset.stormy()) \
 ##     .terrain([
 ##         TerrainLayer.mountains(),
 ##         TerrainLayer.hills(),
@@ -23,9 +24,8 @@ extends RefCounted
 
 var _seed := 0
 var _size := Vector2(1920, 1080)
-var _sky_top := Color(0.40, 0.62, 0.85)
-var _sky_bottom := Color(0.72, 0.85, 0.94)
 var _layers: Array[TerrainLayer] = []
+var _tod: TimeOfDay = null
 var _weather: WeatherPreset = null
 var _include_water := true
 var _water_mode := WaterBody2D.Mode.OCEAN_BEACH
@@ -42,6 +42,8 @@ var _wind_amount := -1.0
 var _cloud_amount := -1.0
 var _snow_force := -1     # -1 follow preset, 0 off, 1 on
 var _wind_effective := 0.3
+var _haze_color := Color(0.72, 0.80, 0.88) # depth-fade color for props (from the ToD sky)
+var _fog_color := Color(0.82, 0.85, 0.88)
 
 const _DEFAULT_FOLIAGE_PATHS := [
 	"res://assets/svg/tree_round.svg",
@@ -69,19 +71,15 @@ func set_size(sz: Vector2) -> WeatherScene:
 	return self
 
 
-## Override the sky gradient colors directly (otherwise taken from the weather preset).
-func sky(top: Color, bottom: Color) -> WeatherScene:
-	_sky_top = top
-	_sky_bottom = bottom
+## Set the time of day — sky & water palette, cloud/fog tint, ambient light. See [TimeOfDay].
+func time_of_day(tod: TimeOfDay) -> WeatherScene:
+	_tod = tod
 	return self
 
 
-## Apply an atmosphere preset (also sets the sky + water palette).
+## Set the weather conditions — rain / snow / fog / clouds / wind. See [WeatherPreset].
 func weather(preset: WeatherPreset) -> WeatherScene:
 	_weather = preset
-	if preset != null:
-		_sky_top = preset.sky_top
-		_sky_bottom = preset.sky_bottom
 	return self
 
 
@@ -173,6 +171,8 @@ func from_preset(preset: ScenePreset) -> WeatherScene:
 		return self
 	_seed = preset.scene_seed
 	_size = preset.size
+	if preset.time_of_day != null:
+		time_of_day(preset.time_of_day)
 	if preset.weather != null:
 		weather(preset.weather)
 	terrain(preset.terrain)
@@ -194,9 +194,25 @@ func build() -> Node2D:
 	cam.name = "Camera2D"
 	root.add_child(cam)
 
+	# Time of day sets the palette; weather modulates it (storms darken & grey it out).
+	var tod: TimeOfDay = _tod if _tod != null else TimeOfDay.noon()
+	var darken: float = _weather.darken if _weather != null else 0.0
+	var desat: float = _weather.desaturate if _weather != null else 0.0
+
+	_haze_color = _pal(tod.sky_bottom, darken, desat)
+	_fog_color = tod.fog_color
+
+	# Scene-wide ambient tint (night dims everything; storms darken it further).
+	var ambient := tod.ambient.lerp(Color(0.35, 0.37, 0.44), darken * 0.6)
+	if ambient != Color.WHITE:
+		var cmod := CanvasModulate.new()
+		cmod.name = "Ambient"
+		cmod.color = ambient
+		root.add_child(cmod)
+
 	var sky := TextureRect.new()
 	sky.name = "Sky"
-	sky.texture = _make_sky_gradient()
+	sky.texture = _make_sky_gradient(_pal(tod.sky_top, darken, desat), _pal(tod.sky_bottom, darken, desat))
 	sky.position = Vector2(-w * 0.5, -h * 0.5)
 	sky.size = _size
 	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -218,8 +234,7 @@ func build() -> Node2D:
 		var cmat := ShaderMaterial.new()
 		cmat.shader = load(_CLOUD_SHADER)
 		cmat.set_shader_parameter("amount", eff_cloud)
-		if _weather != null:
-			cmat.set_shader_parameter("cloud_color", _weather.cloud_color)
+		cmat.set_shader_parameter("cloud_color", tod.cloud_color)
 		cloud_rect.material = cmat
 		root.add_child(cloud_rect)
 
@@ -259,9 +274,9 @@ func build() -> Node2D:
 			body.foam_width = 0.045
 		else:
 			body.level = _water_level
+		body.deep_color = _pal(tod.water_deep, darken, desat)
+		body.shallow_color = _pal(tod.water_shallow, darken, desat)
 		if _weather != null:
-			body.deep_color = _weather.water_deep
-			body.shallow_color = _weather.water_shallow
 			body.foam_amount = clampf(0.45 + _weather.rain * 0.35, 0.0, 1.0)
 			body.wave_height += _weather.rain * 0.02
 		root.add_child(body)
@@ -292,7 +307,7 @@ func build() -> Node2D:
 		flock.flip_random = false
 		flock.tint_variation = 0.25
 		flock.haze_amount = 0.5
-		flock.haze_color = _weather.sky_top if _weather != null else Color(0.55, 0.68, 0.85)
+		flock.haze_color = _pal(tod.sky_top, darken, desat)
 		flock.animation = PropScatter2D.ANIM_FLY
 		var bird := load(_BIRD_PATH)
 		if bird is Texture2D:
@@ -310,8 +325,7 @@ func build() -> Node2D:
 		var fog_mat := ShaderMaterial.new()
 		fog_mat.shader = load(_FOG_SHADER)
 		fog_mat.set_shader_parameter("density", eff_fog)
-		if _weather != null:
-			fog_mat.set_shader_parameter("fog_color", _weather.fog_color)
+		fog_mat.set_shader_parameter("fog_color", _fog_color)
 		fog_rect.material = fog_mat
 		fog_layer.add_child(fog_rect)
 		root.add_child(fog_layer)
@@ -378,7 +392,7 @@ const _ROW_CONFIG := {
 
 ## Plant props on each terrain layer, anchored to that layer's surface and scaled by depth.
 func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
-	var haze_col: Color = _weather.sky_bottom if _weather != null else Color(0.72, 0.80, 0.88)
+	var haze_col: Color = _haze_color
 	var override: Array[Texture2D] = _prop_textures.duplicate()
 	var foliage: Array[Texture2D] = override if not override.is_empty() else _load_textures(_DEFAULT_FOLIAGE_PATHS)
 	var accents: Array[Texture2D] = _load_textures(_DEFAULT_ACCENT_PATHS)
@@ -457,10 +471,10 @@ func _role_name(role: int) -> String:
 	return "band"
 
 
-func _make_sky_gradient() -> GradientTexture2D:
+func _make_sky_gradient(top: Color, bottom: Color) -> GradientTexture2D:
 	var grad := Gradient.new()
-	grad.set_color(0, _sky_top)
-	grad.set_color(1, _sky_bottom)
+	grad.set_color(0, top)
+	grad.set_color(1, bottom)
 	var tex := GradientTexture2D.new()
 	tex.gradient = grad
 	tex.width = 8
@@ -468,3 +482,12 @@ func _make_sky_gradient() -> GradientTexture2D:
 	tex.fill_from = Vector2(0.0, 0.0)
 	tex.fill_to = Vector2(0.0, 1.0)
 	return tex
+
+
+## Apply weather modulation to a base (time-of-day) color: darken toward gloom, then grey out.
+func _pal(c: Color, darken: float, desat: float) -> Color:
+	var out := c.lerp(Color(0.10, 0.11, 0.15), darken * 0.5)
+	if desat > 0.0:
+		var g := out.get_luminance()
+		out = out.lerp(Color(g, g, g), desat * 0.6)
+	return out

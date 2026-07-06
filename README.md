@@ -44,7 +44,7 @@ Originally built over a few days to make a short anime-style scene, it's now bei
 ## Quick start
 
 1. Clone the repo and open the folder as a Godot project (`project.godot`).
-2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains) and a **weather** mood (Clear Noon, Golden Hour, Overcast Dusk, Foggy, Storm, Snowy Dusk, Night), drag **rain / fog / wind**, and toggle **snow** / props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
+2. Press **Play** — the main scene is the **[launcher](demos/launcher.tscn)**: pick a **scenario** (Beach / Small Island / River / Lake / Mountains), then set the **time of day** (Dawn / Noon / Golden Hour / Dusk / Night) and the **weather** (Clear / Cloudy / Foggy / Rainy / Stormy / Snowy) — two independent axes, so you can do *golden hour + storm* or *night + snow*. Drag **rain / fog / wind**, toggle **snow** / props / birds / painterly. Everything rebuilds live and reproducibly from a seed. It's the fastest way to see what the kit can do.
 
 > Prefer the original hand-authored anime demo? Open [`Weather2D/demo-rose-garden.tscn`](Weather2D/demo-rose-garden.tscn), drag to pan and scroll to zoom (`MapCamera2D`), then select the **`SkySetting`** node and try the inspector sliders: **rainAmount** (`0` dry → `1` heavy), **rainDelta** (rain change per frame), **cloudAmount** / **cloudDelta**, and **sunsetRate**.
 
@@ -83,7 +83,8 @@ The [`WeatherScene`](addons/weather2d/api/weather_scene.gd) builder assembles a 
 ```gdscript
 var builder := WeatherScene.new()
 builder.set_seed(20260705)
-builder.weather(WeatherPreset.clear_noon())      # or .overcast_dusk() / .storm()
+builder.time_of_day(TimeOfDay.golden_hour())     # Dawn / Noon / Golden Hour / Dusk / Night
+builder.weather(WeatherPreset.stormy())          # Clear / Cloudy / Foggy / Rainy / Stormy / Snowy
 builder.terrain([
     TerrainLayer.mountains(),
     TerrainLayer.hills(),
@@ -98,7 +99,7 @@ add_child(builder.build())
 Save a whole composition as a [`ScenePreset`](addons/weather2d/resources/scene_preset.gd) `.tres` and rebuild it anywhere with `WeatherScene.new().from_preset(preset).build()`. Or grab a ready-made recipe from [`Scenarios`](addons/weather2d/api/scenarios.gd):
 
 ```gdscript
-add_child(Scenarios.build("River", {"seed": 7, "weather": WeatherPreset.overcast_dusk(), "rain": 0.6}).build())
+add_child(Scenarios.build("River", {"seed": 7, "time_of_day": TimeOfDay.dusk(), "weather": WeatherPreset.rainy()}).build())
 ```
 
 Scenarios: **Beach, Small Island, River, Lake, Mountains** — the same ones the launcher exposes.
@@ -107,7 +108,7 @@ The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatt
 
 ### Tests
 
-A zero-dependency headless suite lives in [`tests/`](tests/) (**56 checks, all passing** on Godot 4.7). Run it from the project root:
+A zero-dependency headless suite lives in [`tests/`](tests/) (**59 checks, all passing** on Godot 4.7). Run it from the project root:
 
 ```bash
 godot --headless --path . --script res://tests/run_tests.gd

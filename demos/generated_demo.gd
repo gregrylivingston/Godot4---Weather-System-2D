@@ -6,7 +6,8 @@ func _ready() -> void:
 	var builder := WeatherScene.new()
 	builder.set_seed(20260705)
 	builder.set_size(Vector2(1920, 1080))
-	builder.weather(WeatherPreset.clear_noon())
+	builder.time_of_day(TimeOfDay.golden_hour())
+	builder.weather(WeatherPreset.clear())
 	builder.terrain([
 		TerrainLayer.mountains(Color(0.56, 0.60, 0.70)), # far, hazier range
 		TerrainLayer.mountains(),                        # nearer range

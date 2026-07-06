@@ -1,23 +1,25 @@
 extends Control
 ## Weather System 2D — playground launcher.
 ##
-## Pick a scenario (Beach / Small Island / River / Lake / Mountains) and a weather mood, tweak
-## rain / fog / wind / snow, and toggle props / birds / painterly — the scene rebuilds live.
-## Selecting a weather preset fills the sliders with its values, which you can then adjust.
-## The UI is built in code so the .tscn stays a one-liner. Set as the project's main scene.
+## Time of day and weather are independent: combine any of Dawn/Noon/Golden Hour/Dusk/Night
+## with Clear/Cloudy/Foggy/Rainy/Stormy/Snowy. Tweak rain / fog / wind / snow, pick a
+## scenario, toggle props / birds / painterly — the scene rebuilds live. Selecting a weather
+## preset fills the sliders with its values, which you can then adjust. Set as the main scene.
 
-const WEATHER_NAMES := ["Clear Noon", "Golden Hour", "Overcast Dusk", "Foggy", "Storm", "Snowy Dusk", "Night"]
+const TIME_NAMES := ["Dawn", "Noon", "Golden Hour", "Dusk", "Night"]
+const WEATHER_NAMES := ["Clear", "Cloudy", "Foggy", "Rainy", "Stormy", "Snowy"]
 
 var _scene: Node2D
 var _scenario := 0
-var _weather := 0
+var _time := 1      # Noon
+var _weather := 0   # Clear
 var _props := true
 var _birds := true
 var _painterly := true
 var _snow := false
 var _rain := 0.0
 var _fog := 0.0
-var _wind := 0.25
+var _wind := 0.2
 var _seed := 7
 
 var _seed_spin: SpinBox
@@ -32,15 +34,23 @@ func _ready() -> void:
 	_rebuild()
 
 
+func _time_preset() -> TimeOfDay:
+	match _time:
+		0: return TimeOfDay.dawn()
+		2: return TimeOfDay.golden_hour()
+		3: return TimeOfDay.dusk()
+		4: return TimeOfDay.night()
+		_: return TimeOfDay.noon()
+
+
 func _weather_preset() -> WeatherPreset:
 	match _weather:
-		1: return WeatherPreset.golden_hour()
-		2: return WeatherPreset.overcast_dusk()
-		3: return WeatherPreset.foggy()
-		4: return WeatherPreset.storm()
-		5: return WeatherPreset.snowy_dusk()
-		6: return WeatherPreset.night()
-		_: return WeatherPreset.clear_noon()
+		1: return WeatherPreset.cloudy()
+		2: return WeatherPreset.foggy()
+		3: return WeatherPreset.rainy()
+		4: return WeatherPreset.stormy()
+		5: return WeatherPreset.snowy()
+		_: return WeatherPreset.clear()
 
 
 func _rebuild() -> void:
@@ -48,6 +58,7 @@ func _rebuild() -> void:
 		_scene.queue_free()
 	var opts := {
 		"seed": _seed,
+		"time_of_day": _time_preset(),
 		"weather": _weather_preset(),
 		"props": _props,
 		"birds": _birds,
@@ -62,7 +73,7 @@ func _rebuild() -> void:
 	move_child(_scene, 0) # keep the scene behind the UI CanvasLayer
 
 
-# Selecting a preset fills the sliders with its mood, then rebuilds.
+# Selecting a weather preset fills the sliders with its conditions, then rebuilds.
 func _on_weather_selected(i: int) -> void:
 	_weather = i
 	var p := _weather_preset()
@@ -109,6 +120,14 @@ func _build_ui() -> void:
 	scenario_ob.item_selected.connect(func(i): _scenario = i; _rebuild())
 	vb.add_child(scenario_ob)
 
+	vb.add_child(_section_label("Time of day"))
+	var time_ob := OptionButton.new()
+	for name in TIME_NAMES:
+		time_ob.add_item(name)
+	time_ob.selected = _time
+	time_ob.item_selected.connect(func(i): _time = i; _rebuild())
+	vb.add_child(time_ob)
+
 	vb.add_child(_section_label("Weather"))
 	var weather_ob := OptionButton.new()
 	for name in WEATHER_NAMES:
@@ -144,7 +163,7 @@ func _build_ui() -> void:
 	vb.add_child(seed_row)
 
 	var hint := Label.new()
-	hint.text = "Mix and match — the scene updates live."
+	hint.text = "Mix any time of day with any weather."
 	hint.add_theme_font_size_override("font_size", 11)
 	hint.modulate = Color(1, 1, 1, 0.6)
 	vb.add_child(hint)

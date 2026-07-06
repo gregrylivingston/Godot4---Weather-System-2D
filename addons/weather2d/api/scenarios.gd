@@ -5,7 +5,7 @@ extends RefCounted
 ## not yet built) [WeatherScene], so callers can `.build()` it. The launcher uses these.
 ##
 ## [codeblock]
-## var ws := Scenarios.build("River", {"seed": 7, "weather": WeatherPreset.storm(), "rain": 0.7})
+## var ws := Scenarios.build("River", {"seed": 7, "time_of_day": TimeOfDay.dusk(), "weather": WeatherPreset.stormy()})
 ## add_child(ws.build())
 ## [/codeblock]
 ##
@@ -107,7 +107,8 @@ static func mountains(opts: Dictionary = {}) -> WeatherScene:
 static func _base(opts: Dictionary) -> WeatherScene:
 	var ws := WeatherScene.new()
 	ws.set_seed(int(opts.get("seed", 1)))
-	ws.weather(opts.get("weather", WeatherPreset.clear_noon()))
+	ws.time_of_day(opts.get("time_of_day", TimeOfDay.noon()))
+	ws.weather(opts.get("weather", WeatherPreset.clear()))
 	ws.painterly(bool(opts.get("painterly", true)))
 	ws.rain(float(opts.get("rain", -1.0)))
 	ws.fog(float(opts.get("fog", -1.0)))

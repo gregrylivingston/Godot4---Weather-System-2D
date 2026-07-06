@@ -37,6 +37,7 @@ func _run() -> void:
 	await _test_painterly_layer()
 	await _test_builder_props_and_painterly()
 	await _test_rain_overlay()
+	await _test_time_and_weather()
 	await _test_scenarios()
 	await _test_launcher_loads()
 
@@ -181,7 +182,8 @@ func _test_weather_scene_builder() -> void:
 	print("WeatherScene — builds a full node tree from code")
 	var builder := WeatherScene.new()
 	builder.set_seed(42)
-	builder.weather(WeatherPreset.clear_noon())
+	builder.time_of_day(TimeOfDay.noon())
+	builder.weather(WeatherPreset.clear())
 	builder.terrain([TerrainLayer.mountains(), TerrainLayer.hills(), TerrainLayer.ground()])
 	builder.water(WaterBody2D.Mode.OCEAN_BEACH)
 	var scene := builder.build()
@@ -199,8 +201,8 @@ func _test_weather_scene_builder() -> void:
 	_check(bands == 3, "built 3 terrain bands")
 	# Water aligns just below the ground coast (coast 0.32 + 0.14 = 0.46).
 	_check(water != null and _approx(water.level, 0.46), "water level aligned to ground coast")
-	# Weather preset drove the water palette.
-	_check(water != null and water.deep_color == WeatherPreset.clear_noon().water_deep, "weather preset set water color")
+	# Time of day drives the water palette (clear weather doesn't modulate it).
+	_check(water != null and water.deep_color == TimeOfDay.noon().water_deep, "time of day sets water color")
 	scene.free()
 
 
@@ -234,7 +236,8 @@ func _test_scene_preset_roundtrip() -> void:
 	var preset := ScenePreset.new()
 	preset.scene_seed = 123
 	preset.size = Vector2(800, 600)
-	preset.weather = WeatherPreset.storm()
+	preset.time_of_day = TimeOfDay.noon()
+	preset.weather = WeatherPreset.stormy()
 	preset.terrain = [TerrainLayer.hills(), TerrainLayer.ground()]
 	preset.water_level = 0.5
 	var scene := WeatherScene.new().from_preset(preset).build()
@@ -244,7 +247,8 @@ func _test_scene_preset_roundtrip() -> void:
 			bands += 1
 	_check(bands == 2, "preset's 2 terrain layers built")
 	var water := scene.get_node_or_null("Water") as WaterBody2D
-	_check(water != null and water.deep_color == WeatherPreset.storm().water_deep, "preset weather applied to water")
+	# Stormy weather darkens the noon water palette.
+	_check(water != null and water.deep_color.v < TimeOfDay.noon().water_deep.v, "stormy weather darkens water")
 	scene.free()
 
 
@@ -330,6 +334,23 @@ func _test_rain_overlay() -> void:
 	await _add_ready(scene)
 	_check(scene.get_node_or_null("Rain") is CanvasLayer, "rain() adds a Rain CanvasLayer")
 	scene.free()
+
+
+func _test_time_and_weather() -> void:
+	print("TimeOfDay x WeatherPreset — independent axes")
+	var clear := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.clear()) \
+		.terrain([TerrainLayer.ground()]).build()
+	await _add_ready(clear)
+	var storm := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.stormy()) \
+		.terrain([TerrainLayer.ground()]).build()
+	await _add_ready(storm)
+	var w1 := clear.get_node_or_null("Water") as WaterBody2D
+	var w2 := storm.get_node_or_null("Water") as WaterBody2D
+	_check(w1 != null and w2 != null and w2.deep_color.v < w1.deep_color.v, "same time, stormy weather is darker")
+	_check(clear.get_node_or_null("Rain") == null and storm.get_node_or_null("Rain") != null, "storm rains, clear doesn't")
+	_check(storm.get_node_or_null("Ambient") is CanvasModulate, "storm dims the scene (ambient)")
+	clear.free()
+	storm.free()
 
 
 func _test_scenarios() -> void:

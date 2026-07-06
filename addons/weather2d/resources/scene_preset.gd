@@ -9,6 +9,7 @@ extends Resource
 
 @export var scene_seed := 0
 @export var size := Vector2(1920, 1080)
+@export var time_of_day: TimeOfDay
 @export var weather: WeatherPreset
 ## Back-to-front stack of terrain bands (mountains first … foreground last).
 @export var terrain: Array[TerrainLayer] = []

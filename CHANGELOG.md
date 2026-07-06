@@ -6,11 +6,15 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
-- **Weather options:** seven presets (Clear Noon, Golden Hour, Overcast Dusk, Foggy, Storm,
-  Snowy Dusk, Night) plus **fog** (`fog.gdshader`), **snow** (rain shader snow mode),
+- **Time of day and weather are now separate, orthogonal axes** — combine any of Dawn / Noon
+  / Golden Hour / Dusk / Night with any of Clear / Cloudy / Foggy / Rainy / Stormy / Snowy
+  (e.g. *golden hour + storm*, *night + snow*). New **`TimeOfDay`** resource sets the sky &
+  water palette, cloud/fog tint, and a scene-wide **ambient** light; **`WeatherPreset`** is
+  now weather-only (rain/snow/fog/clouds/wind + how much it darkens/greys the palette).
+  `WeatherScene.time_of_day()` / `.weather()`; the launcher has two dropdowns.
+- **Weather options:** **fog** (`fog.gdshader`), **snow** (rain shader snow mode),
   **drifting clouds** (`clouds.gdshader`), and **wind** that drives foliage sway and rain
-  slant. Exposed via `WeatherScene.fog()/.wind()/.clouds()/.snow()` and the launcher sliders
-  (selecting a preset fills the sliders with its mood).
+  slant. Exposed via `WeatherScene.fog()/.wind()/.clouds()/.snow()` and the launcher sliders.
 - **Layer-anchored prop distribution:** props are now planted **per terrain layer** — small,
   hazy trees on the back hills; big, crisp trees/palms/rocks on the near shore/foreground —
   instead of one flat random row. Further layers get smaller, hazier props (`_ROW_CONFIG`).
