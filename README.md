@@ -101,7 +101,7 @@ builder.painterly(true)   # soft-focus painterly post-process
 add_child(builder.build())
 ```
 
-Save a whole composition as a [`ScenePreset`](addons/weather2d/resources/scene_preset.gd) `.tres` and rebuild it anywhere with `WeatherScene.new().from_preset(preset).build()`. Or grab a ready-made recipe from [`Scenarios`](addons/weather2d/api/scenarios.gd):
+Save a whole composition as a [`ScenePreset`](addons/weather2d/resources/scene_preset.gd) `.tres` and rebuild it anywhere with `WeatherScene.new().from_preset(preset).build()` — and go the other way with `builder.to_preset()` or `ScenePreset.from_scene(root)` to capture a code-built or hand-authored scene back into a preset. Or grab a ready-made recipe from [`Scenarios`](addons/weather2d/api/scenarios.gd):
 
 ```gdscript
 add_child(Scenarios.build("River", {"seed": 7, "time_of_day": TimeOfDay.dusk(), "weather": WeatherPreset.rainy()}).build())
@@ -145,7 +145,7 @@ WeatherScene.new().terrain([TerrainLayer.ground()]).water().low_graphics().build
 
 ### Tests
 
-A zero-dependency headless suite lives in [`tests/`](tests/) (**103 checks, all passing** on Godot 4.7 — the node logic, the builder, determinism, presets, the Phase 5 sun model / day-night cycle / `SkyController`, and the low-graphics wiring). Run it from the project root:
+A zero-dependency headless suite lives in [`tests/`](tests/) (**113 checks, all passing** on Godot 4.7 — the node logic, the builder, determinism, presets & round-trip, the Phase 5 sun model / day-night cycle / `SkyController`, the low-graphics wiring, weather-source robustness, and the rain→clouds coupling). Run it from the project root:
 
 ```bash
 godot --headless --path . --script res://tests/run_tests.gd
@@ -203,49 +203,13 @@ Four scenes under [`demos/`](demos/), each a good reference:
 
 ## Roadmap
 
-The next phases turn this from a personal effects grab-bag into a polished, reusable atmosphere kit. Full detail in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Everything through **Phase 5** shipped in **v0.1.0** — the addon, water, terrain, the code builder, and the living day-night simulation. The full history is in [`CHANGELOG.md`](CHANGELOG.md); how it all fits together is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-- [x] **Phase 0 — Foundation & docs**
-  - Accurate README, architecture reference, and this roadmap.
-  - Repackaged as an installable `addons/weather2d/` plugin; legacy rose-garden code removed and the repo tidied.
-- [x] **Phase 1 — Water overhaul** 🌊 *(core done)*
-  - `WaterBody2D` node with `still / river / ocean-beach` modes.
-  - Shoreline **foam**, depth shading, **flowing river**, **beach-lapping** run-up.
-  - Rolling **sine-wave** surface action; **weather-reactive** tint (rain darkens water).
-  - *Remaining:* shared shader includes, live wet-sand edge, caustics.
-- [x] **Phase 2 — Terrain built in** ⛰️ *(core done)*
-  - Procedural **sand / ground** shader (grain + dry→wet gradient).
-  - Generated **hills, mountains, and tree lines** as seeded noise silhouettes with haze.
-  - `TerrainLayer` resource + `TerrainBand2D` node; sand ↔ water share a coastline so the ocean washes in.
-  - Painterly noise, SVG vector props (`assets/svg/`) + seeded `PropScatter2D`, and a `PainterlyLayer` post-process.
-- [x] **Phase 3 — Scene generation from code** 🧩 *(core done)*
-  - A GDScript **`WeatherScene` builder** that assembles sky + terrain + water into a node tree.
-  - Reusable `WeatherPreset` / `ScenePreset` resources and **deterministic seeds**.
-  - Live weather wiring landed in Phase 5 (`.live()` + `SkyController`).
-  - *Remaining:* serialize a built scene back to a `ScenePreset`.
-- [ ] **Phase 4 — Presentation & release** ✨ *(started)*
-  - ✅ [Getting-started tutorial](docs/api/getting-started.md) + [API reference](docs/api/reference.md), `CONTRIBUTING.md`, icon, and v0.1.0 tagged.
-  - *Remaining:* GIFs/video of the launcher + scenarios, a performance pass, and a Godot **Asset Library** submission.
-- [x] **Phase 5 — Living simulation & atmosphere depth** 🌦️ *(core done)*
-  - Makes the atmosphere feel *simulated* rather than *composited*. Enabled per-scene with
-    [`.live()`](#new-living-scenes-phase-5); full detail in
-    [`docs/ROADMAP.md`](docs/ROADMAP.md#phase-5--living-simulation--atmosphere-depth).
-  - **Sky:** a sky **shader** with a **sun/moon disc + glow**, **twinkling stars** at night,
-    and a **day-night cycle** that interpolates `TimeOfDay` over time.
-  - **Clouds:** **sun-direction lighting**, **wind-driven drift**, and **cast cloud shadows**
-    on land/water. *(Remaining: parallax cloud layers, god rays.)*
-  - **Weather:** a runtime **`SkyController`** that **cross-fades between presets** over time,
-    **lightning** for storms, and coupling so **wind drives cloud drift**. *(Remaining:
-    thunder audio, wet-surface darkening, puddles.)*
-  - **Water:** **sun glint** and **rain-ripple impacts**. *(Remaining: caustics, live
-    wet-sand edge.)*
-  - **Plumbing:** generated scenes now get a live `SkyController` (in the `"SkySetting"`
-    group) so `WaterBody2D.react_to_weather` animates, and all motion is scaled by frame
-    `delta` (frame-rate independent).
+**Shipped:** an installable addon · `WaterBody2D` (still / river / ocean-beach with foam, reflections, sun glint, rain ripples) · procedural terrain + SVG prop scatter + painterly pass · the `WeatherScene` code builder with presets, scenarios & round-trip · living scenes (day-night cycle, weather transitions, cloud shadows, lightning) · a `low_graphics()` mode.
+
+**What's left** is a short, mostly-optional backlog — media/GIFs for the public listing and optional visual polish (caustics, parallax clouds, wet-surface). See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Known limitations
-
-Called out honestly so contributors know where the sharp edges are (see [`docs/ROADMAP.md`](docs/ROADMAP.md#known-issues--tech-debt) for fixes):
 
 - **Generated scenes are static unless you opt in** — a plain `WeatherScene.build()` composites a fixed weather look (each material is set once). Call [`.live()`](#new-living-scenes-phase-5) to add a `SkyController` that animates the sky/weather/water and drives `WaterBody2D.react_to_weather`.
 - **Clouds are a single layer** — no parallax between high and low cloud decks yet (Phase 5 follow-up), and there are no god rays.
@@ -253,12 +217,8 @@ Called out honestly so contributors know where the sharp edges are (see [`docs/R
 
 ## Credits & license
 
-Licensed under the terms in [`LICENSE`](LICENSE).
-
 The kit's shaders were written for this project, drawing on techniques shared by the excellent [godotshaders.com](https://godotshaders.com) community — in particular:
 
 - **Clouds** (`clouds.gdshader`) — adapted from [Cloudy skies](https://godotshaders.com/shader/cloudy-skies/).
 - **Water reflections** (`water_body.gdshader`) — inspired by [2D water with reflections](https://godotshaders.com/shader/2d-water-with-reflections/).
 - **Rain / snow** (`rain.gdshader`) — line-SDF approach akin to [Simple rain/snow](https://godotshaders.com/shader/simple-rain-snow-shader/).
-
-Example video (an early rose-garden build, since replaced by the addon): https://drive.google.com/file/d/1AFCj9rX0jrPF2mGHhBMslishc6YZvUd_/view

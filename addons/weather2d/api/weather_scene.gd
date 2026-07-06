@@ -203,6 +203,26 @@ func low_graphics(enable := true) -> WeatherScene:
 	return self
 
 
+## Capture this builder's current configuration as a [ScenePreset] — the inverse of
+## [method from_preset]. Round-trips exactly: `WeatherScene.new().from_preset(ws.to_preset())`
+## rebuilds the same scene. (To capture an already-built or hand-authored tree instead, use
+## [method ScenePreset.from_scene].)
+func to_preset() -> ScenePreset:
+	var p := ScenePreset.new()
+	p.scene_seed = _seed
+	p.size = _size
+	p.time_of_day = _tod
+	p.weather = _weather
+	var out: Array[TerrainLayer] = []
+	for l in _layers:
+		out.append(l)
+	p.terrain = out
+	p.include_water = _include_water
+	p.water_mode = _water_mode
+	p.water_level = _water_level
+	return p
+
+
 ## Load an entire composition from a saved [ScenePreset].
 func from_preset(preset: ScenePreset) -> WeatherScene:
 	if preset == null:
@@ -282,6 +302,7 @@ func build() -> Node2D:
 	var eff_fog: float = _fog_amount if _fog_amount >= 0.0 else (_weather.fog if _weather != null else 0.0)
 	var eff_snow: bool = (_snow_force == 1) if _snow_force >= 0 else (_weather.snow if _weather != null else false)
 	_wind_effective = _wind_amount if _wind_amount >= 0.0 else (_weather.wind if _weather != null else 0.3)
+	var rain_amt: float = _rain_amount if _rain_amount >= 0.0 else (_weather.rain if _weather != null else 0.0)
 
 	# Clouds: style from the cloud preset (default scattered); coverage from the style, or an
 	# explicit .clouds() override, or the weather's cloud amount. Color from the time of day,
@@ -292,6 +313,9 @@ func build() -> Node2D:
 		cloud_cov = lerpf(-0.3, 0.7, _cloud_amount)
 	elif _cloud_style == null and _weather != null:
 		cloud_cov = lerpf(-0.3, 0.7, _weather.clouds)
+	# Rain implies an overcast sky — you don't get heavy rain from clear blue, so raise the cloud
+	# cover to at least match the rain. This makes the weather read as *caused* by the sky.
+	cloud_cov = maxf(cloud_cov, lerpf(-0.3, 0.7, clampf(rain_amt, 0.0, 1.0)))
 	# Normalized 0..1 coverage (inverse of the lerp above) for the cloud-shadow pass.
 	var cloud01 := clampf(cloud_cov + 0.3, 0.0, 1.0)
 	if _live or cloud_cov > -0.3:
@@ -366,6 +390,8 @@ func build() -> Node2D:
 			body.foam_amount = clampf(0.45 + _weather.rain * 0.35, 0.0, 1.0)
 			body.wave_height += _weather.rain * 0.02
 			body.rain_ripple = _weather.rain
+		if _live:
+			body.weather_source = NodePath("../SkyController")  # explicit, not group-timing dependent
 		root.add_child(body)
 		water_body = body
 
@@ -435,8 +461,7 @@ func build() -> Node2D:
 		fog_layer.add_child(fog_rect)
 		root.add_child(fog_layer)
 
-	# Rain / snow overlay (from the weather preset, or an explicit .rain() override).
-	var rain_amt := _rain_amount if _rain_amount >= 0.0 else (_weather.rain if _weather != null else 0.0)
+	# Rain / snow overlay (uses the effective rain computed above).
 	if _live or rain_amt > 0.02:
 		var rain_layer := CanvasLayer.new()
 		rain_layer.name = "Rain"

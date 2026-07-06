@@ -91,10 +91,11 @@ All motion is scaled by frame `delta`, so it is **frame-rate independent**.
 `class_name WaterBody2D extends ColorRect`. Owns its `ShaderMaterial` + a seamless
 `NoiseTexture2D`, so it works with no setup. `Mode`: `STILL` / `RIVER` / `OCEAN_BEACH`.
 Every exported property (palette, waves, flow, foam, run-up, reflection, `sun_uv`/
-`glint_strength`, `rain_ripple`) pushes to the shader via a setter. When `react_to_weather`
-is on, `_ready` connects to the `"SkySetting"` group's `updateRainAmount`; `_on_rain_amount`
-darkens/roughens the water and rings it with ripples (modulating from captured base values,
-so it never drifts).
+`glint_strength`, `rain_ripple`, `low_graphics`) pushes to the shader via a setter. When
+`react_to_weather` is on, `_ready` connects to `updateRainAmount` — from the explicit
+`weather_source` (`NodePath`) if set, else the first `"SkySetting"`-group node — null-safe, so a
+missing source just leaves the water static. `_on_rain_amount` darkens/roughens the water and
+rings it with ripples (modulating from captured base values, so it never drifts).
 
 ### `TerrainBand2D` — one terrain band *(Phase 2)*
 `class_name TerrainBand2D extends ColorRect`. Renders a `TerrainLayer`: picks
@@ -123,12 +124,15 @@ uses a plain `Camera2D`; `MapCamera2D` is available as a standalone node.)*
 ### `WeatherScene` — the builder
 `class_name WeatherScene extends RefCounted`. Fluent, chainable configuration
 (`set_seed`, `time_of_day`, `weather`, `cloud_style`, `terrain`, `water`, `props`, `birds`,
-`painterly`, `rain`/`fog`/`wind`/`clouds` overrides, `live`, `lightning`), then `build()`
-returns the `Node2D` tree. `build()`:
+`painterly`, `rain`/`fog`/`wind`/`clouds` overrides, `live`, `lightning`, `low_graphics`), then
+`build()` returns the `Node2D` tree. Capture back with `to_preset()` /
+`ScenePreset.from_scene()`. `build()`:
 
 1. creates the `Camera2D` and an ambient `CanvasModulate`;
 2. builds the **Sky** (`sky.gdshader`) from the `TimeOfDay` sun model;
-3. builds the **Clouds** (from the `CloudPreset`, tinted by time of day, darkened by weather);
+3. builds the **Clouds** (from the `CloudPreset`, tinted by time of day, darkened by weather) —
+   cloud cover is raised to at least match the rain, so rain always reads as *caused* by an
+   overcast sky (the `SkyController` keeps this coupling during transitions);
 4. lays out **terrain bands** back-to-front (sharing a coastline with the water);
 5. adds the **`WaterBody2D`**, aligned to the ground's coast;
 6. scatters **props / birds**, then **cloud shadow**, **fog**, **rain**, **lightning**, and
@@ -174,7 +178,7 @@ The **unified sun model** is what makes these read as one lit world: `sky`, `clo
 
 ## Tests
 
-`tests/run_tests.gd` is a zero-dependency headless runner (**89 checks**) covering the node
+`tests/run_tests.gd` is a zero-dependency headless runner (**113 checks**) covering the node
 logic (property → uniform wiring, mode enum, weather response), the builder (tree shape,
 determinism, preset round-trip), the resources (cloud styles, time × weather axes, the sun
 model & `cycle`), and the `SkyController` (day advance, frame-rate independence, weather

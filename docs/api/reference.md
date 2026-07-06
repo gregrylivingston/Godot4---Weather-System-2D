@@ -30,6 +30,8 @@ available globally once the plugin is enabled. For a guided intro see
 | `live(enable := true, day_night_speed := 0.0)` | Add a `SkyController` (animate at runtime). `day_night_speed` is days/sec. |
 | `lightning(enable := true)` | Storm lightning flashes (needs `live`). |
 | `from_preset(preset: ScenePreset)` | Load a whole composition. |
+| `to_preset() -> ScenePreset` | Capture the current config as a `ScenePreset` (inverse of `from_preset`). |
+| `low_graphics(enable := true)` | Cheap shader paths + skip pricey passes (weak/software renderers). |
 | `build() -> Node2D` | Assemble and return the node tree. |
 
 ---
@@ -69,12 +71,15 @@ OCEAN_BEACH }`.
 - *Ocean run-up:* `swell_height`, `swell_speed`.
 - *Reflection:* `reflection_enabled`, `reflection_strength`, `reflection_offset`.
 - *Sun glint:* `sun_uv`, `sun_color`, `glint_strength`, `rain_ripple`.
-- *Weather:* `react_to_weather`, `weather_influence`.
+- *Performance:* `low_graphics` (skip reflection / ripples / second wave sample).
+- *Weather:* `react_to_weather`, `weather_source` (optional `NodePath` — an explicit source used
+  before the `"SkySetting"` group lookup), `weather_influence`.
 - *Terrain mask:* `use_terrain_mask`, `terrain_mask`.
 
 **Methods:** `set_day_palette(deep, shallow)` — re-base the palette (used by the day-night
-cycle) and re-apply the current rain modulation. When `react_to_weather` is on, connects to the
-`"SkySetting"` group's `updateRainAmount` at `_ready`.
+cycle) and re-apply the current rain modulation. When `react_to_weather` is on, connects at
+`_ready` to `weather_source` (if set) or the first `"SkySetting"`-group node's
+`updateRainAmount` — null-safe, so a missing source just leaves the water static.
 
 ---
 
@@ -128,7 +133,9 @@ palette colors, `seed`. Factories (each takes an optional tint `Color`):
 
 ### `ScenePreset`
 A whole composition: `scene_seed`, `size`, `time_of_day`, `weather`, `terrain` (Array),
-`include_water`, `water_mode`, `water_level`. Load with `WeatherScene.from_preset()`.
+`include_water`, `water_mode`, `water_level`. Load with `WeatherScene.from_preset()`, capture a
+builder with `WeatherScene.to_preset()`, or read an existing tree with the static
+`ScenePreset.from_scene(root)` (the bands + water; set time-of-day / weather yourself).
 
 ---
 

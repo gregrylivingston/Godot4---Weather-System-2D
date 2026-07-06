@@ -166,9 +166,14 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 		_set_param("quality", 0 if v else 1)
 
 @export_group("Weather response")
-## When true (at runtime), connect to a SkySetting in the "SkySetting" group so rain darkens
-## and roughens the water. Editor preview is unaffected.
+## When true (at runtime), connect to a weather source so rain darkens and roughens the water.
+## Editor preview is unaffected. The source is [member weather_source] if set, otherwise the
+## first node in the "SkySetting" group (a [SkyController]).
 @export var react_to_weather := true
+## Optional explicit weather source. If set, it's used instead of the "SkySetting" group lookup —
+## more robust when several controllers exist or the group isn't populated. Must expose an
+## `updateRainAmount(float)` signal.
+@export var weather_source: NodePath
 ## How strongly rain affects the water (0 = ignore, 1 = full storm at max rain).
 @export_range(0.0, 1.0) var weather_influence := 0.6
 
@@ -209,9 +214,21 @@ func _ready() -> void:
 	_base_shallow = shallow_color
 	_base_foam = foam_amount
 	_base_wave_height = wave_height
-	var sky := get_tree().get_first_node_in_group("SkySetting")
-	if sky != null and sky.has_signal("updateRainAmount"):
-		sky.updateRainAmount.connect(_on_rain_amount)
+	_connect_weather_source()
+
+
+## Resolve and connect the weather source: the explicit [member weather_source] if set,
+## otherwise the "SkySetting" group. Null-safe and idempotent — a missing source simply leaves
+## the water static (no error), and it can be re-run if a source appears later.
+func _connect_weather_source() -> void:
+	var src: Node = null
+	if not weather_source.is_empty():
+		src = get_node_or_null(weather_source)
+	if src == null:
+		src = get_tree().get_first_node_in_group("SkySetting")
+	if src != null and src.has_signal("updateRainAmount") \
+			and not src.updateRainAmount.is_connected(_on_rain_amount):
+		src.updateRainAmount.connect(_on_rain_amount)
 
 
 ## Rain darkens/desaturates the palette, raises foam + wave height, and rings the surface.

@@ -48,6 +48,9 @@ func _run() -> void:
 	_test_time_of_day_day()
 	await _test_water_day_cycle()
 	await _test_low_graphics()
+	await _test_weather_source()
+	await _test_preset_roundtrip_capture()
+	await _test_rain_implies_clouds()
 	await _test_scenarios()
 	await _test_launcher_loads()
 
@@ -567,6 +570,65 @@ func _test_low_graphics() -> void:
 	_check(clouds != null and int((clouds.material as ShaderMaterial).get_shader_parameter("quality")) == 0, "cloud shader quality = 0")
 	_check(_count_prop_sprites(lo) < hi_props, "low graphics scatters fewer props")
 	lo.free()
+
+
+func _test_weather_source() -> void:
+	print("WaterBody2D — robust weather-source wiring")
+	# Live scene: water gets an explicit source and connects to the controller's signal.
+	var scene := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.rainy()) \
+		.terrain([TerrainLayer.ground()]).live(true).build()
+	await _add_ready(scene)
+	var water := scene.get_node_or_null("Water") as WaterBody2D
+	var ctrl := scene.get_node_or_null("SkyController") as SkyController
+	_check(water != null and not water.weather_source.is_empty(), "live water gets an explicit weather_source")
+	_check(ctrl != null and ctrl.updateRainAmount.is_connected(Callable(water, "_on_rain_amount")), "water connects to the controller signal")
+	scene.free()
+
+	# No source present at all: a react_to_weather water degrades cleanly (no error, just static).
+	var w := WaterBody2D.new()
+	await _add_ready(w)
+	_check(is_instance_valid(w), "water with no weather source stays valid (degrades cleanly)")
+	w.free()
+
+
+func _test_preset_roundtrip_capture() -> void:
+	print("ScenePreset — to_preset / from_preset / from_scene round-trip")
+	var ws := WeatherScene.new().set_seed(11).time_of_day(TimeOfDay.dusk()) \
+		.weather(WeatherPreset.rainy()).terrain([TerrainLayer.mountains(), TerrainLayer.ground()]) \
+		.water(WaterBody2D.Mode.RIVER, 0.4)
+	var p := ws.to_preset()
+	_check(p.scene_seed == 11 and p.terrain.size() == 2, "to_preset captures seed + terrain")
+	_check(p.water_mode == WaterBody2D.Mode.RIVER, "to_preset captures the water mode")
+
+	var built := WeatherScene.new().from_preset(p).build()
+	await _add_ready(built)
+	var bands := 0
+	for c in built.get_children():
+		if c is TerrainBand2D:
+			bands += 1
+	_check(bands == 2, "rebuilt 2 bands from the captured preset")
+
+	var p2 := ScenePreset.from_scene(built)
+	_check(p2.terrain.size() == 2 and p2.include_water, "from_scene reads the bands + water back")
+	_check(p2.water_mode == WaterBody2D.Mode.RIVER, "from_scene reads the water mode")
+	built.free()
+
+
+func _test_rain_implies_clouds() -> void:
+	print("Weather causality — rain implies an overcast sky")
+	# Rain forced high but clouds explicitly zero: coupling still adds a cloud layer.
+	var rainy := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.clear()) \
+		.clouds(0.0).rain(0.9).terrain([TerrainLayer.ground()]).build()
+	await _add_ready(rainy)
+	_check(rainy.get_node_or_null("Clouds") != null, "heavy rain forces a Clouds layer even with clouds=0")
+	rainy.free()
+
+	# No rain + clouds zero: coupling doesn't invent clouds — still a clear sky.
+	var dry := WeatherScene.new().time_of_day(TimeOfDay.noon()).weather(WeatherPreset.clear()) \
+		.clouds(0.0).rain(0.0).terrain([TerrainLayer.ground()]).build()
+	await _add_ready(dry)
+	_check(dry.get_node_or_null("Clouds") == null, "no rain + clouds=0 stays a clear sky")
+	dry.free()
 
 
 func _test_scenarios() -> void:

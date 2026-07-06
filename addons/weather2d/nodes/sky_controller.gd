@@ -147,7 +147,8 @@ func _apply() -> void:
 		sky_material.set_shader_parameter("sun_color", tod.sun_color)
 		sky_material.set_shader_parameter("star_intensity", tod.star_intensity)
 
-	var cloud01: float = clampf(w.clouds, 0.0, 1.0)
+	# Rain implies clouds — a storm rolling in thickens the sky (see WeatherScene).
+	var cloud01: float = maxf(clampf(w.clouds, 0.0, 1.0), clampf(w.rain, 0.0, 1.0))
 	if cloud_material != null:
 		cloud_material.set_shader_parameter("coverage", lerpf(-0.3, 0.7, cloud01))
 		cloud_material.set_shader_parameter("cloud_color", _pal(tod.cloud_color, darken, desat))

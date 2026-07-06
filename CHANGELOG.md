@@ -26,7 +26,19 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   shaders now early-out when their effect is off (density/coverage/amount ≈ 0) instead of
   running full-screen noise, and the cloud sun-rim probe uses 3 octaves instead of a full
   second 6-octave fBm.
-- Test suite up to **103 checks** (adds the low-graphics wiring).
+- **Weather causality — rain implies clouds.** The builder (and the runtime `SkyController`
+  during transitions) now raises cloud cover to at least match the rain, so you never get heavy
+  rain from a clear blue sky; the weather reads as *caused* by the sky. It only raises clouds,
+  never forces rain, so independent control otherwise stands.
+- **Preset round-trip.** `WeatherScene.to_preset()` captures the builder's config as a
+  `ScenePreset` (exact inverse of `from_preset`), and `ScenePreset.from_scene(root)` reads a
+  built or hand-authored tree (its `TerrainBand2D` bands + `WaterBody2D`) back into a preset —
+  so an editor-authored scene can be saved and rebuilt.
+- **Robust weather wiring.** `WaterBody2D` gained an optional explicit `weather_source`
+  (`NodePath`) used in preference to the `"SkySetting"` group lookup; the connection is
+  null-safe and idempotent, so a missing source leaves the water static instead of erroring.
+  The builder points live water at its `SkyController` explicitly.
+- Test suite up to **113 checks** (low-graphics, weather source, preset round-trip, causality).
 
 ## [0.1.0] — 2026-07-06
 
