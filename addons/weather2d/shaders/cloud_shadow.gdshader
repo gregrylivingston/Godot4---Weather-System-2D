@@ -12,7 +12,10 @@ uniform float horizon : hint_range(0.0, 1.0) = 0.62;
 uniform vec4 shadow_color : source_color = vec4(0.02, 0.03, 0.07, 1.0);
 uniform float strength : hint_range(0.0, 1.0) = 0.28;
 
+const float HP = 256.0;
+
 float hash(vec2 p) {
+	p = mod(p, HP);  // bound the lattice so the hash stays precise (no drifting bands)
 	p = fract(p * vec2(123.34, 456.21));
 	p += dot(p, p + 45.32);
 	return fract(p.x * p.y);
@@ -38,12 +41,17 @@ float fbm(vec2 p) {
 }
 
 void fragment() {
-	vec2 wdir = length(wind_dir) > 0.0001 ? normalize(wind_dir) : vec2(1.0, 0.0);
-	float t = TIME * speed;
-	vec2 uv = UV * vec2(3.0, 2.0) + wdir * t * 2.0;
-	float n = fbm(uv);
-	// More cloud → lower threshold → more of the ground falls in shadow.
-	float shadow = smoothstep(0.55 - coverage * 0.45, 0.75, n);
+	// Below the horizon and cloudy enough to matter? Otherwise skip the noise.
 	float below_horizon = smoothstep(horizon - 0.04, horizon + 0.10, UV.y);
-	COLOR = vec4(shadow_color.rgb, shadow * strength * below_horizon);
+	if (coverage < 0.02 || strength < 0.005 || below_horizon < 0.001) {
+		COLOR = vec4(0.0);
+	} else {
+		vec2 wdir = length(wind_dir) > 0.0001 ? normalize(wind_dir) : vec2(1.0, 0.0);
+		float t = TIME * speed;
+		vec2 uv = UV * vec2(3.0, 2.0) + wdir * t * 2.0;
+		float n = fbm(uv);
+		// More cloud → lower threshold → more of the ground falls in shadow.
+		float shadow = smoothstep(0.55 - coverage * 0.45, 0.75, n);
+		COLOR = vec4(shadow_color.rgb, shadow * strength * below_horizon);
+	}
 }

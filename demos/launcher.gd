@@ -26,6 +26,7 @@ var _seed := 7
 var _live := false        # Phase 5: add a SkyController so the scene animates
 var _day_speed := 0.0     # days per second for the day-night cycle
 var _lightning := false
+var _low_graphics := false
 
 var _seed_spin: SpinBox
 var _rain_slider: HSlider
@@ -95,6 +96,7 @@ func _rebuild() -> void:
 		"live": _live,
 		"day_night_speed": _day_speed,
 		"lightning": _lightning,
+		"low_graphics": _low_graphics,
 	}
 	_scene = Scenarios.build(Scenarios.LIST[_scenario], opts).build()
 	add_child(_scene)
@@ -185,6 +187,7 @@ func _build_ui() -> void:
 	vb.add_child(_section_label("Simulation (Phase 5)"))
 	vb.add_child(_toggle("Animate (live sun + weather)", _live, func(on): _live = on; _rebuild()))
 	vb.add_child(_toggle("Lightning (storms)", _lightning, func(on): _lightning = on; _rebuild()))
+	vb.add_child(_toggle("Low graphics (faster)", _low_graphics, func(on): _low_graphics = on; _rebuild()))
 	vb.add_child(_section_label("Day–night speed"))
 	var day_slider := HSlider.new()
 	day_slider.min_value = 0.0

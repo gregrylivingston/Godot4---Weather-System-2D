@@ -60,6 +60,9 @@ uniform float glint_strength : hint_range(0.0, 1.0) = 0.3;
 // Concentric expanding rings where drops land; driven by the rain amount (0 = none).
 uniform float rain_ripple : hint_range(0.0, 1.0) = 0.0;
 
+// 0 = low graphics (no screen reflection, single noise sample, no ripples), 1 = full quality.
+uniform int quality = 1;
+
 // --- terrain hookup (Phase 2, optional) ---
 // A mask where the red channel > 0.5 marks land; lets water align with real terrain.
 uniform bool use_terrain_mask = false;
@@ -112,15 +115,18 @@ void fragment() {
 	vec2 fdir = length(flow_direction) > 0.0001 ? normalize(flow_direction) : vec2(1.0, 0.0);
 	vec2 flow = fdir * flow_speed * TIME;
 
-	// Surface noise → waves + refraction offset.
+	// Surface noise → waves + refraction offset. Low graphics uses a single noise sample.
 	vec2 nuv = uv * wave_scale;
 	float n1 = noise_fbm(nuv + flow + vec2(TIME * wave_speed, 0.0));
-	float n2 = noise_fbm(nuv * 1.7 - flow * 0.6 + vec2(0.0, TIME * wave_speed * 0.8));
-	float surface = (n1 + n2) * 0.5;
+	float surface = n1;
+	if (quality == 1) {
+		float n2 = noise_fbm(nuv * 1.7 - flow * 0.6 + vec2(0.0, TIME * wave_speed * 0.8));
+		surface = (n1 + n2) * 0.5;
+	}
 	float distort = (surface - 0.5) * wave_distortion;
 
-	// Rain ripples nudge the reflection and add bright rings (added to color below).
-	float rip = rain_ripple > 0.001 ? ripple_field(uv, TIME) * rain_ripple : 0.0;
+	// Rain ripples nudge the reflection and add bright rings (full quality only).
+	float rip = (quality == 1 && rain_ripple > 0.001) ? ripple_field(uv, TIME) * rain_ripple : 0.0;
 	distort += rip * 0.05;
 
 	// Rolling sine waves along the surface.
@@ -174,8 +180,9 @@ void fragment() {
 			col += max(wave, 0.0) * 1.5;
 		}
 
-		// Screen-space reflection (skip for river, which sits behind scenery).
-		if (reflection_enabled && mode != 1) {
+		// Screen-space reflection (skip for river; skip entirely in low graphics — the
+		// SCREEN_TEXTURE sample is one of the water shader's costlier steps).
+		if (quality == 1 && reflection_enabled && mode != 1) {
 			vec2 ruv = vec2(
 				SCREEN_UV.x + distort + reflection_offset.x,
 				1.0 - SCREEN_UV.y - (waterline - 0.5) * 2.0 + reflection_offset.y

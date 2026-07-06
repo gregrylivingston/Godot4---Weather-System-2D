@@ -5,7 +5,28 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+- **Drifting vertical banding in the sky.** The cloud (and cloud-shadow / fog) noise fed
+  ever-growing coordinates into a `sin()`/multiply hash; at large values the hash lost float
+  precision and collapsed into faint axis-aligned bands that scrolled with the wind. The hash
+  input is now wrapped to a large period (`mod(p, 256)`), keeping it precise — the banding is
+  gone with no meaningful change to the cloud shape.
+
+### Added
+- **Low-graphics mode** (`WeatherScene.low_graphics()`, a **Low graphics** toggle in the
+  launcher, and a `low_graphics:bool` scenario option) for weak or software (no-GPU) renderers.
+  A `quality` uniform selects cheap shader paths and the builder drops the priciest passes:
+  - **Clouds:** 3 octaves instead of 6, and the ridged detail + sun-rim lighting are skipped.
+  - **Water:** no screen reflection, a single wave sample, and no rain ripples.
+  - **Rain:** the per-pixel drop loop is capped much lower (thinner rain).
+  - **Fog:** a flat band with no per-pixel noise.
+  - The **cloud-shadow** and **painterly** full-screen passes are skipped, and fewer props are
+    scattered. The composition is unchanged; the look is simplified.
+- **High-quality perf trims (no significant visual change):** the fog / cloud-shadow / rain
+  shaders now early-out when their effect is off (density/coverage/amount ≈ 0) instead of
+  running full-screen noise, and the cloud sun-rim probe uses 3 octaves instead of a full
+  second 6-octave fBm.
+- Test suite up to **103 checks** (adds the low-graphics wiring).
 
 ## [0.1.0] — 2026-07-06
 

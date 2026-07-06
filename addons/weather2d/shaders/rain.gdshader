@@ -10,6 +10,8 @@ uniform vec4 rain_color : source_color = vec4(0.80, 0.85, 0.95, 0.5);
 // Snow: rounder, slower, drifting flakes instead of streaks.
 uniform bool snow = false;
 uniform vec4 snow_color : source_color = vec4(0.97, 0.98, 1.0, 0.9);
+// 0 = low graphics (fewer drops — the per-pixel loop is the shader's biggest cost), 1 = full.
+uniform int quality = 1;
 
 float hash(float x) { return fract(sin(x * 18.34) * 51.78); }
 float hash2(float x) { return fract(sin(x * 25.42) * 21.24); }
@@ -20,7 +22,10 @@ float line_sdf(vec2 p, vec2 s) {
 }
 
 void fragment() {
-	int count = int(amount * 300.0);
+	// The loop runs once per raindrop per pixel — by far the shader's cost. Low graphics caps
+	// the drop count (thinner rain) for a big saving.
+	float max_drops = quality == 1 ? 300.0 : 110.0;
+	int count = int(amount * max_drops);
 	vec2 uv = UV;
 	uv.x += uv.y * slant;
 	float o = 0.0;

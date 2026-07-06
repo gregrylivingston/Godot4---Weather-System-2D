@@ -124,6 +124,8 @@ static func _base(opts: Dictionary) -> WeatherScene:
 		ws.live(true, float(opts.get("day_night_speed", 0.0)))
 	if bool(opts.get("lightning", false)):
 		ws.lightning(true)
+	if bool(opts.get("low_graphics", false)):
+		ws.low_graphics(true)
 	return ws
 
 

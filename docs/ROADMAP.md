@@ -195,8 +195,10 @@ reproducible across runs. ✅
 - [x] `CHANGELOG.md`.
 - [x] API reference + "make your first scene" tutorial in [`docs/api/`](api/getting-started.md).
 - [x] `CONTRIBUTING.md` and a project icon; **v0.1.0** tagged (`plugin.cfg` + changelog).
+- [x] Performance: shader early-outs when effects are off, and a **`low_graphics()`** mode
+      (cheap cloud/water/rain/fog paths, skips cloud-shadow + painterly, fewer props).
 - [ ] Capture GIFs/short video of the launcher + scenarios; embed in README + docs.
-- [ ] Performance pass (rain loop cost, shader cost, mobile/web notes).
+- [ ] Further performance profiling (mobile/web notes, draw-call/overdraw budget).
 - [ ] **Godot Asset Library** submission.
 
 **Definition of done:** a fresh user can install the addon, generate a scene in a few lines,

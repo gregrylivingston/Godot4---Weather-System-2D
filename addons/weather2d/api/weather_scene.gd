@@ -46,6 +46,7 @@ var _wind_effective := 0.3
 var _live := false          # add a SkyController so the scene animates at runtime
 var _day_night_speed := 0.0
 var _lightning := false
+var _low_graphics := false  # cheap shader paths + skip pricey overlays (weak/software renderers)
 var _haze_color := Color(0.72, 0.80, 0.88) # depth-fade color for props (from the ToD sky)
 var _fog_color := Color(0.82, 0.85, 0.88)
 
@@ -193,6 +194,15 @@ func lightning(enable := true) -> WeatherScene:
 	return self
 
 
+## Low-graphics mode for weak or software (no-GPU) renderers. The clouds/water/rain/fog shaders
+## take cheap paths (fewer octaves, no screen reflection, thinner rain, flat fog), the cloud
+## shadow and painterly post-process are skipped, and fewer props are scattered. The look is
+## simplified but the composition is the same.
+func low_graphics(enable := true) -> WeatherScene:
+	_low_graphics = enable
+	return self
+
+
 ## Load an entire composition from a saved [ScenePreset].
 func from_preset(preset: ScenePreset) -> WeatherScene:
 	if preset == null:
@@ -239,6 +249,7 @@ func build() -> Node2D:
 	var ambient_node: CanvasModulate = null
 	var lightning_rect: ColorRect = null
 	var water_body: WaterBody2D = null
+	var q := 0 if _low_graphics else 1  # shader quality (0 = low graphics)
 
 	# Scene-wide ambient tint (night dims everything; storms darken it further).
 	var ambient := tod.ambient.lerp(Color(0.35, 0.37, 0.44), darken * 0.6)
@@ -304,6 +315,7 @@ func build() -> Node2D:
 		cloud_mat.set_shader_parameter("sun_uv", tod.sun_uv)
 		cloud_mat.set_shader_parameter("sun_tint", tod.sun_color)
 		cloud_mat.set_shader_parameter("wind_dir", Vector2(1.0, 0.12))
+		cloud_mat.set_shader_parameter("quality", q)
 		cloud_rect.material = cloud_mat
 		root.add_child(cloud_rect)
 
@@ -349,6 +361,7 @@ func build() -> Node2D:
 		body.sun_uv = tod.sun_uv
 		body.sun_color = tod.sun_color
 		body.glint_strength = clampf(0.35 * (1.0 - tod.star_intensity), 0.0, 1.0)
+		body.low_graphics = _low_graphics
 		if _weather != null:
 			body.foam_amount = clampf(0.45 + _weather.rain * 0.35, 0.0, 1.0)
 			body.wave_height += _weather.rain * 0.02
@@ -372,7 +385,7 @@ func build() -> Node2D:
 		var flock := PropScatter2D.new()
 		flock.name = "Birds"
 		flock.seed = _seed + 200
-		flock.count = _bird_count
+		flock.count = _bird_count if not _low_graphics else maxi(1, int(_bird_count / 2))
 		flock.width = w * 0.8
 		flock.band_height = h * 0.16
 		flock.position = Vector2(-w * 0.05, (0.28 - 0.5) * h)
@@ -390,7 +403,8 @@ func build() -> Node2D:
 		root.add_child(flock)
 
 	# Moving cloud shadows dapple the land & water (drift with the wind, below the horizon).
-	if _live or cloud01 > 0.25:
+	# Skipped entirely in low graphics (a full-screen noise pass).
+	if not _low_graphics and (_live or cloud01 > 0.25):
 		var shadow_rect := ColorRect.new()
 		shadow_rect.name = "CloudShadow"
 		shadow_rect.position = Vector2(-w * 0.5, -h * 0.5)
@@ -416,6 +430,7 @@ func build() -> Node2D:
 		fog_mat.shader = load(_FOG_SHADER)
 		fog_mat.set_shader_parameter("density", eff_fog)
 		fog_mat.set_shader_parameter("fog_color", _fog_color)
+		fog_mat.set_shader_parameter("quality", q)
 		fog_rect.material = fog_mat
 		fog_layer.add_child(fog_rect)
 		root.add_child(fog_layer)
@@ -434,6 +449,7 @@ func build() -> Node2D:
 		rain_mat.set_shader_parameter("amount", rain_amt)
 		rain_mat.set_shader_parameter("snow", eff_snow)
 		rain_mat.set_shader_parameter("slant", -0.02 - _wind_effective * 0.18)
+		rain_mat.set_shader_parameter("quality", q)
 		rain_rect.material = rain_mat
 		rain_layer.add_child(rain_rect)
 		root.add_child(rain_layer)
@@ -450,7 +466,8 @@ func build() -> Node2D:
 		l_layer.add_child(lightning_rect)
 		root.add_child(l_layer)
 
-	if _painterly:
+	# Painterly is a full-screen multi-tap blur — skipped in low graphics.
+	if _painterly and not _low_graphics:
 		root.add_child(PainterlyLayer.new())
 
 	# The runtime brain: animates sky/weather/water and (via the "SkySetting" group) drives
@@ -528,7 +545,8 @@ func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
 		if src == null or not _ROW_CONFIG.has(src.role):
 			continue
 		var cfg: Dictionary = _ROW_CONFIG[src.role]
-		var count := maxi(2, int(round(_prop_count * float(cfg["count_mul"]))))
+		var dens := 0.6 if _low_graphics else 1.0
+		var count := maxi(2, int(round(_prop_count * float(cfg["count_mul"]) * dens)))
 		root.add_child(_make_row("Props%d_%s" % [row_n, _role_name(src.role)],
 			_seed + 100 + i * 7, count, w, h, foliage, haze_col, cfg, PropScatter2D.ANIM_SWAY))
 		# Rocks/driftwood on the nearer rows (only with the default prop set).

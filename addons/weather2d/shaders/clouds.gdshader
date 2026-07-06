@@ -21,10 +21,19 @@ uniform vec4 cloud_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform vec2 sun_uv = vec2(0.5, 0.18);
 uniform vec4 sun_tint : source_color = vec4(1.0, 0.95, 0.85, 1.0);
 uniform vec2 wind_dir = vec2(1.0, 0.0);
+// 0 = low graphics (fewer octaves, no ridged detail / sun rim), 1 = full quality.
+uniform int quality = 1;
 
 const mat2 m = mat2(vec2(1.6, 1.2), vec2(-1.2, 1.6));
 
+// The fBm's `m` matrix roughly doubles the coordinate each octave, so high octaves reach huge
+// values where sin() loses precision and banding appears. Wrapping the lattice cell to a large
+// period keeps the hash input small and precise — no drifting banding — while any repeat is far
+// off-screen. mod() of a periodic field is seamless.
+const float HP = 256.0;
+
 vec2 hash(vec2 p) {
+	p = mod(p, HP);
 	p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
 	return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
 }
@@ -43,11 +52,12 @@ float noise(vec2 p) {
 }
 
 // Time churns the octaves (each one drifts differently after the m rotation), so the clouds
-// slowly billow and evolve in place rather than sliding across the screen.
-float fbm(vec2 n, float t) {
+// slowly billow and evolve in place rather than sliding across the screen. `oct` lets the
+// low-graphics path use fewer octaves.
+float fbm(vec2 n, float t, int oct) {
 	float total = 0.0;
 	float amp = 0.6;
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < oct; i++) {
 		total += noise(n + vec2(t, t * 0.7)) * amp;
 		n = m * n + t * 0.35;
 		amp *= 0.5;
@@ -70,20 +80,27 @@ void fragment() {
 		vec2 wdir = length(wind_dir) > 0.0001 ? normalize(wind_dir) : vec2(1.0, 0.0);
 		uv += wdir * t * 0.9; // slow translation; the rest is evolution in place
 
-		// Base shape (0..1) plus billowy ridged detail — both evolve slowly over time.
-		float base = fbm(uv * 3.2, t) * 0.5 + 0.5;
-		// Density a short step toward the sun: where the cloud thins toward the sun, this
-		// pixel's edge faces the light and reads brighter (a cheap directional shading term).
-		vec2 sdir = normalize((sun_uv - UV) + vec2(0.0001, 0.0001));
-		float toward_sun = fbm((uv - sdir * 0.10) * 3.2, t) * 0.5 + 0.5;
-		float sun_rim = clamp((base - toward_sun) * 2.2, 0.0, 1.0);
+		// Base shape (0..1). Low graphics uses fewer octaves (cheaper, slightly softer).
+		int base_oct = quality == 1 ? 6 : 3;
+		float base = fbm(uv * 3.2, t, base_oct) * 0.5 + 0.5;
+
+		// Ridged detail + sun-rim lighting are full-quality only.
 		float r = 0.0;
-		vec2 ruv = uv * 2.0 + base;
-		float w = 0.6;
-		for (int i = 0; i < 4; i++) {
-			r += abs(w * noise(ruv));
-			ruv = m * ruv + t * 0.5;
-			w *= 0.55;
+		float sun_rim = 0.0;
+		if (quality == 1) {
+			// Ridged billows.
+			vec2 ruv = uv * 2.0 + base;
+			float w = 0.6;
+			for (int i = 0; i < 4; i++) {
+				r += abs(w * noise(ruv));
+				ruv = m * ruv + t * 0.5;
+				w *= 0.55;
+			}
+			// Where the cloud thins toward the sun, this pixel's edge faces the light and reads
+			// brighter (a cheap 3-octave density probe toward the sun).
+			vec2 sdir = normalize((sun_uv - UV) + vec2(0.0001, 0.0001));
+			float toward_sun = fbm((uv - sdir * 0.10) * 3.2, t, 3) * 0.5 + 0.5;
+			sun_rim = clamp((base - toward_sun) * 2.2, 0.0, 1.0);
 		}
 
 		float shape = base + coverage + r * detail * 0.5;

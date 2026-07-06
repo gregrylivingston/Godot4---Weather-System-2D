@@ -157,6 +157,14 @@ const _SHADER_PATH := "res://addons/weather2d/shaders/water_body.gdshader"
 		rain_ripple = v
 		_set_param("rain_ripple", v)
 
+@export_group("Performance")
+## Low graphics: the shader skips the screen reflection, the second wave sample, and rain
+## ripples — much cheaper on weak/software renderers. Set by `WeatherScene.low_graphics()`.
+@export var low_graphics := false:
+	set(v):
+		low_graphics = v
+		_set_param("quality", 0 if v else 1)
+
 @export_group("Weather response")
 ## When true (at runtime), connect to a SkySetting in the "SkySetting" group so rain darkens
 ## and roughens the water. Editor preview is unaffected.
@@ -283,6 +291,7 @@ func _apply_all() -> void:
 	_set_param("sun_color", sun_color)
 	_set_param("glint_strength", glint_strength)
 	_set_param("rain_ripple", rain_ripple)
+	_set_param("quality", 0 if low_graphics else 1)
 	_set_param("use_terrain_mask", use_terrain_mask)
 	if terrain_mask != null:
 		_set_param("terrain_mask", terrain_mask)

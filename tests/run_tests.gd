@@ -47,6 +47,7 @@ func _run() -> void:
 	_test_sky_controller_step()
 	_test_time_of_day_day()
 	await _test_water_day_cycle()
+	await _test_low_graphics()
 	await _test_scenarios()
 	await _test_launcher_loads()
 
@@ -518,6 +519,54 @@ func _test_water_day_cycle() -> void:
 	ctrl.step(0.0)
 	_check(water.deep_color.v < noon_v, "water is darker at night than at noon")
 	scene.free()
+
+
+func _count_prop_sprites(scene: Node) -> int:
+	var n := 0
+	for c in scene.get_children():
+		if c is PropScatter2D:
+			for s in c.get_children():
+				if s is Sprite2D:
+					n += 1
+	return n
+
+
+func _new_full_scene() -> WeatherScene:
+	# A live scene that exercises every overlay (clouds, rain, fog, shadow, painterly, props).
+	return WeatherScene.new().time_of_day(TimeOfDay.noon()) \
+		.weather(WeatherPreset.rainy()).cloud_style(CloudPreset.overcast()) \
+		.terrain([TerrainLayer.hills(), TerrainLayer.ground()]) \
+		.props(true, 12).birds(true, 4).painterly(true).live(true)
+
+
+func _test_low_graphics() -> void:
+	print("WeatherScene.low_graphics() — cheap shader paths + skipped overlays")
+	var hi := _new_full_scene().build()
+	await _add_ready(hi)
+	_check(hi.get_node_or_null("CloudShadow") != null, "high graphics keeps the cloud-shadow pass")
+	var painterly_hi := false
+	for c in hi.get_children():
+		if c is PainterlyLayer:
+			painterly_hi = true
+	_check(painterly_hi, "high graphics keeps the painterly layer")
+	var hi_props := _count_prop_sprites(hi)
+	hi.free()
+
+	var lo := _new_full_scene().low_graphics(true).build()
+	await _add_ready(lo)
+	_check(lo.get_node_or_null("CloudShadow") == null, "low graphics skips the cloud-shadow pass")
+	var painterly_lo := false
+	for c in lo.get_children():
+		if c is PainterlyLayer:
+			painterly_lo = true
+	_check(not painterly_lo, "low graphics skips the painterly layer")
+	var water := lo.get_node_or_null("Water") as WaterBody2D
+	_check(water != null and water.low_graphics, "low graphics flags the water body")
+	_check(water != null and int((water.material as ShaderMaterial).get_shader_parameter("quality")) == 0, "water shader quality = 0")
+	var clouds := lo.get_node_or_null("Clouds") as ColorRect
+	_check(clouds != null and int((clouds.material as ShaderMaterial).get_shader_parameter("quality")) == 0, "cloud shader quality = 0")
+	_check(_count_prop_sprites(lo) < hi_props, "low graphics scatters fewer props")
+	lo.free()
 
 
 func _test_scenarios() -> void:

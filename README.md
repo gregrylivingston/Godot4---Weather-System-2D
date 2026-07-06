@@ -39,6 +39,7 @@ It began as a few-day project for a short anime-style scene and has grown into a
 - **Vector prop scatter** (`PropScatter2D`) — seeded, stratified trees / rocks / birds with depth haze, sway, and flight.
 - **Painterly post-process** — soft focus, grain, vignette.
 - **Full-featured 2D map camera** (`MapCamera2D`) with mouse / keyboard / gesture pan, zoom, and drag-with-inertia.
+- **Scales down** — a [`low_graphics()`](#performance--low-graphics-mode) mode with cheap shader paths for weak or software (no-GPU) renderers.
 - **Editor-live** — the nodes are `@tool` scripts, so you preview changes right in the editor — plus a zero-dependency headless test suite.
 
 ## Requirements
@@ -131,9 +132,20 @@ The controller joins the `"SkySetting"` group and emits `updateRainAmount` / `up
 
 The kit ships a hybrid art pipeline: **`PropScatter2D`** deterministically scatters vector props (trees, palms, bushes, rocks, flowers, driftwood, birds — the SVGs in [`assets/svg/`](assets/svg/)) with even **stratified** placement, ground **shadows**, and **animation** (trees sway in the wind, birds fly across the sky — via `foliage_wind` / `bird_fly` shaders). The builder plants props **per terrain layer**, so back layers get small, hazy trees and near layers get big, crisp ones. **`PainterlyLayer`** adds a soft-focus + grain + vignette post-process. Weather adds `.rain()` / `.snow()` (`rain.gdshader`), `.fog()` (`fog.gdshader`), `.clouds()` (`clouds.gdshader`), and `.wind()` (sway + slant) — all reachable from the launcher.
 
+### Performance & low-graphics mode
+
+The effects are full-screen fragment shaders, so on a **weak or software (no-GPU) renderer** they can get heavy — the clouds, the rain loop, and the painterly blur most of all. Two things help:
+
+- **Faster by default:** the fog / cloud-shadow / rain shaders skip their per-pixel noise entirely when the effect is off, and the clouds use a cheaper sun-rim probe — no meaningful change to the look.
+- **Low-graphics mode:** call [`.low_graphics()`](addons/weather2d/api/weather_scene.gd) (or tick **Low graphics** in the launcher) and the kit takes cheap paths — fewer cloud octaves, no water screen-reflection or rain ripples, thinner rain, flat fog, and it skips the cloud-shadow and painterly passes and scatters fewer props. The composition is identical; the look is simplified.
+
+```gdscript
+WeatherScene.new().terrain([TerrainLayer.ground()]).water().low_graphics().build()
+```
+
 ### Tests
 
-A zero-dependency headless suite lives in [`tests/`](tests/) (**95 checks, all passing** on Godot 4.7 — the node logic, the builder, determinism, presets, and the Phase 5 sun model / day-night cycle / `SkyController`). Run it from the project root:
+A zero-dependency headless suite lives in [`tests/`](tests/) (**103 checks, all passing** on Godot 4.7 — the node logic, the builder, determinism, presets, the Phase 5 sun model / day-night cycle / `SkyController`, and the low-graphics wiring). Run it from the project root:
 
 ```bash
 godot --headless --path . --script res://tests/run_tests.gd
