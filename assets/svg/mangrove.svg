@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 170" width="170" height="170">
+  <defs>
+    <linearGradient id="c" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4f7a44"/>
+      <stop offset="1" stop-color="#33562d"/>
+    </linearGradient>
+  </defs>
+  <!-- arching prop roots -->
+  <g fill="none" stroke="#6a5233" stroke-width="6" stroke-linecap="round">
+    <path d="M85 96 Q60 130 40 168"/>
+    <path d="M85 96 Q70 132 66 168"/>
+    <path d="M85 96 Q100 130 104 168"/>
+    <path d="M85 96 Q112 128 132 168"/>
+    <path d="M85 96 Q86 130 86 168"/>
+  </g>
+  <!-- trunk -->
+  <path d="M85 100 Q82 78 86 60" stroke="#6a5233" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <!-- broad canopy -->
+  <g fill="url(#c)">
+    <ellipse cx="86" cy="46" rx="60" ry="34"/>
+    <ellipse cx="46" cy="56" rx="30" ry="20"/>
+    <ellipse cx="128" cy="56" rx="30" ry="20"/>
+    <ellipse cx="86" cy="26" rx="34" ry="22"/>
+  </g>
+</svg>

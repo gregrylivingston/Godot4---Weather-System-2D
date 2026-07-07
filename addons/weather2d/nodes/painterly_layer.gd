@@ -30,6 +30,10 @@ const _SHADER := "res://addons/weather2d/shaders/painterly.gdshader"
 	set(v):
 		warmth = v
 		_set_param("warmth", v)
+@export_range(0.0, 1.5) var saturation := 1.0:
+	set(v):
+		saturation = v
+		_set_param("saturation", v)
 
 
 func _enter_tree() -> void:
@@ -70,3 +74,4 @@ func _apply_all() -> void:
 	_set_param("grain", grain)
 	_set_param("vignette", vignette)
 	_set_param("warmth", warmth)
+	_set_param("saturation", saturation)

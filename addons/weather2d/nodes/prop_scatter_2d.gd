@@ -111,6 +111,11 @@ const _FLY_SHADER := "res://addons/weather2d/shaders/bird_fly.gdshader"
 		sway_speed = v
 		_queue_rebuild()
 
+## Optional per-prop ground curve. When valid, it maps a prop's local x to the baseline y it
+## should stand on — so props sit on a bumpy terrain ridge instead of a flat line (no
+## floating above the silhouette). Set in code by [WeatherScene]; evaluated once per rebuild.
+var surface_sampler := Callable()
+
 var _rebuild_queued := false
 var _shadows: Array = [] # [{pos: Vector2, r: float}]
 var _fly: Array = []     # birds animated by _process
@@ -155,6 +160,10 @@ func _rebuild() -> void:
 		var x := slot_center + rng.randf_range(-0.5, 0.5) * slot * jitter
 		var depth := rng.randf() # 0 = far (top of band) … 1 = near (bottom)
 		var y := -band_height * 0.5 + depth * band_height
+		# Anchor to the terrain ridge when a surface curve is supplied, keeping a little
+		# vertical scatter so the row isn't a razor-straight line of trees.
+		if surface_sampler.is_valid():
+			y = float(surface_sampler.call(x)) + rng.randf_range(-0.35, 0.35) * band_height
 		var s := lerpf(scale_min, scale_max, depth) if depth_scale else rng.randf_range(scale_min, scale_max)
 		items.append({
 			"x": x,

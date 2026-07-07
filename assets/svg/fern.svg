@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 120" width="140" height="120">
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a7d3f"/>
+      <stop offset="1" stop-color="#2f5a2b"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#f)" stroke-width="5" stroke-linecap="round">
+    <path d="M70 118 Q40 70 6 48"/>
+    <path d="M70 118 Q48 62 24 22"/>
+    <path d="M70 118 Q66 58 70 6"/>
+    <path d="M70 118 Q92 62 116 22"/>
+    <path d="M70 118 Q100 70 134 48"/>
+  </g>
+  <g fill="url(#f)" opacity="0.9">
+    <path d="M70 118 Q40 70 6 48 Q42 62 70 108 Z"/>
+    <path d="M70 118 Q48 62 24 22 Q56 50 70 110 Z"/>
+    <path d="M70 118 Q66 58 70 6 Q80 52 74 112 Z"/>
+    <path d="M70 118 Q92 62 116 22 Q84 50 70 110 Z"/>
+    <path d="M70 118 Q100 70 134 48 Q98 62 70 108 Z"/>
+  </g>
+</svg>

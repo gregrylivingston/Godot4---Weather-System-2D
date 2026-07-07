@@ -36,6 +36,8 @@ var _prop_textures: Array[Texture2D] = []
 var _scatter_birds := false
 var _bird_count := 5
 var _painterly := false
+var _painterly_saturation := 1.0   # <1 mutes the frame toward an aged, period-illustration grade
+var _painterly_warmth := 0.015     # gentle warm cast (matches the painterly shader default)
 var _rain_amount := -1.0  # <0 = follow the weather preset
 var _fog_amount := -1.0
 var _wind_amount := -1.0
@@ -173,8 +175,13 @@ func snow(on: bool) -> WeatherScene:
 
 
 ## Add the painterly post-process (soft focus + grain + vignette) on top of the scene.
-func painterly(enable := true) -> WeatherScene:
+## [param saturation] below 1.0 mutes the frame and [param warmth] warms it, giving an aged,
+## period-illustration grade — a gentle nudge toward Lost Settlement's look without restyling
+## the scene into a flat map. The defaults reproduce the plain painterly pass.
+func painterly(enable := true, saturation := 1.0, warmth := 0.015) -> WeatherScene:
 	_painterly = enable
+	_painterly_saturation = saturation
+	_painterly_warmth = warmth
 	return self
 
 
@@ -491,9 +498,13 @@ func build() -> Node2D:
 		l_layer.add_child(lightning_rect)
 		root.add_child(l_layer)
 
-	# Painterly is a full-screen multi-tap blur — skipped in low graphics.
+	# Painterly is a full-screen multi-tap blur — skipped in low graphics. The optional grade
+	# (muted saturation + warmth) rides on the same pass, so the period look is free.
 	if _painterly and not _low_graphics:
-		root.add_child(PainterlyLayer.new())
+		var paint := PainterlyLayer.new()
+		paint.saturation = _painterly_saturation
+		paint.warmth = _painterly_warmth
+		root.add_child(paint)
 
 	# The runtime brain: animates sky/weather/water and (via the "SkySetting" group) drives
 	# the water's weather reaction. See SkyController.
@@ -547,13 +558,17 @@ func _load_textures(paths: Array) -> Array[Texture2D]:
 	return out
 
 
-# Per-role planting: where props sit on each layer, how big, and how hazy. Further-back
-# layers (hills) get smaller, hazier props; nearer layers (foreground) get big, crisp ones.
+# Per-role planting: where props sit on each layer, how big, how hazy, and how many. Depth is
+# the through-line — the further back a row is, the SMALLER and DENSER (higher count_mul) and
+# hazier its props, so the back reads as a fine distant forest and the front as a few big
+# trees. MOUNTAIN is deliberately absent: the distant peaks stay bare (no props on them).
+# `anchor` rows (the silhouette hills / treeline) plant on the band's actual ridge instead of
+# a flat screen line, so nothing floats above the terrain where the ridge dips.
 const _ROW_CONFIG := {
-	TerrainLayer.Role.HILL:       {"line": 0.575, "smin": 0.28, "smax": 0.48, "haze": 0.55, "band": 0.035, "count_mul": 0.6, "accents": false},
-	TerrainLayer.Role.TREELINE:   {"line": 0.600, "smin": 0.42, "smax": 0.62, "haze": 0.42, "band": 0.040, "count_mul": 0.8, "accents": false},
-	TerrainLayer.Role.GROUND:     {"line": 0.655, "smin": 0.55, "smax": 0.92, "haze": 0.25, "band": 0.050, "count_mul": 1.0, "accents": true},
-	TerrainLayer.Role.FOREGROUND: {"line": 0.850, "smin": 0.85, "smax": 1.30, "haze": 0.10, "band": 0.050, "count_mul": 0.7, "accents": true},
+	TerrainLayer.Role.HILL:       {"line": 0.520, "smin": 0.13, "smax": 0.24, "haze": 0.60, "band": 0.030, "count_mul": 2.0, "accents": false, "anchor": true},
+	TerrainLayer.Role.TREELINE:   {"line": 0.560, "smin": 0.24, "smax": 0.40, "haze": 0.48, "band": 0.035, "count_mul": 1.5, "accents": false, "anchor": true},
+	TerrainLayer.Role.GROUND:     {"line": 0.655, "smin": 0.52, "smax": 0.92, "haze": 0.25, "band": 0.050, "count_mul": 0.85, "accents": true, "anchor": false},
+	TerrainLayer.Role.FOREGROUND: {"line": 0.850, "smin": 0.90, "smax": 1.35, "haze": 0.10, "band": 0.050, "count_mul": 0.55, "accents": true, "anchor": false},
 }
 
 
@@ -564,25 +579,70 @@ func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
 	var foliage: Array[Texture2D] = override if not override.is_empty() else _load_textures(_DEFAULT_FOLIAGE_PATHS)
 	var accents: Array[Texture2D] = _load_textures(_DEFAULT_ACCENT_PATHS)
 
+	# The lowest y (deepest on screen) an anchored back-row prop may reach: the waterline.
+	# A back band's ridge can sit *below* the water (hidden under it), and planting a prop on
+	# that hidden ridge would stand it in open water — so clamp anchored rows to the shore.
+	var land_floor_y := INF
+	if _include_water:
+		if _water_mode == WaterBody2D.Mode.RIVER:
+			land_floor_y = _rect_f(0.62, 0.82, w, h).position.y - h * 0.006
+		else:
+			var gnd: TerrainLayer = null
+			for l in _layers:
+				if l != null and l.role == TerrainLayer.Role.GROUND:
+					gnd = l
+					break
+			var wr := _band_rect(TerrainLayer.Role.GROUND, w, h)
+			var lvl: float = (gnd.coast_level + 0.14) if gnd != null else _water_level
+			land_floor_y = wr.position.y + clampf(lvl, 0.0, 1.0) * wr.size.y - h * 0.006
+
+	# Track how many bands of each role we've seen, matching _add_band's per-role offset, so a
+	# row's ridge sampler lines up with the band it plants on (e.g. a scene's two hill bands).
+	var role_occ := {}
 	var row_n := 0
 	for i in _layers.size():
 		var src: TerrainLayer = _layers[i]
 		if src == null or not _ROW_CONFIG.has(src.role):
 			continue
+		var occ: int = role_occ.get(src.role, 0)
+		role_occ[src.role] = occ + 1
 		var cfg: Dictionary = _ROW_CONFIG[src.role]
 		var dens := 0.6 if _low_graphics else 1.0
 		var count := maxi(2, int(round(_prop_count * float(cfg["count_mul"]) * dens)))
+		var scatter_y := (float(cfg["line"]) - 0.5) * h
+		# Keep coast/back rows out of the water. The FOREGROUND is exempt — it's the near bank,
+		# which in a river scene sits in front of (below) the water on purpose.
+		if src.role != TerrainLayer.Role.FOREGROUND:
+			scatter_y = minf(scatter_y, land_floor_y)
+		# For silhouette back rows, build a curve that returns the ridge y at a given x, so
+		# props plant on the terrain rather than a flat line. Mirrors the band geometry.
+		var surface := Callable()
+		if bool(cfg["anchor"]):
+			var band := _band_rect(src.role, w, h)
+			band.position.y += float(occ) * h * 0.055     # same nudge _add_band applies
+			var lseed := float(_seed + i)                 # matches the band layer's seed
+			var lheight: float = src.height
+			var lrough: float = src.roughness
+			surface = func(local_x: float) -> float:
+				var ux := clampf((local_x - band.position.x) / band.size.x, 0.0, 1.0)
+				var top := WeatherScene._silhouette_top(lheight, lrough, lseed, ux)
+				# Sit just below the crest so trees read as planted on the slope, not balanced
+				# on the exact edge; clamp to the shore so none stand in open water; then
+				# rebase into the scatter node's local space.
+				var sy := band.position.y + top * band.size.y + h * 0.010
+				return minf(sy, land_floor_y) - scatter_y
 		root.add_child(_make_row("Props%d_%s" % [row_n, _role_name(src.role)],
-			_seed + 100 + i * 7, count, w, h, foliage, haze_col, cfg, PropScatter2D.ANIM_SWAY))
+			_seed + 100 + i * 7, count, w, h, foliage, haze_col, cfg, PropScatter2D.ANIM_SWAY, surface))
 		# Rocks/driftwood on the nearer rows (only with the default prop set).
 		if override.is_empty() and bool(cfg["accents"]) and not accents.is_empty():
 			root.add_child(_make_row("Accents%d" % row_n,
-				_seed + 150 + i * 7, maxi(1, count / 5), w, h, accents, haze_col, cfg, PropScatter2D.ANIM_NONE))
+				_seed + 150 + i * 7, maxi(1, count / 5), w, h, accents, haze_col, cfg, PropScatter2D.ANIM_NONE, surface))
 		row_n += 1
 
 
 func _make_row(node_name: String, s: int, count: int, w: float, h: float,
-		textures: Array[Texture2D], haze_col: Color, cfg: Dictionary, anim: int) -> PropScatter2D:
+		textures: Array[Texture2D], haze_col: Color, cfg: Dictionary, anim: int,
+		surface := Callable()) -> PropScatter2D:
 	var scatter := PropScatter2D.new()
 	scatter.name = node_name
 	scatter.seed = s
@@ -590,6 +650,7 @@ func _make_row(node_name: String, s: int, count: int, w: float, h: float,
 	scatter.width = w * 0.94
 	scatter.band_height = h * float(cfg["band"])
 	scatter.position = Vector2(0.0, (float(cfg["line"]) - 0.5) * h)
+	scatter.surface_sampler = surface
 	scatter.scale_min = float(cfg["smin"])
 	scatter.scale_max = float(cfg["smax"])
 	scatter.haze_amount = float(cfg["haze"])
@@ -646,3 +707,54 @@ func _pal(c: Color, darken: float, desat: float) -> Color:
 		var g := out.get_luminance()
 		out = out.lerp(Color(g, g, g), desat * 0.6)
 	return out
+
+
+# --- silhouette surface sampling (mirrors terrain_silhouette.gdshader) ----------
+# So a prop row can be planted ON a band's ridge line instead of a flat screen line. The
+# noise here is a 1:1 port of the shader's hash/vnoise/fbm, so the sampled surface matches
+# the rendered ridge exactly for the same seed. Evaluated once per prop at build time — no
+# per-frame cost, so dense back rows stay cheap.
+
+static func _sfract(x: float) -> float:
+	return x - floor(x)
+
+
+static func _shash2(p: Vector2) -> float:
+	p = Vector2(_sfract(p.x * 123.34), _sfract(p.y * 456.21))
+	var d := p.x * (p.x + 45.32) + p.y * (p.y + 45.32)
+	p += Vector2(d, d)
+	return _sfract(p.x * p.y)
+
+
+static func _svnoise(p: Vector2) -> float:
+	var i := Vector2(floor(p.x), floor(p.y))
+	var f := Vector2(_sfract(p.x), _sfract(p.y))
+	var u := Vector2(
+		f.x * f.x * f.x * (f.x * (f.x * 6.0 - 15.0) + 10.0),
+		f.y * f.y * f.y * (f.y * (f.y * 6.0 - 15.0) + 10.0))
+	var a := _shash2(i)
+	var b := _shash2(i + Vector2(1.0, 0.0))
+	var c := _shash2(i + Vector2(0.0, 1.0))
+	var d := _shash2(i + Vector2(1.0, 1.0))
+	return lerpf(lerpf(a, b, u.x), lerpf(c, d, u.x), u.y)
+
+
+static func _sfbm(p: Vector2) -> float:
+	var s := 0.0
+	var a := 0.5
+	for _i in 6:
+		s += a * _svnoise(p)
+		p = p * 2.0 + Vector2(1.7, 1.7)
+		a *= 0.5
+	return s
+
+
+## The ridge line — band UV.y (0 = top … 1 = bottom) where the silhouette surface sits — at
+## horizontal position [param ux] (0..1 across the band). Matches the terrain shader's ridge.
+static func _silhouette_top(height: float, roughness: float, seed_v: float, ux: float) -> float:
+	var sd := fmod(seed_v, 997.0)
+	var freq := 2.0 + roughness * 8.0
+	var warp := _sfbm(Vector2(ux * freq * 0.5, sd))
+	var ridge := _sfbm(Vector2(ux * freq + warp * 1.5, sd * 1.3))
+	var base_top := 1.0 - height
+	return base_top - (ridge - 0.5) * height * (0.5 + roughness)

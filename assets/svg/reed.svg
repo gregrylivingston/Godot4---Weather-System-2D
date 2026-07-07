@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <g fill="none" stroke="#8a8a4a" stroke-width="4" stroke-linecap="round">
+    <path d="M30 158 Q28 90 22 26"/>
+    <path d="M48 158 Q50 96 54 20"/>
+    <path d="M66 158 Q66 92 64 14"/>
+    <path d="M84 158 Q88 100 96 40"/>
+    <path d="M60 158 Q60 110 58 70"/>
+  </g>
+  <!-- cattail heads -->
+  <g fill="#6b5230">
+    <rect x="18" y="18" width="9" height="26" rx="4"/>
+    <rect x="50" y="12" width="9" height="26" rx="4"/>
+    <rect x="60" y="6" width="9" height="26" rx="4"/>
+  </g>
+  <g fill="none" stroke="#5c6b34" stroke-width="3" stroke-linecap="round">
+    <path d="M42 158 Q22 120 6 96"/>
+    <path d="M72 158 Q98 118 112 92"/>
+  </g>
+</svg>

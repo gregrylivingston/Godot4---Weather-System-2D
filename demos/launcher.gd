@@ -1,17 +1,22 @@
 extends Control
-## Weather System 2D — playground launcher.
+## Lost Settlement — Event Backdrops playground.
 ##
-## Time of day and weather are independent: combine any of Dawn/Noon/Golden Hour/Dusk/Night
-## with Clear/Cloudy/Foggy/Rainy/Stormy/Snowy. Tweak rain / fog / wind / snow, pick a
-## scenario, toggle props / birds / painterly — the scene rebuilds live. Selecting a weather
-## preset fills the sliders with its values, which you can then adjust. Set as the main scene.
+## Preview the flavoured scene that sits behind a choice event / loading screen. Pick a
+## Region (one per world biome, plus open ocean and the European departure ports); each has
+## its own geography and default sky/weather mood, rendered naturalistically with a light
+## period grade (muted, warm) so it reads as an aged illustration in the game's UI. Toggle
+## "Region default mood" off to drive the sky and weather by hand, or switch to a generic
+## Scenario for the raw scene kit. The scene rebuilds live. Set as the main scene.
 
 const TIME_NAMES := ["Dawn", "Noon", "Golden Hour", "Dusk", "Night"]
 const WEATHER_NAMES := ["Clear", "Cloudy", "Foggy", "Rainy", "Stormy", "Snowy"]
 const CLOUD_NAMES := ["Auto (from weather)", "Clear", "Wispy", "Scattered", "Cumulus", "Overcast", "Stormy"]
 
 var _scene: Node2D
+var _region := 1        # Amazon Jungle — a striking default
 var _scenario := 0
+var _use_region := true
+var _region_mood := true # let the region pick its own sky + weather
 var _time := 1      # Noon
 var _weather := 0   # Clear
 var _cloud := 0     # Auto
@@ -23,8 +28,8 @@ var _rain := 0.0
 var _fog := 0.0
 var _wind := 0.2
 var _seed := 7
-var _live := false        # Phase 5: add a SkyController so the scene animates
-var _day_speed := 0.0     # days per second for the day-night cycle
+var _live := false
+var _day_speed := 0.0
 var _lightning := false
 var _low_graphics := false
 
@@ -81,7 +86,35 @@ func _cloud_preset() -> CloudPreset:
 func _rebuild() -> void:
 	if is_instance_valid(_scene):
 		_scene.queue_free()
+	var ws: WeatherScene
+	if _use_region:
+		ws = Regions.build(Regions.LIST[_region], _region_opts())
+	else:
+		ws = Scenarios.build(Scenarios.LIST[_scenario], _scenario_opts())
+	_scene = ws.build()
+	add_child(_scene)
+	move_child(_scene, 0) # keep the scene behind the UI CanvasLayer
+
+
+# Region mode: let the region choose sky/weather (mood on) or override from the pickers.
+func _region_opts() -> Dictionary:
 	var opts := {
+		"seed": _seed,
+		"props": _props,
+		"birds": _birds,
+		"painterly": _painterly,
+		"live": _live,
+		"day_night_speed": _day_speed,
+		"low_graphics": _low_graphics,
+	}
+	if not _region_mood:
+		opts["time_of_day"] = _time_preset()
+		opts["weather"] = _weather_preset()
+	return opts
+
+
+func _scenario_opts() -> Dictionary:
+	return {
 		"seed": _seed,
 		"time_of_day": _time_preset(),
 		"weather": _weather_preset(),
@@ -98,9 +131,6 @@ func _rebuild() -> void:
 		"lightning": _lightning,
 		"low_graphics": _low_graphics,
 	}
-	_scene = Scenarios.build(Scenarios.LIST[_scenario], opts).build()
-	add_child(_scene)
-	move_child(_scene, 0) # keep the scene behind the UI CanvasLayer
 
 
 # Selecting a weather preset fills the sliders with its conditions, then rebuilds.
@@ -125,7 +155,7 @@ func _build_ui() -> void:
 
 	var panel := PanelContainer.new()
 	panel.position = Vector2(24, 24)
-	panel.custom_minimum_size = Vector2(300, 0)
+	panel.custom_minimum_size = Vector2(310, 0)
 	layer.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -133,16 +163,35 @@ func _build_ui() -> void:
 		margin.add_theme_constant_override("margin_" + side, 14)
 	panel.add_child(margin)
 
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(300, 760)
+	margin.add_child(scroll)
+
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 9)
-	margin.add_child(vb)
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vb)
 
 	var title := Label.new()
-	title.text = "Weather System 2D"
-	title.add_theme_font_size_override("font_size", 20)
+	title.text = "Lost Settlement — Backdrops"
+	title.add_theme_font_size_override("font_size", 19)
 	vb.add_child(title)
 
-	vb.add_child(_section_label("Scenario"))
+	vb.add_child(_toggle("Use region preset", _use_region, func(on):
+		_use_region = on
+		_rebuild()))
+
+	vb.add_child(_section_label("Region"))
+	var region_ob := OptionButton.new()
+	for name in Regions.LIST:
+		region_ob.add_item(name)
+	region_ob.selected = _region
+	region_ob.item_selected.connect(func(i): _region = i; _rebuild())
+	vb.add_child(region_ob)
+
+	vb.add_child(_toggle("Region default sky/weather", _region_mood, func(on): _region_mood = on; _rebuild()))
+
+	vb.add_child(_section_label("Generic scenario (kit)"))
 	var scenario_ob := OptionButton.new()
 	for name in Scenarios.LIST:
 		scenario_ob.add_item(name)
@@ -184,7 +233,7 @@ func _build_ui() -> void:
 	vb.add_child(_toggle("Birds", _birds, func(on): _birds = on; _rebuild()))
 	vb.add_child(_toggle("Painterly look", _painterly, func(on): _painterly = on; _rebuild()))
 
-	vb.add_child(_section_label("Simulation (Phase 5)"))
+	vb.add_child(_section_label("Simulation"))
 	vb.add_child(_toggle("Animate (live sun + weather)", _live, func(on): _live = on; _rebuild()))
 	vb.add_child(_toggle("Lightning (storms)", _lightning, func(on): _lightning = on; _rebuild()))
 	vb.add_child(_toggle("Low graphics (faster)", _low_graphics, func(on): _low_graphics = on; _rebuild()))
@@ -215,7 +264,7 @@ func _build_ui() -> void:
 	vb.add_child(seed_row)
 
 	var hint := Label.new()
-	hint.text = "Mix any time of day with any weather."
+	hint.text = "Regions map to the game's biomes + ports."
 	hint.add_theme_font_size_override("font_size", 11)
 	hint.modulate = Color(1, 1, 1, 0.6)
 	vb.add_child(hint)

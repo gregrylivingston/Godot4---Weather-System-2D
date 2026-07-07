@@ -12,6 +12,7 @@ uniform float blur_mix : hint_range(0.0, 1.0) = 0.55;  // how much soft-focus to
 uniform float grain : hint_range(0.0, 0.15) = 0.035;
 uniform float vignette : hint_range(0.0, 1.0) = 0.22;
 uniform float warmth : hint_range(-0.08, 0.08) = 0.015;
+uniform float saturation : hint_range(0.0, 1.5) = 1.0; // <1 mutes toward an aged, period grade
 
 float hash(vec2 p) {
 	p = fract(p * vec2(123.34, 456.21));
@@ -40,6 +41,10 @@ void fragment() {
 	// Gentle warmth (lift reds, drop blues a touch).
 	col.r += warmth;
 	col.b -= warmth * 0.5;
+
+	// Mute toward luminance for an aged, period-illustration grade.
+	float luma = dot(col, vec3(0.299, 0.587, 0.114));
+	col = mix(vec3(luma), col, saturation);
 
 	// Faint paper grain.
 	float g = hash(FRAGCOORD.xy * 0.5);
