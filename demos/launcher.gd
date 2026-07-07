@@ -1,25 +1,27 @@
 extends Control
 ## Lost Settlement — Event Backdrops playground.
 ##
-## Preview the flavoured scene that sits behind a choice event / loading screen. Pick a
-## Region (one per world biome, plus open ocean and the European departure ports); each has
-## its own geography and default sky/weather mood, rendered naturalistically with a light
-## period grade (muted, warm) so it reads as an aged illustration in the game's UI. Toggle
-## "Region default mood" off to drive the sky and weather by hand, or switch to a generic
-## Scenario for the raw scene kit. The scene rebuilds live. Set as the main scene.
+## Two ways to drive a scene, split across tabs:
+##   • Region  — the game-facing settings: pick a Region (one per world biome, plus open ocean
+##     and the European ports) and a Scenario landform (Coast / River / Lake / Mountains /
+##     Island / Wetland / Open Sea). This is exactly what the game would hand over.
+##   • Kit (advanced) — the raw scene kit: a generic scenario plus fine controls (cloud style,
+##     rain / fog / wind, snow, simulation) that don't apply in region mode.
+## Time of day, weather and seed sit above the tabs and work with either. The active tab is the
+## mode. The scene rebuilds live. Set as the main scene.
 
-const TIME_NAMES := ["Dawn", "Noon", "Golden Hour", "Dusk", "Night"]
-const WEATHER_NAMES := ["Clear", "Cloudy", "Foggy", "Rainy", "Stormy", "Snowy"]
+const TIME_NAMES := ["Region default", "Dawn", "Noon", "Golden Hour", "Dusk", "Night"]
+const WEATHER_NAMES := ["Region default", "Clear", "Cloudy", "Foggy", "Rainy", "Stormy", "Snowy"]
 const CLOUD_NAMES := ["Auto (from weather)", "Clear", "Wispy", "Scattered", "Cumulus", "Overcast", "Stormy"]
 
 var _scene: Node2D
-var _region := 1        # Amazon Jungle — a striking default
-var _scenario := 0
-var _use_region := true
-var _region_mood := true # let the region pick its own sky + weather
-var _time := 1      # Noon
-var _weather := 0   # Clear
-var _cloud := 0     # Auto
+var _mode := 0          # 0 = Region tab, 1 = Kit (advanced) tab
+var _region := 1        # Amazon Jungle
+var _scenario := 1      # Regions.SCENARIOS index; 1 = River (Amazon's default)
+var _kit_scenario := 0  # Scenarios.LIST index
+var _time := 0          # 0 = region default; 1..5 = concrete
+var _weather := 0       # 0 = region default; 1..6 = concrete
+var _cloud := 0         # Auto
 var _props := true
 var _birds := true
 var _painterly := true
@@ -45,26 +47,26 @@ func _ready() -> void:
 	_rebuild()
 
 
+# Index 0 is "region default" (region mode omits the override; kit mode falls back to noon/clear).
 func _time_preset() -> TimeOfDay:
 	match _time:
-		0: return TimeOfDay.dawn()
-		2: return TimeOfDay.golden_hour()
-		3: return TimeOfDay.dusk()
-		4: return TimeOfDay.night()
+		1: return TimeOfDay.dawn()
+		3: return TimeOfDay.golden_hour()
+		4: return TimeOfDay.dusk()
+		5: return TimeOfDay.night()
 		_: return TimeOfDay.noon()
 
 
 func _weather_preset() -> WeatherPreset:
 	match _weather:
-		1: return WeatherPreset.cloudy()
-		2: return WeatherPreset.foggy()
-		3: return WeatherPreset.rainy()
-		4: return WeatherPreset.stormy()
-		5: return WeatherPreset.snowy()
+		2: return WeatherPreset.cloudy()
+		3: return WeatherPreset.foggy()
+		4: return WeatherPreset.rainy()
+		5: return WeatherPreset.stormy()
+		6: return WeatherPreset.snowy()
 		_: return WeatherPreset.clear()
 
 
-# "Auto" derives a cloud style that matches the current weather; otherwise use the pick.
 func _cloud_preset() -> CloudPreset:
 	match _cloud:
 		1: return CloudPreset.clear()
@@ -74,12 +76,12 @@ func _cloud_preset() -> CloudPreset:
 		5: return CloudPreset.overcast()
 		6: return CloudPreset.stormy()
 		_:
-			match _weather: # Auto
-				1: return CloudPreset.scattered()
-				2: return CloudPreset.overcast()
+			match _weather: # Auto (weather index 2=cloudy … 6=snowy)
+				2: return CloudPreset.scattered()
 				3: return CloudPreset.overcast()
-				4: return CloudPreset.stormy()
-				5: return CloudPreset.overcast()
+				4: return CloudPreset.overcast()
+				5: return CloudPreset.stormy()
+				6: return CloudPreset.overcast()
 				_: return CloudPreset.clear()
 
 
@@ -87,28 +89,28 @@ func _rebuild() -> void:
 	if is_instance_valid(_scene):
 		_scene.queue_free()
 	var ws: WeatherScene
-	if _use_region:
+	if _mode == 0:
 		ws = Regions.build(Regions.LIST[_region], _region_opts())
 	else:
-		ws = Scenarios.build(Scenarios.LIST[_scenario], _scenario_opts())
+		ws = Scenarios.build(Scenarios.LIST[_kit_scenario], _scenario_opts())
 	_scene = ws.build()
 	add_child(_scene)
 	move_child(_scene, 0) # keep the scene behind the UI CanvasLayer
 
 
-# Region mode: let the region choose sky/weather (mood on) or override from the pickers.
+# Region mode: the basic settings the game would pass. Time/weather only override the region's
+# signature when the player picks a concrete one (index 0 = leave the region's default).
 func _region_opts() -> Dictionary:
 	var opts := {
 		"seed": _seed,
+		"scenario": Regions.SCENARIOS[_scenario],
 		"props": _props,
 		"birds": _birds,
 		"painterly": _painterly,
-		"live": _live,
-		"day_night_speed": _day_speed,
-		"low_graphics": _low_graphics,
 	}
-	if not _region_mood:
+	if _time > 0:
 		opts["time_of_day"] = _time_preset()
+	if _weather > 0:
 		opts["weather"] = _weather_preset()
 	return opts
 
@@ -133,7 +135,7 @@ func _scenario_opts() -> Dictionary:
 	}
 
 
-# Selecting a weather preset fills the sliders with its conditions, then rebuilds.
+# Picking a concrete weather in Kit mode fills the sliders with its conditions.
 func _on_weather_selected(i: int) -> void:
 	_weather = i
 	var p := _weather_preset()
@@ -141,10 +143,11 @@ func _on_weather_selected(i: int) -> void:
 	_fog = p.fog
 	_wind = p.wind
 	_snow = p.snow
-	_rain_slider.set_value_no_signal(_rain)
-	_fog_slider.set_value_no_signal(_fog)
-	_wind_slider.set_value_no_signal(_wind)
-	_snow_check.set_pressed_no_signal(_snow)
+	if _rain_slider:
+		_rain_slider.set_value_no_signal(_rain)
+		_fog_slider.set_value_no_signal(_fog)
+		_wind_slider.set_value_no_signal(_wind)
+		_snow_check.set_pressed_no_signal(_snow)
 	_rebuild()
 
 
@@ -155,7 +158,7 @@ func _build_ui() -> void:
 
 	var panel := PanelContainer.new()
 	panel.position = Vector2(24, 24)
-	panel.custom_minimum_size = Vector2(310, 0)
+	panel.custom_minimum_size = Vector2(320, 0)
 	layer.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -163,42 +166,16 @@ func _build_ui() -> void:
 		margin.add_theme_constant_override("margin_" + side, 14)
 	panel.add_child(margin)
 
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(300, 760)
-	margin.add_child(scroll)
-
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 9)
-	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(vb)
+	margin.add_child(vb)
 
 	var title := Label.new()
 	title.text = "Lost Settlement — Backdrops"
 	title.add_theme_font_size_override("font_size", 19)
 	vb.add_child(title)
 
-	vb.add_child(_toggle("Use region preset", _use_region, func(on):
-		_use_region = on
-		_rebuild()))
-
-	vb.add_child(_section_label("Region"))
-	var region_ob := OptionButton.new()
-	for name in Regions.LIST:
-		region_ob.add_item(name)
-	region_ob.selected = _region
-	region_ob.item_selected.connect(func(i): _region = i; _rebuild())
-	vb.add_child(region_ob)
-
-	vb.add_child(_toggle("Region default sky/weather", _region_mood, func(on): _region_mood = on; _rebuild()))
-
-	vb.add_child(_section_label("Generic scenario (kit)"))
-	var scenario_ob := OptionButton.new()
-	for name in Scenarios.LIST:
-		scenario_ob.add_item(name)
-	scenario_ob.selected = _scenario
-	scenario_ob.item_selected.connect(func(i): _scenario = i; _rebuild())
-	vb.add_child(scenario_ob)
-
+	# ── Shared basics (work in either mode) ──
 	vb.add_child(_section_label("Time of day"))
 	var time_ob := OptionButton.new()
 	for name in TIME_NAMES:
@@ -214,38 +191,6 @@ func _build_ui() -> void:
 	weather_ob.selected = _weather
 	weather_ob.item_selected.connect(_on_weather_selected)
 	vb.add_child(weather_ob)
-
-	vb.add_child(_section_label("Clouds"))
-	var cloud_ob := OptionButton.new()
-	for name in CLOUD_NAMES:
-		cloud_ob.add_item(name)
-	cloud_ob.selected = _cloud
-	cloud_ob.item_selected.connect(func(i): _cloud = i; _rebuild())
-	vb.add_child(cloud_ob)
-
-	_rain_slider = _slider(vb, "Rain", _rain, func(v): _rain = v; _rebuild())
-	_fog_slider = _slider(vb, "Fog", _fog, func(v): _fog = v; _rebuild())
-	_wind_slider = _slider(vb, "Wind", _wind, func(v): _wind = v; _rebuild())
-
-	_snow_check = _toggle("Snow", _snow, func(on): _snow = on; _rebuild())
-	vb.add_child(_snow_check)
-	vb.add_child(_toggle("Props (trees, rocks)", _props, func(on): _props = on; _rebuild()))
-	vb.add_child(_toggle("Birds", _birds, func(on): _birds = on; _rebuild()))
-	vb.add_child(_toggle("Painterly look", _painterly, func(on): _painterly = on; _rebuild()))
-
-	vb.add_child(_section_label("Simulation"))
-	vb.add_child(_toggle("Animate (live sun + weather)", _live, func(on): _live = on; _rebuild()))
-	vb.add_child(_toggle("Lightning (storms)", _lightning, func(on): _lightning = on; _rebuild()))
-	vb.add_child(_toggle("Low graphics (faster)", _low_graphics, func(on): _low_graphics = on; _rebuild()))
-	vb.add_child(_section_label("Day–night speed"))
-	var day_slider := HSlider.new()
-	day_slider.min_value = 0.0
-	day_slider.max_value = 0.05
-	day_slider.step = 0.002
-	day_slider.value = _day_speed
-	day_slider.custom_minimum_size = Vector2(0, 18)
-	day_slider.value_changed.connect(func(v): _day_speed = v; _rebuild())
-	vb.add_child(day_slider)
 
 	vb.add_child(_section_label("Seed"))
 	var seed_row := HBoxContainer.new()
@@ -263,11 +208,102 @@ func _build_ui() -> void:
 	seed_row.add_child(rnd)
 	vb.add_child(seed_row)
 
+	# ── Mode tabs ──
+	var tabs := TabContainer.new()
+	tabs.custom_minimum_size = Vector2(300, 430)
+	tabs.current_tab = _mode
+	tabs.tab_changed.connect(func(i): _mode = i; _rebuild())
+	vb.add_child(tabs)
+	tabs.add_child(_build_region_tab())
+	tabs.add_child(_build_kit_tab())
+
+
+func _build_region_tab() -> Control:
+	var t := VBoxContainer.new()
+	t.name = "Region"
+	t.add_theme_constant_override("separation", 9)
+
+	t.add_child(_section_label("Region"))
+	var region_ob := OptionButton.new()
+	for name in Regions.LIST:
+		region_ob.add_item(name)
+	region_ob.selected = _region
+	region_ob.item_selected.connect(func(i): _region = i; _rebuild())
+	t.add_child(region_ob)
+
+	t.add_child(_section_label("Scenario (landform)"))
+	var scen_ob := OptionButton.new()
+	for name in Regions.SCENARIOS:
+		scen_ob.add_item(name)
+	scen_ob.selected = _scenario
+	scen_ob.item_selected.connect(func(i): _scenario = i; _rebuild())
+	t.add_child(scen_ob)
+
+	t.add_child(_toggle("Props (trees, rocks)", _props, func(on): _props = on; _rebuild()))
+	t.add_child(_toggle("Birds", _birds, func(on): _birds = on; _rebuild()))
+
 	var hint := Label.new()
-	hint.text = "Regions map to the game's biomes + ports."
+	hint.text = "Region = biome flavour, Scenario = landform.\nTime & weather above ride on top."
 	hint.add_theme_font_size_override("font_size", 11)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.modulate = Color(1, 1, 1, 0.6)
-	vb.add_child(hint)
+	t.add_child(hint)
+	return t
+
+
+func _build_kit_tab() -> Control:
+	var scroll := ScrollContainer.new()
+	scroll.name = "Kit (advanced)"
+	var t := VBoxContainer.new()
+	t.add_theme_constant_override("separation", 9)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(t)
+
+	t.add_child(_section_label("Generic scenario"))
+	var scenario_ob := OptionButton.new()
+	for name in Scenarios.LIST:
+		scenario_ob.add_item(name)
+	scenario_ob.selected = _kit_scenario
+	scenario_ob.item_selected.connect(func(i): _kit_scenario = i; _rebuild())
+	t.add_child(scenario_ob)
+
+	t.add_child(_section_label("Clouds"))
+	var cloud_ob := OptionButton.new()
+	for name in CLOUD_NAMES:
+		cloud_ob.add_item(name)
+	cloud_ob.selected = _cloud
+	cloud_ob.item_selected.connect(func(i): _cloud = i; _rebuild())
+	t.add_child(cloud_ob)
+
+	_rain_slider = _slider(t, "Rain", _rain, func(v): _rain = v; _rebuild())
+	_fog_slider = _slider(t, "Fog", _fog, func(v): _fog = v; _rebuild())
+	_wind_slider = _slider(t, "Wind", _wind, func(v): _wind = v; _rebuild())
+
+	_snow_check = _toggle("Snow", _snow, func(on): _snow = on; _rebuild())
+	t.add_child(_snow_check)
+	t.add_child(_toggle("Painterly look", _painterly, func(on): _painterly = on; _rebuild()))
+
+	t.add_child(_section_label("Simulation"))
+	t.add_child(_toggle("Animate (live sun + weather)", _live, func(on): _live = on; _rebuild()))
+	t.add_child(_toggle("Lightning (storms)", _lightning, func(on): _lightning = on; _rebuild()))
+	t.add_child(_toggle("Low graphics (faster)", _low_graphics, func(on): _low_graphics = on; _rebuild()))
+	t.add_child(_section_label("Day–night speed"))
+	var day_slider := HSlider.new()
+	day_slider.min_value = 0.0
+	day_slider.max_value = 0.05
+	day_slider.step = 0.002
+	day_slider.value = _day_speed
+	day_slider.custom_minimum_size = Vector2(0, 18)
+	day_slider.value_changed.connect(func(v): _day_speed = v; _rebuild())
+	t.add_child(day_slider)
+
+	var hint := Label.new()
+	hint.text = "The raw scene kit. These fine controls don't apply in Region mode."
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.modulate = Color(1, 1, 1, 0.6)
+	t.add_child(hint)
+	return scroll
 
 
 func _on_randomize() -> void:

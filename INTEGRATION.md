@@ -10,10 +10,17 @@ Nothing in the game repo has been changed. This doc is the handoff.
 
 ## What was added here
 
-- **`Regions`** (`addons/weather2d/api/regions.gd`) — one scene recipe per game biome, plus
-  open ocean and the European departure ports, each with its own geography (terrain, water,
-  planted props) and a default sky/weather mood. It exposes `Regions.for_biome(biome_id)`
-  matching `MapSettings.Biome` (`TEMPERATE, JUNGLE, SWAMP, CARIBBEAN, ARID` → `0..4`).
+- **`Regions`** (`addons/weather2d/api/regions.gd`) — a backdrop is a **region** (biome
+  flavour: palette, props, mood — one per game biome, plus open ocean and the European ports)
+  composed with a **scenario** (the landform: `Coast / River / Lake / Mountains / Island /
+  Wetland / Open Sea`). The region supplies the style, the scenario the geography, and
+  time-of-day / weather ride on top — the same basic settings a destination site already
+  carries. It exposes:
+  - `Regions.for_biome(biome_id, opts)` — biome maps to `MapSettings.Biome`
+    (`TEMPERATE, JUNGLE, SWAMP, CARIBBEAN, ARID` → `0..4`).
+  - `Regions.scenario_for_terrain(ocean_sides, rivers, lakes, relief)` — turns a site's
+    terrain dials (the enums on `DeparturePort`) into a fitting scenario name.
+  - `Regions.LIST` and `Regions.SCENARIOS` for menus.
 - **Period grade** — the existing painterly post (`PainterlyLayer` / `painterly.gdshader`)
   gained a `saturation` control. `WeatherScene.painterly(enable, saturation, warmth)` applies
   it; every region uses a slight mute + warmth (`_GRADE_SATURATION` / `_GRADE_WARMTH` in
@@ -43,11 +50,13 @@ event, leaving the burn transition untouched:
 
 ```gdscript
 # A helper (e.g. on an autoload). Renders a region plate to a Texture2D off-screen.
-func render_region_backdrop(region: String, seed: int, size := Vector2i(1600, 900)) -> Texture2D:
+func render_region_backdrop(region: String, seed: int, opts := {}, size := Vector2i(1600, 900)) -> Texture2D:
+    opts = opts.duplicate()
+    opts["seed"] = seed
     var vp := SubViewport.new()
     vp.size = size
     vp.render_target_update_mode = SubViewport.UPDATE_ONCE
-    vp.add_child(Regions.build(region, {"seed": seed}).build())  # scene carries its own Camera2D
+    vp.add_child(Regions.build(region, opts).build())  # scene carries its own Camera2D
     add_child(vp)
     await RenderingServer.frame_post_draw   # let it draw once
     await RenderingServer.frame_post_draw   # + a frame for the screen-read post-process
@@ -61,20 +70,31 @@ than through `SceneTransition._compose_backdrop` (which insets art at 72% width 
 parchment field). Either set the composed backdrop to the texture directly, or set
 `SHIP_WIDTH_FRAC = 1.0` for these.
 
-### Choosing the region per phase
+### Choosing the region + scenario per phase
 
-Map the three launch phases to regions using data the game already has
-(`EventLibrary.choose_for_country` runs per nation; the chosen site carries `biome`):
+Map the three launch phases to a region and scenario using data the game already has
+(`EventLibrary.choose_for_country` runs per nation; the chosen site carries `biome` and the
+terrain dials):
 
-| Phase       | Region                                                                    |
-|-------------|---------------------------------------------------------------------------|
-| Departure   | The nation's home port — `"Seville (Iberia)"`, `"England Coast"`, `"France Coast"` (Europeans), or `"Temperate Woodland"` (native overland start) |
-| Journey     | `"Open Ocean"` (Europeans at sea) or `"Temperate Woodland"` (native overland) |
-| Arrival     | `Regions.for_biome(GameState.player_destination_site.biome)`              |
+| Phase       | Region                                                                    | Scenario |
+|-------------|---------------------------------------------------------------------------|----------|
+| Departure   | Home port — `"Seville (Iberia)"`, `"England Coast"`, `"France Coast"` (Europeans), or `"Temperate Woodland"` (native start) | `"Coast"` / region default |
+| Journey     | `"Open Ocean"` (Europeans) or `"Temperate Woodland"` (native overland)     | `"Open Sea"` / `"River"` |
+| Arrival     | `Regions.for_biome(site.biome)`                                            | `Regions.scenario_for_terrain(site.ocean_sides, site.rivers, site.lakes, site.relief)` |
 
-So `EventLibrary` (or `SceneTransition`, when it builds each backdrop) picks the region for
-the phase, pre-renders it once, and assigns it to the event. Vary `seed` by run so repeat
-playthroughs get different arrangements of the same region.
+So the arrival backdrop matches both the biome *and* the shape of the land the player chose:
+
+```gdscript
+var site := GameState.player_destination_site
+var tex := await render_region_backdrop(Regions.region_for_biome(site.biome), run_seed, {
+    "scenario": Regions.scenario_for_terrain(site.ocean_sides, site.rivers, site.lakes, site.relief),
+    "time_of_day": tod_for_season(GameState.month),   # optional — omit to use the region signature
+})
+```
+
+Pass `scenario` / `time_of_day` / `weather` in the same `opts` the render helper forwards to
+`Regions.build`. Omit any of them to fall back to the region's signature. Vary `seed` by run
+so repeat playthroughs get different arrangements.
 
 ## Alternative: live animated backdrops
 
