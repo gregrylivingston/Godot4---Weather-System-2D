@@ -95,17 +95,26 @@ float rip_hash(vec2 p) {
 	return fract(p.x * p.y);
 }
 
-// Rain ripples: split the surface into cells, each spawning a ring that expands then resets
-// on its own random phase. Returns a bright ring intensity (~0..1) plus is used to distort.
-float ripple_field(vec2 uv, float t) {
-	vec2 g = uv * vec2(wave_scale * 2.5, wave_scale * 2.5);
+// Rain ripples: coarse cells, and only SOME of them ever carry a drop — with the drop jittered
+// off the grid, cycling on its own period with calm water between rings. So the surface reads
+// as scattered raindrops rather than a regular pulsing mesh. Density rises with `amount`.
+float ripple_field(vec2 uv, float t, float amount) {
+	vec2 g = uv * wave_scale * 1.3;
 	vec2 cell = floor(g);
-	vec2 f = fract(g) - 0.5;
-	float ph = rip_hash(cell);
-	float life = fract(t * 0.9 + ph);        // 0..1 age of this cell's ring
-	float radius = life * 0.5;               // grows outward
-	float ring = smoothstep(0.03, 0.0, abs(length(f) - radius));
-	return ring * (1.0 - life);              // fade as it expands
+	vec2 f = fract(g);
+	float h = rip_hash(cell);
+	float h2 = rip_hash(cell + vec2(19.3, 7.1));
+	// Only cells whose hash clears the (rain-lowered) threshold ever ripple.
+	if (h2 < 1.0 - clamp(amount, 0.0, 1.0) * 0.55) return 0.0;
+	// Jitter the drop within its cell so rings aren't grid-aligned.
+	vec2 center = vec2(0.2 + 0.6 * h, 0.2 + 0.6 * fract(h * 7.31));
+	float dist = length(f - center);
+	// Each drop cycles on its own period/phase; a ring shows for only the first half, then calm.
+	float life = fract(t * (0.5 + 0.5 * h) + h * 3.1);
+	if (life > 0.5) return 0.0;
+	float radius = life * 0.5;
+	float ring = smoothstep(0.05, 0.0, abs(dist - radius));
+	return ring * (1.0 - life * 2.0) * amount;   // fade as it expands / with drizzle
 }
 
 void fragment() {
@@ -126,7 +135,7 @@ void fragment() {
 	float distort = (surface - 0.5) * wave_distortion;
 
 	// Rain ripples nudge the reflection and add bright rings (full quality only).
-	float rip = (quality == 1 && rain_ripple > 0.001) ? ripple_field(uv, TIME) * rain_ripple : 0.0;
+	float rip = (quality == 1 && rain_ripple > 0.001) ? ripple_field(uv, TIME, rain_ripple) : 0.0;
 	distort += rip * 0.05;
 
 	// Rolling sine waves along the surface.

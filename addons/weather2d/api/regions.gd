@@ -182,10 +182,12 @@ static func _apply_scenario(ws: WeatherScene, f: Dictionary, scenario: String) -
 			ws.water(WaterBody2D.Mode.STILL)
 			return 18
 		"Open Sea":
-			var haze := TerrainLayer.mountains(f["mountain"])
-			haze.height = 0.16
-			ws.terrain([haze])
-			ws.water(WaterBody2D.Mode.STILL, 0.42)
+			# No land — an open-sea horizon built from receding wave bands: a hazy far sea that
+			# fades into the sky, and a fuller near sea with bigger waves lapping in front.
+			ws.terrain([])
+			ws.no_water()
+			ws.sea_band(0.44, 0.74, {"wave_scale": 14.0, "wave_height": 0.010, "opacity": 0.94, "haze": 0.5})
+			ws.sea_band(0.58, 1.0, {"wave_scale": 7.0, "wave_height": 0.030, "opacity": 0.96, "haze": 0.0})
 			return 0
 		_:  # "Coast"
 			ws.terrain([

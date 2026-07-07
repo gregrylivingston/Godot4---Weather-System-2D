@@ -30,6 +30,7 @@ var _weather: WeatherPreset = null
 var _include_water := true
 var _water_mode := WaterBody2D.Mode.OCEAN_BEACH
 var _water_level := 0.66
+var _sea_bands: Array = []  # extra distant open-water bands (back-to-front) for open-sea scenes
 var _scatter_props := false
 var _prop_count := 16
 var _prop_textures: Array[Texture2D] = []
@@ -116,6 +117,24 @@ func water(mode: int = WaterBody2D.Mode.OCEAN_BEACH, level: float = 0.66) -> Wea
 
 func no_water() -> WeatherScene:
 	_include_water = false
+	return self
+
+
+## Add a distant band of open water (waves only, no shore) behind the near water — layer a few
+## to build an open-sea horizon out of receding wave bands instead of flat land. [param top] /
+## [param bottom] are screen fractions (0 top … 1 bottom); add back-to-front. `opts`: level
+## (0 = fill the whole band), wave_scale, wave_height, opacity, haze (0..1, fade toward the sky
+## for atmospheric distance), glint:bool.
+func sea_band(top: float, bottom: float, opts: Dictionary = {}) -> WeatherScene:
+	_sea_bands.append({
+		"top": top, "bottom": bottom,
+		"level": float(opts.get("level", 0.0)),
+		"wave_scale": float(opts.get("wave_scale", 8.0)),
+		"wave_height": float(opts.get("wave_height", 0.02)),
+		"opacity": float(opts.get("opacity", 0.92)),
+		"haze": float(opts.get("haze", 0.0)),
+		"glint": bool(opts.get("glint", true)),
+	})
 	return self
 
 
@@ -401,6 +420,38 @@ func build() -> Node2D:
 			body.weather_source = NodePath("../SkyController")  # explicit, not group-timing dependent
 		root.add_child(body)
 		water_body = body
+
+	# Distant open-sea wave bands: added back-to-front so each near band laps over the one
+	# behind it, building a layered-wave horizon (used by the Open Sea scenario).
+	var sky_haze := _pal(tod.sky_top, darken, desat)
+	for b in _sea_bands:
+		var sea := WaterBody2D.new()
+		sea.name = "SeaBand"
+		sea.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sea.mode = WaterBody2D.Mode.STILL
+		var sr := _rect_f(float(b["top"]), float(b["bottom"]), w, h)
+		sea.position = sr.position
+		sea.size = sr.size
+		sea.level = float(b["level"])
+		sea.wave_scale = float(b["wave_scale"])
+		sea.wave_height = float(b["wave_height"])
+		sea.water_opacity = float(b["opacity"])
+		var haze := float(b["haze"])
+		sea.deep_color = _pal(tod.water_deep, darken, desat).lerp(sky_haze, haze)
+		sea.shallow_color = _pal(tod.water_shallow, darken, desat).lerp(sky_haze, haze)
+		sea.sun_uv = tod.sun_uv
+		sea.sun_color = tod.sun_color
+		sea.glint_strength = clampf(0.35 * (1.0 - tod.star_intensity), 0.0, 1.0) if bool(b["glint"]) else 0.0
+		sea.foam_amount = 0.15
+		sea.foam_width = 0.03
+		sea.low_graphics = _low_graphics
+		if _weather != null:
+			sea.rain_ripple = _weather.rain
+		if _live:
+			sea.weather_source = NodePath("../SkyController")
+		root.add_child(sea)
+		if water_body == null:
+			water_body = sea  # let the SkyController drive at least the nearest band when live
 
 	# Foreground terrain draws in front of the water (e.g. a near river bank).
 	for i in _layers.size():

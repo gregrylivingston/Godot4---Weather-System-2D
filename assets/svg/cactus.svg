@@ -5,17 +5,14 @@
       <stop offset="1" stop-color="#3d5a30"/>
     </linearGradient>
   </defs>
-  <g fill="url(#s)" stroke="#2f471f" stroke-width="1.4">
-    <!-- central column -->
-    <path d="M50 168 h20 v-150 q0 -12 -10 -12 q-10 0 -10 12 Z"/>
-    <!-- left arm -->
-    <path d="M50 96 q-26 0 -26 22 v18 q0 10 9 10 q9 0 9 -10 v-14 q0 -10 8 -10 Z"/>
-    <!-- right arm -->
-    <path d="M70 80 q26 0 26 22 v30 q0 10 -9 10 q-9 0 -9 -10 v-26 q0 -10 -8 -10 Z"/>
+  <!-- Trunk rises from the base; arms bend out and UP (saguaro). -->
+  <g fill="none" stroke="url(#s)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 166 V28"/>
+    <path d="M60 104 H40 V64"/>
+    <path d="M60 86 H82 V52"/>
   </g>
-  <g stroke="#2f471f" stroke-width="1.2" fill="none" opacity="0.55">
-    <path d="M60 12 v150"/>
-    <path d="M31 120 v22"/>
-    <path d="M87 108 v34"/>
+  <!-- Faint ribs. -->
+  <g fill="none" stroke="#2f471f" stroke-width="1.4" stroke-linecap="round" opacity="0.4">
+    <path d="M60 158 V38"/>
   </g>
 </svg>
