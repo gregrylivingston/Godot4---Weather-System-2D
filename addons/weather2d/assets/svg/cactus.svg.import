@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qjgor7ebr7v7"
-path="res://.godot/imported/reed.svg-b05fdfa72800a8afa5fa9caf8e7c740c.ctex"
+uid="uid://jdpwwdypt6gf"
+path="res://.godot/imported/cactus.svg-bdd5f67da859c43387c85854790accfa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/reed.svg"
-dest_files=["res://.godot/imported/reed.svg-b05fdfa72800a8afa5fa9caf8e7c740c.ctex"]
+source_file="res://addons/weather2d/assets/svg/cactus.svg"
+dest_files=["res://.godot/imported/cactus.svg-bdd5f67da859c43387c85854790accfa.ctex"]
 
 [params]
 

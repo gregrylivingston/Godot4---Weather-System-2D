@@ -54,16 +54,16 @@ var _haze_color := Color(0.72, 0.80, 0.88) # depth-fade color for props (from th
 var _fog_color := Color(0.82, 0.85, 0.88)
 
 const _DEFAULT_FOLIAGE_PATHS := [
-	"res://assets/svg/tree_round.svg",
-	"res://assets/svg/tree_pine.svg",
-	"res://assets/svg/tree_palm.svg",
-	"res://assets/svg/bush.svg",
+	"res://addons/weather2d/assets/svg/tree_round.svg",
+	"res://addons/weather2d/assets/svg/tree_pine.svg",
+	"res://addons/weather2d/assets/svg/tree_palm.svg",
+	"res://addons/weather2d/assets/svg/bush.svg",
 ]
 const _DEFAULT_ACCENT_PATHS := [
-	"res://assets/svg/rock.svg",
-	"res://assets/svg/driftwood.svg",
+	"res://addons/weather2d/assets/svg/rock.svg",
+	"res://addons/weather2d/assets/svg/driftwood.svg",
 ]
-const _BIRD_PATH := "res://assets/svg/bird.svg"
+const _BIRD_PATH := "res://addons/weather2d/assets/svg/bird.svg"
 const _RAIN_SHADER := "res://addons/weather2d/shaders/rain.gdshader"
 const _FOG_SHADER := "res://addons/weather2d/shaders/fog.gdshader"
 const _CLOUD_SHADER := "res://addons/weather2d/shaders/clouds.gdshader"
@@ -326,6 +326,9 @@ func build() -> Node2D:
 
 	# Effective weather values (explicit override, else the preset, else a default).
 	var eff_fog: float = _fog_amount if _fog_amount >= 0.0 else (_weather.fog if _weather != null else 0.0)
+	# Fade the prop atmospheric haze toward the fog colour so distant (back-row) props dissolve
+	# into a foggy sky instead of standing out as dark shapes floating in the mist.
+	_haze_color = _haze_color.lerp(_fog_color, clampf(eff_fog, 0.0, 0.85))
 	var eff_snow: bool = (_snow_force == 1) if _snow_force >= 0 else (_weather.snow if _weather != null else false)
 	_wind_effective = _wind_amount if _wind_amount >= 0.0 else (_weather.wind if _weather != null else 0.3)
 	var rain_amt: float = _rain_amount if _rain_amount >= 0.0 else (_weather.rain if _weather != null else 0.0)
@@ -616,8 +619,8 @@ func _load_textures(paths: Array) -> Array[Texture2D]:
 # `anchor` rows (the silhouette hills / treeline) plant on the band's actual ridge instead of
 # a flat screen line, so nothing floats above the terrain where the ridge dips.
 const _ROW_CONFIG := {
-	TerrainLayer.Role.HILL:       {"line": 0.520, "smin": 0.13, "smax": 0.24, "haze": 0.60, "band": 0.030, "count_mul": 2.0, "accents": false, "anchor": true},
-	TerrainLayer.Role.TREELINE:   {"line": 0.560, "smin": 0.24, "smax": 0.40, "haze": 0.48, "band": 0.035, "count_mul": 1.5, "accents": false, "anchor": true},
+	TerrainLayer.Role.HILL:       {"line": 0.520, "smin": 0.13, "smax": 0.24, "haze": 0.70, "band": 0.030, "count_mul": 2.0, "accents": false, "anchor": true},
+	TerrainLayer.Role.TREELINE:   {"line": 0.560, "smin": 0.24, "smax": 0.40, "haze": 0.55, "band": 0.035, "count_mul": 1.5, "accents": false, "anchor": true},
 	TerrainLayer.Role.GROUND:     {"line": 0.655, "smin": 0.52, "smax": 0.92, "haze": 0.25, "band": 0.050, "count_mul": 0.85, "accents": true, "anchor": false},
 	TerrainLayer.Role.FOREGROUND: {"line": 0.850, "smin": 0.90, "smax": 1.35, "haze": 0.10, "band": 0.050, "count_mul": 0.55, "accents": true, "anchor": false},
 }
@@ -636,7 +639,7 @@ func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
 	var land_floor_y := INF
 	if _include_water:
 		if _water_mode == WaterBody2D.Mode.RIVER:
-			land_floor_y = _rect_f(0.62, 0.82, w, h).position.y - h * 0.006
+			land_floor_y = _rect_f(0.62, 0.82, w, h).position.y - h * 0.015
 		else:
 			var gnd: TerrainLayer = null
 			for l in _layers:
@@ -661,10 +664,12 @@ func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
 		var dens := 0.6 if _low_graphics else 1.0
 		var count := maxi(2, int(round(_prop_count * float(cfg["count_mul"]) * dens)))
 		var scatter_y := (float(cfg["line"]) - 0.5) * h
-		# Keep coast/back rows out of the water. The FOREGROUND is exempt — it's the near bank,
-		# which in a river scene sits in front of (below) the water on purpose.
-		if src.role != TerrainLayer.Role.FOREGROUND:
-			scatter_y = minf(scatter_y, land_floor_y)
+		# The hard floor (in the scatter node's local space) that keeps this row's props out of
+		# the water — every prop's base is clamped to it. FOREGROUND is exempt: it's the near
+		# bank, which in a river scene sits in front of (below) the water on purpose.
+		var floor_local := INF
+		if _include_water and land_floor_y != INF and src.role != TerrainLayer.Role.FOREGROUND:
+			floor_local = land_floor_y - scatter_y
 		# For silhouette back rows, build a curve that returns the ridge y at a given x, so
 		# props plant on the terrain rather than a flat line. Mirrors the band geometry.
 		var surface := Callable()
@@ -677,23 +682,23 @@ func _add_prop_rows(root: Node2D, w: float, h: float) -> void:
 			surface = func(local_x: float) -> float:
 				var ux := clampf((local_x - band.position.x) / band.size.x, 0.0, 1.0)
 				var top := WeatherScene._silhouette_top(lheight, lrough, lseed, ux)
-				# Sit just below the crest so trees read as planted on the slope, not balanced
-				# on the exact edge; clamp to the shore so none stand in open water; then
-				# rebase into the scatter node's local space.
-				var sy := band.position.y + top * band.size.y + h * 0.010
+				# Sit down the slope, well below the crest, so trees read as planted on the
+				# hill's body (and out of a fog-washed ridgeline), not balanced on the edge;
+				# clamp to the shore; then rebase into the scatter node's local space.
+				var sy := band.position.y + top * band.size.y + h * 0.030
 				return minf(sy, land_floor_y) - scatter_y
 		root.add_child(_make_row("Props%d_%s" % [row_n, _role_name(src.role)],
-			_seed + 100 + i * 7, count, w, h, foliage, haze_col, cfg, PropScatter2D.ANIM_SWAY, surface))
+			_seed + 100 + i * 7, count, w, h, foliage, haze_col, cfg, PropScatter2D.ANIM_SWAY, surface, floor_local))
 		# Rocks/driftwood on the nearer rows (only with the default prop set).
 		if override.is_empty() and bool(cfg["accents"]) and not accents.is_empty():
 			root.add_child(_make_row("Accents%d" % row_n,
-				_seed + 150 + i * 7, maxi(1, count / 5), w, h, accents, haze_col, cfg, PropScatter2D.ANIM_NONE, surface))
+				_seed + 150 + i * 7, maxi(1, count / 5), w, h, accents, haze_col, cfg, PropScatter2D.ANIM_NONE, surface, floor_local))
 		row_n += 1
 
 
 func _make_row(node_name: String, s: int, count: int, w: float, h: float,
 		textures: Array[Texture2D], haze_col: Color, cfg: Dictionary, anim: int,
-		surface := Callable()) -> PropScatter2D:
+		surface := Callable(), base_floor := INF) -> PropScatter2D:
 	var scatter := PropScatter2D.new()
 	scatter.name = node_name
 	scatter.seed = s
@@ -702,6 +707,7 @@ func _make_row(node_name: String, s: int, count: int, w: float, h: float,
 	scatter.band_height = h * float(cfg["band"])
 	scatter.position = Vector2(0.0, (float(cfg["line"]) - 0.5) * h)
 	scatter.surface_sampler = surface
+	scatter.base_floor = base_floor
 	scatter.scale_min = float(cfg["smin"])
 	scatter.scale_max = float(cfg["smax"])
 	scatter.haze_amount = float(cfg["haze"])

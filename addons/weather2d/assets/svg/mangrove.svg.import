@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d6ihrg7308rk"
-path="res://.godot/imported/grass_tuft.svg-bec955d571e3b5430e6d33d3d3b406a3.ctex"
+uid="uid://chk6ervrexoyf"
+path="res://.godot/imported/mangrove.svg-b98eaa9e4d6ab59161c076a9eff04b8c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/grass_tuft.svg"
-dest_files=["res://.godot/imported/grass_tuft.svg-bec955d571e3b5430e6d33d3d3b406a3.ctex"]
+source_file="res://addons/weather2d/assets/svg/mangrove.svg"
+dest_files=["res://.godot/imported/mangrove.svg-b98eaa9e4d6ab59161c076a9eff04b8c.ctex"]
 
 [params]
 

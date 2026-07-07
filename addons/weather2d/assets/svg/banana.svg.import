@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chk6ervrexoyf"
-path="res://.godot/imported/mangrove.svg-33e309b113cc2812ff4f27aa6d88cb07.ctex"
+uid="uid://byoqi4l6tp1ah"
+path="res://.godot/imported/banana.svg-c80ee6fbe637d15abcaff467fa0536d0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/mangrove.svg"
-dest_files=["res://.godot/imported/mangrove.svg-33e309b113cc2812ff4f27aa6d88cb07.ctex"]
+source_file="res://addons/weather2d/assets/svg/banana.svg"
+dest_files=["res://.godot/imported/banana.svg-c80ee6fbe637d15abcaff467fa0536d0.ctex"]
 
 [params]
 

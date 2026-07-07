@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byoqi4l6tp1ah"
-path="res://.godot/imported/banana.svg-d428156531dfbf99a3e4e091948fed60.ctex"
+uid="uid://qjgor7ebr7v7"
+path="res://.godot/imported/reed.svg-549aa24ad42739bbc401bd73ebbb5337.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/banana.svg"
-dest_files=["res://.godot/imported/banana.svg-d428156531dfbf99a3e4e091948fed60.ctex"]
+source_file="res://addons/weather2d/assets/svg/reed.svg"
+dest_files=["res://.godot/imported/reed.svg-549aa24ad42739bbc401bd73ebbb5337.ctex"]
 
 [params]
 

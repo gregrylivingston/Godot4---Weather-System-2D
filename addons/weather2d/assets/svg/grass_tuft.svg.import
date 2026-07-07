@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cys4k2l1g0n3b"
-path="res://.godot/imported/fern.svg-65065f04e74297db7514a4ebf120cb7c.ctex"
+uid="uid://d6ihrg7308rk"
+path="res://.godot/imported/grass_tuft.svg-a663e0a44892d552d635e45c4955da53.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/fern.svg"
-dest_files=["res://.godot/imported/fern.svg-65065f04e74297db7514a4ebf120cb7c.ctex"]
+source_file="res://addons/weather2d/assets/svg/grass_tuft.svg"
+dest_files=["res://.godot/imported/grass_tuft.svg-a663e0a44892d552d635e45c4955da53.ctex"]
 
 [params]
 

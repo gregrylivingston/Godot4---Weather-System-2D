@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cg277gkwws42y"
-path="res://.godot/imported/tree_palm.svg-c2c2f726fb8858756ca6b34000ffae4b.ctex"
+uid="uid://b37lffo61v3sk"
+path="res://.godot/imported/bird.svg-b66d85253213bad017bde5f62d8f85f9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/tree_palm.svg"
-dest_files=["res://.godot/imported/tree_palm.svg-c2c2f726fb8858756ca6b34000ffae4b.ctex"]
+source_file="res://addons/weather2d/assets/svg/bird.svg"
+dest_files=["res://.godot/imported/bird.svg-b66d85253213bad017bde5f62d8f85f9.ctex"]
 
 [params]
 

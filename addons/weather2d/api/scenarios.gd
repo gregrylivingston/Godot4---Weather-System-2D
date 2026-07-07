@@ -16,10 +16,10 @@ extends RefCounted
 
 const LIST := ["Beach", "Small Island", "River", "Lake", "Mountains"]
 
-const _PALM := "res://assets/svg/tree_palm.svg"
-const _ROUND := "res://assets/svg/tree_round.svg"
-const _PINE := "res://assets/svg/tree_pine.svg"
-const _BUSH := "res://assets/svg/bush.svg"
+const _PALM := "res://addons/weather2d/assets/svg/tree_palm.svg"
+const _ROUND := "res://addons/weather2d/assets/svg/tree_round.svg"
+const _PINE := "res://addons/weather2d/assets/svg/tree_pine.svg"
+const _BUSH := "res://addons/weather2d/assets/svg/bush.svg"
 
 
 static func build(scenario: String, opts: Dictionary = {}) -> WeatherScene:

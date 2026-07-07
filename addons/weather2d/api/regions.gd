@@ -60,16 +60,16 @@ const _BIOME_REGION := [
 	"Arid Coast",
 ]
 
-const _PALM := "res://assets/svg/tree_palm.svg"
-const _ROUND := "res://assets/svg/tree_round.svg"
-const _PINE := "res://assets/svg/tree_pine.svg"
-const _BUSH := "res://assets/svg/bush.svg"
-const _FERN := "res://assets/svg/fern.svg"
-const _BANANA := "res://assets/svg/banana.svg"
-const _MANGROVE := "res://assets/svg/mangrove.svg"
-const _CACTUS := "res://assets/svg/cactus.svg"
-const _REED := "res://assets/svg/reed.svg"
-const _DEAD := "res://assets/svg/dead_tree.svg"
+const _PALM := "res://addons/weather2d/assets/svg/tree_palm.svg"
+const _ROUND := "res://addons/weather2d/assets/svg/tree_round.svg"
+const _PINE := "res://addons/weather2d/assets/svg/tree_pine.svg"
+const _BUSH := "res://addons/weather2d/assets/svg/bush.svg"
+const _FERN := "res://addons/weather2d/assets/svg/fern.svg"
+const _BANANA := "res://addons/weather2d/assets/svg/banana.svg"
+const _MANGROVE := "res://addons/weather2d/assets/svg/mangrove.svg"
+const _CACTUS := "res://addons/weather2d/assets/svg/cactus.svg"
+const _REED := "res://addons/weather2d/assets/svg/reed.svg"
+const _DEAD := "res://addons/weather2d/assets/svg/dead_tree.svg"
 
 
 static func build(region: String, opts: Dictionary = {}) -> WeatherScene:

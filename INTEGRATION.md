@@ -32,15 +32,16 @@ Nothing in the game repo has been changed. This doc is the handoff.
 
 ## Porting into the game
 
-Copy two folders from this repo into `lost-settlement/`:
+Copy **one** self-contained folder from this repo into `lost-settlement/`:
 
-1. `addons/weather2d/` — the kit (nodes, shaders, `Regions`, `WeatherScene`, presets).
-2. `assets/svg/` — the props. The kit loads them by the hardcoded path `res://assets/svg/…`,
-   so keep them there (or edit the `const` paths in `weather_scene.gd` / `regions.gd`).
+- `addons/weather2d/` — the whole kit: nodes, shaders, `Regions` / `WeatherScene` / presets,
+  and its own props under `addons/weather2d/assets/svg/` (the kit loads them from there, so
+  there's no top-level `assets/` folder to add and nothing to reconcile with the game's
+  `resource/` tree).
 
 Then enable the plugin in **Project Settings → Plugins** (or just let the `class_name`s
-register — the kit works without the editor plugin enabled). Both projects are Godot 4.7, so
-the shaders and nodes drop in as-is.
+register — the kit works without the editor plugin enabled). Both projects are Godot 4.7 and
+none of the kit's global class names collide with the game's, so it drops in as-is.
 
 ## Wiring it to events (recommended: pre-render to a texture)
 

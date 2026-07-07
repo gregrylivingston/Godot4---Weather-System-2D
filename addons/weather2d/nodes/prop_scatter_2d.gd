@@ -11,7 +11,7 @@ extends Node2D
 ##
 ## [codeblock]
 ## var trees := PropScatter2D.new()
-## trees.textures = [load("res://assets/svg/tree_round.svg")]
+## trees.textures = [load("res://addons/weather2d/assets/svg/tree_round.svg")]
 ## trees.count = 16
 ## trees.width = 1800.0
 ## add_child(trees)
@@ -116,6 +116,10 @@ const _FLY_SHADER := "res://addons/weather2d/shaders/bird_fly.gdshader"
 ## floating above the silhouette). Set in code by [WeatherScene]; evaluated once per rebuild.
 var surface_sampler := Callable()
 
+## Optional hard floor (local y). No prop's base is placed below this — used to keep a row's
+## scatter + depth jitter from dipping props into the water. INF = no floor. Set by [WeatherScene].
+var base_floor := INF
+
 var _rebuild_queued := false
 var _shadows: Array = [] # [{pos: Vector2, r: float}]
 var _fly: Array = []     # birds animated by _process
@@ -164,6 +168,9 @@ func _rebuild() -> void:
 		# vertical scatter so the row isn't a razor-straight line of trees.
 		if surface_sampler.is_valid():
 			y = float(surface_sampler.call(x)) + rng.randf_range(-0.35, 0.35) * band_height
+		# Never plant a base below the floor (e.g. the shoreline) — keeps props out of water.
+		if base_floor != INF:
+			y = minf(y, base_floor)
 		var s := lerpf(scale_min, scale_max, depth) if depth_scale else rng.randf_range(scale_min, scale_max)
 		items.append({
 			"x": x,

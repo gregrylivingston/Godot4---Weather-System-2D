@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dje5durr7cpgs"
-path="res://.godot/imported/bush.svg-827240fe1bca83fa646bd663efc8e6ea.ctex"
+uid="uid://dc1t263vcltdt"
+path="res://.godot/imported/dead_tree.svg-3e9dde1ad994015453567e439e3ff337.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/bush.svg"
-dest_files=["res://.godot/imported/bush.svg-827240fe1bca83fa646bd663efc8e6ea.ctex"]
+source_file="res://addons/weather2d/assets/svg/dead_tree.svg"
+dest_files=["res://.godot/imported/dead_tree.svg-3e9dde1ad994015453567e439e3ff337.ctex"]
 
 [params]
 

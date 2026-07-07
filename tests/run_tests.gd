@@ -52,6 +52,7 @@ func _run() -> void:
 	await _test_preset_roundtrip_capture()
 	await _test_rain_implies_clouds()
 	await _test_scenarios()
+	await _test_regions()
 	await _test_launcher_loads()
 
 	print("== %d passed, %d failed ==" % [_passed, _failed])
@@ -267,7 +268,7 @@ func _test_scene_preset_roundtrip() -> void:
 
 func _test_prop_scatter() -> void:
 	print("PropScatter2D — seeded, deterministic scatter")
-	var tex := load("res://assets/svg/tree_round.svg") as Texture2D
+	var tex := load("res://addons/weather2d/assets/svg/tree_round.svg") as Texture2D
 	_check(tex != null, "tree SVG imports as a texture")
 	var a := PropScatter2D.new()
 	a.textures = [tex]
@@ -293,7 +294,7 @@ func _test_prop_scatter() -> void:
 
 func _test_prop_animation() -> void:
 	print("PropScatter2D — SWAY assigns an animation material")
-	var tex := load("res://assets/svg/tree_round.svg") as Texture2D
+	var tex := load("res://addons/weather2d/assets/svg/tree_round.svg") as Texture2D
 	var s := PropScatter2D.new()
 	s.textures = [tex]
 	s.count = 3
@@ -641,6 +642,56 @@ func _test_scenarios() -> void:
 			and scene.get_node_or_null("Sky") != null
 		_check(ok, "%s builds" % name)
 		scene.free()
+
+
+func _test_regions() -> void:
+	print("Regions — every region builds, in every scenario, with no props in the water")
+	# Every region at its signature look.
+	for name in Regions.LIST:
+		var scene := Regions.build(name, {"seed": 3}).build()
+		await _add_ready(scene)
+		_check(scene is Node2D and scene.get_node_or_null("Sky") != null, "%s builds" % name)
+		_check(_no_props_in_water(scene), "%s plants nothing in the water" % name)
+		scene.free()
+	# Every scenario works on a region (flavour composes with landform).
+	for scen in Regions.SCENARIOS:
+		var scene := Regions.build("Amazon Jungle", {"seed": 5, "scenario": scen}).build()
+		await _add_ready(scene)
+		_check(scene is Node2D and scene.get_node_or_null("Sky") != null, "Amazon as %s builds" % scen)
+		scene.free()
+	# The game-facing mappers.
+	_check(Regions.region_for_biome(3) == "Caribbean", "biome 3 → Caribbean")
+	_check(Regions.region_for_biome(99) == Regions.LIST[0], "out-of-range biome → temperate")
+	_check(Regions.scenario_for_terrain(4, 0, 0, 1) == "Island", "island: sea on all sides")
+	_check(Regions.scenario_for_terrain(1, 0, 0, 3) == "Mountains", "mountainous relief → Mountains")
+	_check(Regions.for_biome(1, {"seed": 1}) is WeatherScene, "for_biome returns a builder")
+
+
+# A back band's ridge can dip below the waterline; assert no scattered foliage base sits in
+# open water. Checks each PropScatter2D foliage row against the STILL/OCEAN waterlines. RIVER
+# is skipped (its near bank sits in front of the water on purpose), as are the FOREGROUND row
+# and the small accent (rock/driftwood) rows.
+func _no_props_in_water(scene: Node2D) -> bool:
+	var waters: Array = []
+	for c in scene.get_children():
+		if c is WaterBody2D and c.mode != WaterBody2D.Mode.RIVER:
+			waters.append(c.position.y + c.level * c.size.y)
+	if waters.is_empty():
+		return true
+	for c in scene.get_children():
+		if not (c is PropScatter2D):
+			continue
+		var nm := String(c.name)
+		if nm.ends_with("foreground") or nm.begins_with("Accents"):
+			continue
+		for sp in c.get_children():
+			if not (sp is Sprite2D):
+				continue
+			var base_y: float = c.position.y + sp.position.y
+			for wy in waters:
+				if base_y > float(wy) + 2.0:  # a couple px tolerance
+					return false
+	return true
 
 
 func _test_launcher_loads() -> void:

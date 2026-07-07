@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://s6g0rvma5u0u"
-path="res://.godot/imported/flower.svg-8e5d512a5212a29c22010a13e0fa478a.ctex"
+uid="uid://crg0wtxenoijg"
+path="res://.godot/imported/driftwood.svg-15970a8e7490836c830a7134d112ff2a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/flower.svg"
-dest_files=["res://.godot/imported/flower.svg-8e5d512a5212a29c22010a13e0fa478a.ctex"]
+source_file="res://addons/weather2d/assets/svg/driftwood.svg"
+dest_files=["res://.godot/imported/driftwood.svg-15970a8e7490836c830a7134d112ff2a.ctex"]
 
 [params]
 

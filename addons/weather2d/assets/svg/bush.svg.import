@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://jdpwwdypt6gf"
-path="res://.godot/imported/cactus.svg-aa7d08a1a906ad93970c2c3f2c56d6a8.ctex"
+uid="uid://dje5durr7cpgs"
+path="res://.godot/imported/bush.svg-007f86d31763dd88e204e86046c7bbea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/cactus.svg"
-dest_files=["res://.godot/imported/cactus.svg-aa7d08a1a906ad93970c2c3f2c56d6a8.ctex"]
+source_file="res://addons/weather2d/assets/svg/bush.svg"
+dest_files=["res://.godot/imported/bush.svg-007f86d31763dd88e204e86046c7bbea.ctex"]
 
 [params]
 
