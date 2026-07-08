@@ -51,16 +51,16 @@ var _haze_color := Color(0.72, 0.80, 0.88) # depth-fade color for props (from th
 var _fog_color := Color(0.82, 0.85, 0.88)
 
 const _DEFAULT_FOLIAGE_PATHS := [
-	"res://assets/svg/tree_round.svg",
-	"res://assets/svg/tree_pine.svg",
-	"res://assets/svg/tree_palm.svg",
-	"res://assets/svg/bush.svg",
+	"res://addons/weather2d/assets/svg/tree_round.svg",
+	"res://addons/weather2d/assets/svg/tree_pine.svg",
+	"res://addons/weather2d/assets/svg/tree_palm.svg",
+	"res://addons/weather2d/assets/svg/bush.svg",
 ]
 const _DEFAULT_ACCENT_PATHS := [
-	"res://assets/svg/rock.svg",
-	"res://assets/svg/driftwood.svg",
+	"res://addons/weather2d/assets/svg/rock.svg",
+	"res://addons/weather2d/assets/svg/driftwood.svg",
 ]
-const _BIRD_PATH := "res://assets/svg/bird.svg"
+const _BIRD_PATH := "res://addons/weather2d/assets/svg/bird.svg"
 const _RAIN_SHADER := "res://addons/weather2d/shaders/rain.gdshader"
 const _FOG_SHADER := "res://addons/weather2d/shaders/fog.gdshader"
 const _CLOUD_SHADER := "res://addons/weather2d/shaders/clouds.gdshader"

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dje5durr7cpgs"
-path="res://.godot/imported/bush.svg-827240fe1bca83fa646bd663efc8e6ea.ctex"
+uid="uid://cnnda1dv88as5"
+path="res://.godot/imported/tree_pine.svg-17be499e67fb5b01cae758b9fa91fc34.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/bush.svg"
-dest_files=["res://.godot/imported/bush.svg-827240fe1bca83fa646bd663efc8e6ea.ctex"]
+source_file="res://addons/weather2d/assets/svg/tree_pine.svg"
+dest_files=["res://.godot/imported/tree_pine.svg-17be499e67fb5b01cae758b9fa91fc34.ctex"]
 
 [params]
 

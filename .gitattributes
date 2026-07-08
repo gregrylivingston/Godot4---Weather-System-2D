@@ -1,2 +1,8 @@
-# Normalize EOL for all files that Git considers text files.
+# Normalize line endings for all files that Git considers text files.
 * text=auto eol=lf
+
+# Only ship the addon itself in the Godot Asset Library download (git archive honors these),
+# so users get the plugin — not the demos, docs, tests, and repo scaffolding.
+/**        export-ignore
+/addons    !export-ignore
+/addons/** !export-ignore

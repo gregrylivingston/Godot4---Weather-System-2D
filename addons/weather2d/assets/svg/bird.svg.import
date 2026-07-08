@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://s6g0rvma5u0u"
-path="res://.godot/imported/flower.svg-8e5d512a5212a29c22010a13e0fa478a.ctex"
+uid="uid://b37lffo61v3sk"
+path="res://.godot/imported/bird.svg-b66d85253213bad017bde5f62d8f85f9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/flower.svg"
-dest_files=["res://.godot/imported/flower.svg-8e5d512a5212a29c22010a13e0fa478a.ctex"]
+source_file="res://addons/weather2d/assets/svg/bird.svg"
+dest_files=["res://.godot/imported/bird.svg-b66d85253213bad017bde5f62d8f85f9.ctex"]
 
 [params]
 

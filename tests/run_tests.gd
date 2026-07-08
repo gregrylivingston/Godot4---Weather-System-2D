@@ -267,7 +267,7 @@ func _test_scene_preset_roundtrip() -> void:
 
 func _test_prop_scatter() -> void:
 	print("PropScatter2D — seeded, deterministic scatter")
-	var tex := load("res://assets/svg/tree_round.svg") as Texture2D
+	var tex := load("res://addons/weather2d/assets/svg/tree_round.svg") as Texture2D
 	_check(tex != null, "tree SVG imports as a texture")
 	var a := PropScatter2D.new()
 	a.textures = [tex]
@@ -293,7 +293,7 @@ func _test_prop_scatter() -> void:
 
 func _test_prop_animation() -> void:
 	print("PropScatter2D — SWAY assigns an animation material")
-	var tex := load("res://assets/svg/tree_round.svg") as Texture2D
+	var tex := load("res://addons/weather2d/assets/svg/tree_round.svg") as Texture2D
 	var s := PropScatter2D.new()
 	s.textures = [tex]
 	s.count = 3

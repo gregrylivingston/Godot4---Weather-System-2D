@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://i483svyd7hpv"
-path="res://.godot/imported/rock.svg-a64113f19f18e009a2814c5fc6bdb665.ctex"
+uid="uid://dje5durr7cpgs"
+path="res://.godot/imported/bush.svg-007f86d31763dd88e204e86046c7bbea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/rock.svg"
-dest_files=["res://.godot/imported/rock.svg-a64113f19f18e009a2814c5fc6bdb665.ctex"]
+source_file="res://addons/weather2d/assets/svg/bush.svg"
+dest_files=["res://.godot/imported/bush.svg-007f86d31763dd88e204e86046c7bbea.ctex"]
 
 [params]
 

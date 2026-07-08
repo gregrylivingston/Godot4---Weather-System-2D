@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnnda1dv88as5"
-path="res://.godot/imported/tree_pine.svg-2affb41c39d5d9b0a1e128792d03e01b.ctex"
+uid="uid://crg0wtxenoijg"
+path="res://.godot/imported/driftwood.svg-15970a8e7490836c830a7134d112ff2a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/tree_pine.svg"
-dest_files=["res://.godot/imported/tree_pine.svg-2affb41c39d5d9b0a1e128792d03e01b.ctex"]
+source_file="res://addons/weather2d/assets/svg/driftwood.svg"
+dest_files=["res://.godot/imported/driftwood.svg-15970a8e7490836c830a7134d112ff2a.ctex"]
 
 [params]
 

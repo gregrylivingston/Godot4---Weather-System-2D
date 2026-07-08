@@ -5,13 +5,13 @@ extends Node2D
 ## randomness — the same seed always produces the same arrangement. Part of the Weather
 ## System 2D kit's hybrid art pipeline (SVG assets + shaders).
 ##
-## Assign a few [member textures] (e.g. the SVGs under [code]assets/svg/[/code]) and a
-## [member count]. Generated sprites are internal (not saved with the scene) and rebuild
+## Assign a few [member textures] (e.g. the SVGs under [code]addons/weather2d/assets/svg/[/code])
+## and a [member count]. Generated sprites are internal (not saved with the scene) and rebuild
 ## from the seed on load, so scenes stay tiny and reproducible.
 ##
 ## [codeblock]
 ## var trees := PropScatter2D.new()
-## trees.textures = [load("res://assets/svg/tree_round.svg")]
+## trees.textures = [load("res://addons/weather2d/assets/svg/tree_round.svg")]
 ## trees.count = 16
 ## trees.width = 1800.0
 ## add_child(trees)

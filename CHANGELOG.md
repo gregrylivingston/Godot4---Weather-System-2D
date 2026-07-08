@@ -38,6 +38,15 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   (`NodePath`) used in preference to the `"SkySetting"` group lookup; the connection is
   null-safe and idempotent, so a missing source leaves the water static instead of erroring.
   The builder points live water at its `SkyController` explicitly.
+- **Asset Library packaging — the addon is now self-contained.**
+  - `.gitattributes` `export-ignore`s everything except `addons/`, so the Asset Library download
+    (a `git archive`) ships just the plugin — not the demos, docs, tests, and repo scaffolding.
+  - The vector props moved from the top-level `assets/svg/` into
+    **`addons/weather2d/assets/svg/`** (paths updated in `weather_scene.gd` / `scenarios.gd` /
+    `prop_scatter_2d.gd`), so a download that contains only `addons/` still scatters props —
+    previously it would have loaded nothing.
+  - A `LICENSE` and a short `README.md` are bundled inside `addons/weather2d/` so the distributed
+    asset carries its license and a pointer to the full docs.
 - Test suite up to **113 checks** (low-graphics, weather source, preset round-trip, causality).
 
 ## [0.1.0] — 2026-07-06

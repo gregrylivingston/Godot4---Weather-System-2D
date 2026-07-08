@@ -8,7 +8,7 @@ and PRs are all welcome.
 - `addons/weather2d/` — the plugin (nodes, shaders, resources, api). See
   [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - `demos/` — example scenes (`launcher` is the main scene).
-- `assets/svg/` — vector props.
+- `addons/weather2d/assets/svg/` — vector props (bundled inside the addon so it's self-contained).
 - `tests/` — a zero-dependency headless test suite.
 - `docs/` — architecture, roadmap, and `docs/api/` reference.
 

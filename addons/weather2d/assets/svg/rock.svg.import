@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0f517dilkrl6"
-path="res://.godot/imported/tree_round.svg-2aca67110bf1ef26fc20a275346d85bf.ctex"
+uid="uid://i483svyd7hpv"
+path="res://.godot/imported/rock.svg-eac0d9f92a5d3e596607ce7bbc6c762a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/tree_round.svg"
-dest_files=["res://.godot/imported/tree_round.svg-2aca67110bf1ef26fc20a275346d85bf.ctex"]
+source_file="res://addons/weather2d/assets/svg/rock.svg"
+dest_files=["res://.godot/imported/rock.svg-eac0d9f92a5d3e596607ce7bbc6c762a.ctex"]
 
 [params]
 
